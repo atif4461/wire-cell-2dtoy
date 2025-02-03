@@ -8,6 +8,20 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for DataSignalWien2DFDS class 
+ * @param[in] fds Frame data source object reference
+ * @param[in] gds Geometry data source object reference
+ * @param[in,out] umap Chirp map for u plane
+ * @param[in,out] vmap Chirp map for v plane
+ * @param[in,out] wmap Chirp map for w plane
+ * @param[in] bins_per_frame1 Number of bins per frame
+ * @param[in] nframes_total Total number of frames
+ * @param[in] time_offset_uv Time offset between u and v planes
+ * @param[in] time_offset_uw Time offset between u and w planes
+ * @param[in] overall_time_offset Overall time offset
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::DataSignalWien2DFDS::DataSignalWien2DFDS(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds,WCP::ChirpMap& umap, WCP::ChirpMap& vmap, WCP::ChirpMap& wmap, int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, float overall_time_offset)
   : fds(fds)
   , gds(gds)
@@ -56,12 +70,23 @@ int WCP2dToy::DataSignalWien2DFDS::size() const{
   return max_frames;
 }
 
+/**
+ * Saves the data signal in a Wien2D FDS format to a file.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalWien2DFDS::Save(){
   // TFile *file = new TFile("temp_wien.root","RECREATE");
   // file->Write();
   // file->Close();
 }
 
+/**
+ * @brief Jumps to a specific frame number in the data signal processing of Wien2D FDS.
+ *
+ * @param frame_number The target frame number to jump to.
+ * @return The index of the current frame after jumping.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::DataSignalWien2DFDS::jump(int frame_number){
   // fill the frame data ... 
   if (frame.index == frame_number) {
@@ -620,6 +645,10 @@ int WCP2dToy::DataSignalWien2DFDS::jump(int frame_number){
   return frame.index;
 }
 
+/**
+ * Destructor to free allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::DataSignalWien2DFDS::~DataSignalWien2DFDS(){
   // for (int i=0;i!=nwire_u;i++){
   //   delete hu[i] ;

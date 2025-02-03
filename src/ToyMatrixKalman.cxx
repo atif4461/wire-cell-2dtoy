@@ -3,6 +3,13 @@ using namespace WCP;
 
 #include "TMath.h"
 
+/**
+ * Calculates the number of zero eigenvalues for a given matrix.
+ *
+ * @param[in] toymatrix The input ToyMatrix object.
+ * @return The number of zero eigenvalues.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToyMatrixKalman::Cal_numz(WCP2dToy::ToyMatrix &toymatrix){
   
   //std::cout << no_need_remove.size() << std::endl;
@@ -42,6 +49,22 @@ int WCP2dToy::ToyMatrixKalman::Cal_numz(WCP2dToy::ToyMatrix &toymatrix){
   }
 }
 
+/**
+ * Initializes the ToyMatrixKalman object with the given ToyMatrix.
+ *
+ * @param toymatrix The input ToyMatrix object used for initialization.
+  
+ * Calculates the number of zero eigenvalues and updates the no_need_remove vector accordingly.
+ 
+ * Inverts the MC matrix and calculates the inverse.
+ 
+ * Computes the solution vector Cxt and its error.
+ 
+ * Updates the Chi2 value and sets the solve flag if the calculated Chi2 is smaller than the current one.
+  
+ * Increments the iteration counter.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixKalman::init(WCP2dToy::ToyMatrix& toymatrix){
   ncount = 0;
   numz = 0;
@@ -244,6 +267,13 @@ void WCP2dToy::ToyMatrixKalman::init(WCP2dToy::ToyMatrix& toymatrix){
   
 }
 
+/**
+ * Constructor for ToyMatrixKalman class 
+ * @param toymatrix reference to ToyMatrix object
+ * @param flag_no_need integer indicating whether certain operations are needed
+ * @param chi2_penalty double value representing penalty term in chi squared calculation
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixKalman::ToyMatrixKalman(WCP2dToy::ToyMatrix& toymatrix, int flag_no_need, double chi2_penalty)
   : flag_no_need(flag_no_need)
   , chi2_penalty(chi2_penalty)
@@ -256,6 +286,16 @@ WCP2dToy::ToyMatrixKalman::ToyMatrixKalman(WCP2dToy::ToyMatrix& toymatrix, int f
 }
 
 
+/**
+ * Constructor initializing ToyMatrixKalman object with parameters
+ * @param already_removed1 vector of integers representing removed elements
+ * @param no_need_remove1 vector of integers representing elements that do not need removal
+ * @param toymatrix reference to ToyMatrix object
+ * @param check integer value for checking purpose
+ * @param flag_no_need integer flag indicating no need for removal
+ * @param chi2_penalty double value representing chi squared penalty
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixKalman::ToyMatrixKalman(std::vector<int>& already_removed1, std::vector<int>& no_need_remove1, WCP2dToy::ToyMatrix& toymatrix, int check, int flag_no_need, double chi2_penalty)
   : flag_no_need(flag_no_need)
   , chi2_penalty(chi2_penalty)
@@ -271,6 +311,10 @@ WCP2dToy::ToyMatrixKalman::ToyMatrixKalman(std::vector<int>& already_removed1, s
 
 
 
+/**
+ * Destructor for the class 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixKalman::~ToyMatrixKalman(){
   // already_removed.clear();
   // no_need_remove.clear();

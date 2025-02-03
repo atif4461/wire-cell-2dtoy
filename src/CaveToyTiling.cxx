@@ -4,6 +4,13 @@
 
 using namespace WCP;
 
+/**
+ * @brief Constructor for CaveToyTiling class
+ * @param toytiling1 pointer to ToyTiling object
+ * @param mergetiling reference to MergeToyTiling object
+ * @param toymatrix reference to ToyMatrix object
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::CaveToyTiling::CaveToyTiling(WCP2dToy::ToyTiling *toytiling1, WCP2dToy::MergeToyTiling& mergetiling, WCP2dToy::ToyMatrix& toymatrix){
   toytiling = toytiling1;
   // create cell_all_save, 
@@ -128,6 +135,10 @@ WCP2dToy::CaveToyTiling::CaveToyTiling(WCP2dToy::ToyTiling *toytiling1, WCP2dToy
   //move current_cell to somewhere ... 
 }
 
+/**
+ * Destructor to free allocated memory for cave toy tiling objects 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::CaveToyTiling::~CaveToyTiling(){
   for (int i=0;i!=cell_all.size();i++){
     delete cell_all[i];
@@ -146,6 +157,10 @@ WCP2dToy::CaveToyTiling::~CaveToyTiling(){
   }
 }
 
+/**
+ * Returns a constant pointer to a GeomCell object associated with the given wire selection
+ */
+// The above comment was written by an LLM. 
 const WCP::GeomCell* WCP2dToy::CaveToyTiling::cell(const WCP::GeomWireSelection& wires) const
 {
   return 0;

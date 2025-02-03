@@ -4,6 +4,15 @@
 
 using namespace WCP;
 
+/**
+ * Determines whether a point is inside a polygon defined by its vertices.
+ * @param vertx vector of x coordinates of polygon vertices
+ * @param verty vector of y coordinates of polygon vertices
+ * @param testx x coordinate of point to be tested
+ * @param testy y coordinate of point to be tested
+ * @return nonzero value if point is inside polygon zero otherwise
+ */
+// The above comment was written by an LLM. 
 int pnpoly(std::vector<double>& vertx, std::vector<double>& verty, double testx, double testy)
 {
   int i, j, c = 0;
@@ -595,6 +604,13 @@ WCP2dToy::ToyFiducial::ToyFiducial(int dead_region_ch_ext, double offset_t, doub
   }  
 }
 
+/**
+ * @brief Checks whether a flash is likely to be a fiducial based on various parameters
+ * @param bundle FlashTPCBundle containing main cluster and opflash information
+ * @param cluster_length reference to store calculated cluster length
+ * @return integer indicating whether the flash passes fiducial checks
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToyFiducial::check_LM(WCP::FlashTPCBundle *bundle, double& cluster_length){
 
   PR3DCluster *main_cluster = bundle->get_main_cluster();
@@ -660,6 +676,13 @@ std::cout << "  max_meas_pe "<<max_meas_pe<<std::endl;
   return 0;
 }
 
+/**
+ * Checks if a flash in a bundle passes certain cuts based on its properties
+ * @param bundle The FlashTPCBundle object containing the flash data
+ * @param cluster_length The calculated length of the cluster associated with the flash
+ * @return An integer indicating whether the flash passed the cuts
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToyFiducial::check_LM_cuts(WCP::FlashTPCBundle *bundle, double& cluster_length){
 
   Opflash *flash = bundle->get_flash();
@@ -725,6 +748,19 @@ int WCP2dToy::ToyFiducial::check_LM_cuts(WCP::FlashTPCBundle *bundle, double& cl
   return 0;
 }
 
+/**
+ * @brief Checks whether a flash is consistent with a neutrino interaction
+ *        using the Light Mismatches BDT algorithm
+ *
+ * @param[in] bundle     FlashTPCBundle containing the flash and associated clusters
+ * @param[out] cluster_length Length of the main cluster in cm
+ *
+ * @return Integer indicating the type of event:
+ *         0: Consistent with a neutrino interaction
+ *         1: Low energy event
+ *         2: Light mismatch event
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToyFiducial::check_LM_bdt(WCP::FlashTPCBundle *bundle, double& cluster_length){
 
   Opflash *flash = bundle->get_flash();
@@ -817,6 +853,18 @@ int WCP2dToy::ToyFiducial::check_LM_bdt(WCP::FlashTPCBundle *bundle, double& clu
   return 0;
 }
 
+/**
+ * @brief Checks if a flash TPC bundle is fully contained within the fiducial volume.
+ *
+ * @param bundle Flash TPC bundle to be checked
+ * @param offset_x Offset value along x-axis
+ * @param ct_point_cloud Cloud of 3D points from CT scan
+ * @param old_new_cluster_map Map of old to new clusters
+ * @param fail_mode Pointer to store failure mode
+ * @param flag Flag indicating whether to check original or updated cluster
+ * @return True if bundle is fully contained, false otherwise
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyFiducial::check_fully_contained(WCP::FlashTPCBundle *bundle, double offset_x, WCP::ToyCTPointCloud& ct_point_cloud,std::map<PR3DCluster*, PR3DCluster*>& old_new_cluster_map, unsigned int* fail_mode, int flag){
   PR3DCluster *main_cluster; 
   PR3DCluster *main_cluster1; 
@@ -906,6 +954,17 @@ bool WCP2dToy::ToyFiducial::check_fully_contained(WCP::FlashTPCBundle *bundle, d
   return true;
 }
 
+/**
+ * @brief Checks whether a track is within the fiducial volume of the detector.
+ *
+ * @param bundle The FlashTPCBundle object containing the track information.
+ * @param offset_x The x-coordinate offset of the fiducial volume.
+ * @param ct_point_cloud The ToyCTPointCloud object representing the point cloud data.
+ * @param old_new_cluster_map A map of old to new clusters.
+ * @param flag An integer flag indicating the type of check to perform.
+ * @return True if the track is within the fiducial volume, false otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyFiducial::check_tgm(WCP::FlashTPCBundle *bundle, double offset_x, WCP::ToyCTPointCloud& ct_point_cloud,std::map<PR3DCluster*, PR3DCluster*>& old_new_cluster_map, int flag){
 
   PR3DCluster *main_cluster; 
@@ -1285,6 +1344,19 @@ bool WCP2dToy::ToyFiducial::check_tgm(WCP::FlashTPCBundle *bundle, double offset
   return false;
 }
 
+/**
+ * @brief Checks if a neutrino candidate satisfies certain conditions.
+ *
+ * @param main_cluster The main cluster to check.
+ * @param wcp1 The first point of the neutrino candidate.
+ * @param wcp2 The second point of the neutrino candidate.
+ * @param offset_x The x-offset value.
+ * @param ct_point_cloud The CT point cloud.
+ * @param flag_2view_check Flag indicating whether to perform 2-view check.
+ *
+ * @return True if the neutrino candidate satisfies the conditions, false otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyFiducial::check_neutrino_candidate(WCP::PR3DCluster *main_cluster,WCPointCloud<double>::WCPoint& wcp1 ,WCPointCloud<double>::WCPoint& wcp2, double offset_x, WCP::ToyCTPointCloud& ct_point_cloud,bool flag_2view_check){
   main_cluster->Create_graph(ct_point_cloud);
   
@@ -1597,6 +1669,16 @@ bool WCP2dToy::ToyFiducial::check_neutrino_candidate(WCP::PR3DCluster *main_clus
 WCP2dToy::ToyFiducial::~ToyFiducial(){
 }
 
+/**
+ * @brief Checks signal processing within fiducial volume
+ * @param[in] p point in 3D space
+ * @param[in] dir direction vector
+ * @param[in] ct_point_cloud point cloud data structure
+ * @param[in] step step size for iteration
+ * @param[in] offset_x offset value along x-axis
+ * @return boolean indicating successful signal processing
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyFiducial::check_signal_processing(WCP::Point& p, TVector3& dir, WCP::ToyCTPointCloud& ct_point_cloud, double step, double offset_x){
 
   if (dir.Mag()==0){
@@ -1645,6 +1727,15 @@ bool WCP2dToy::ToyFiducial::check_signal_processing(WCP::Point& p, TVector3& dir
   return true;
 }
 
+/**
+ * @brief Checks if a point is within the dead volume of the fiducial
+ * @param p The point to check
+ * @param dir The direction vector from the point
+ * @param step The step size in the direction
+ * @param offset_x The x-axis offset
+ * @return True if the point is outside the dead volume, False otherwise
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyFiducial::check_dead_volume(WCP::Point& p, TVector3& dir, double step, double offset_x){
   if (!inside_fiducial_volume(p,offset_x)){
     return false;
@@ -1762,6 +1853,17 @@ bool WCP2dToy::ToyFiducial::inside_fiducial_volume(WCP::Point& p, double offset_
   }
 }
 
+/**
+ * @brief Checks whether a point is inside a dead region.
+ * 
+ * This function takes a point as input, converts its coordinates into 
+ * corresponding channel numbers, checks these against predefined 
+ * dead regions, and returns true if the point falls within any of them.
+ * 
+ * @param p The point to be checked.
+ * @return True if the point is in a dead region, false otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyFiducial::inside_dead_region(WCP::Point& p){
   // convert the position into U, V, W, and T number ...
   int time_slice = p.x * slope_t + offset_t;
@@ -1824,6 +1926,13 @@ bool WCP2dToy::ToyFiducial::inside_dead_region(WCP::Point& p){
 }
 
 
+/**
+ * Adds a dead region to the fiducial marked by the given merge cell and time slices.
+ *
+ * @param mcell the SlimMergeGeomCell marking the dead region
+ * @param time_slices the time slices during which the region is considered dead
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyFiducial::AddDeadRegion(WCP::SlimMergeGeomCell* mcell, std::vector<int>& time_slices){
 
   mcells.push_back(mcell);

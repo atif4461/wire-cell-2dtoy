@@ -13,6 +13,11 @@ using namespace std;
 using namespace Eigen;
 using namespace WCP;
 
+/**
+ * Constructor initializing ToyLibPe object with ROOT file
+ * @param root_file path to input ROOT file
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyLibPe::ToyLibPe(const char* root_file){
   file = new TFile(root_file);
   T = (TTree*)file->Get("tout");
@@ -25,6 +30,10 @@ WCP2dToy::ToyLibPe::ToyLibPe(const char* root_file){
   z = new std::vector<float>;
 }
 
+/**
+ * Destructor to free allocated memory for member variables 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyLibPe::~ToyLibPe(){
   delete trackId;
   delete energy;
@@ -36,6 +45,13 @@ WCP2dToy::ToyLibPe::~ToyLibPe(){
   delete file;
 }
 
+/**
+ * Converts a point in 3D space to a unique voxel identifier.
+ *
+ * @param p The input point to be converted.
+ * @return A unique integer identifier representing the corresponding voxel.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToyLibPe::convert_to_voxel_id(WCP::Point &p){
   int voxel_x_id = round((p.x/units::cm+63.435-5.1096/2.)/5.1096);
   int voxel_y_id = round((p.y/units::cm+191.61-5.1096/2.)/5.1096);
@@ -50,6 +66,12 @@ int WCP2dToy::ToyLibPe::convert_to_voxel_id(WCP::Point &p){
   return voxel_id;
 }
 
+/**
+ * Returns a mapping of integers to their corresponding paired values.
+ *
+ * @return A stdmap containing integer pairs
+ */
+// The above comment was written by an LLM. 
 std::map<int,int> WCP2dToy::ToyLibPe::getMapLibPmt(){
   map<int,int> map_lib_pmt;
   map_lib_pmt[1]=2;
@@ -92,6 +114,12 @@ std::map<int,int> WCP2dToy::ToyLibPe::getMapLibPmt(){
   return map_lib_pmt;
 }
 
+/**
+ * Returns a mapping of integers to their corresponding library indices.
+ *
+ * @return A stdmap containing integer mappings.
+ */
+// The above comment was written by an LLM. 
 std::map<int,int> WCP2dToy::ToyLibPe::getMapPmtLib(){
   map<int,int> map_pmt_lib;
   map_pmt_lib[2]=1;
@@ -134,6 +162,13 @@ std::map<int,int> WCP2dToy::ToyLibPe::getMapPmtLib(){
   return map_pmt_lib;
 }
 
+/**
+ * Returns a 3D vector of pairs containing optical channel and visibility data 
+ * from a photon library file for each voxel in the detector volume.
+ *
+ * @return A 3D vector of pairs of optical channel and visibility values.
+ */
+// The above comment was written by an LLM. 
 std::vector<std::vector<std::pair<int,float> > > WCP2dToy::ToyLibPe::getPhotonLibrary(){
   TChain *Tlib = new TChain("/pmtresponse/PhotonLibraryData","/pmtresponse/PhotonLibraryData");
   Tlib->AddFile("./uboone_photon_library.root");
@@ -154,6 +189,15 @@ std::vector<std::vector<std::pair<int,float> > > WCP2dToy::ToyLibPe::getPhotonLi
   return photon_library;
 }
 
+/**
+ * @brief Calculates weighted average of X Y Z coordinates and total weight
+ * @param[in] x Vector of X coordinates
+ * @param[in] y Vector of Y coordinates
+ * @param[in] z Vector of Z coordinates
+ * @param[in] e Vector of weights
+ * @return Vector containing weighted averages of X Y Z and total weight
+ */
+// The above comment was written by an LLM. 
 std::vector<double> WCP2dToy::ToyLibPe::getXYZQ(std::vector<float> *x, std::vector<float> *y, std::vector<float> *z, std::vector<float> *e){
   double sumX = 0, sumY = 0, sumZ = 0, sumE = 0;
 
@@ -168,6 +212,18 @@ std::vector<double> WCP2dToy::ToyLibPe::getXYZQ(std::vector<float> *x, std::vect
   return xyzq;
 }
 
+/**
+ * @brief Calculates shifted XYZ coordinates and total energy 
+ * @param x pointer to vector of X coordinates
+ * @param y pointer to vector of Y coordinates
+ * @param z pointer to vector of Z coordinates
+ * @param e pointer to vector of energies
+ * @param xOffset X offset value
+ * @param yOffset Y offset value
+ * @param zOffset Z offset value
+ * @return vector containing shifted X, Y, Z coordinates and total energy
+ */
+// The above comment was written by an LLM. 
 std::vector<double> WCP2dToy::ToyLibPe::getShiftedXYZQ(std::vector<float> *x, std::vector<float> *y, std::vector<float> *z, std::vector<float> *e, float xOffset, float yOffset, float zOffset){
   double sumX = 0, sumY = 0, sumZ = 0, sumE = 0;
 
@@ -182,6 +238,12 @@ std::vector<double> WCP2dToy::ToyLibPe::getShiftedXYZQ(std::vector<float> *x, st
   return xyzq;
 }
 
+/**
+ * @brief Returns minimum and maximum values from input vector
+ * @param x Input vector of floating point numbers
+ * @return Pair containing minimum and maximum values
+ */
+// The above comment was written by an LLM. 
 std::pair<float,float> WCP2dToy::ToyLibPe::getXminXmax(std::vector<float> *x){
   std::pair<float,float> result;
   float min = *std::min_element(x->begin(), x->end());
@@ -190,6 +252,13 @@ std::pair<float,float> WCP2dToy::ToyLibPe::getXminXmax(std::vector<float> *x){
   return result;
 }
 
+/**
+ * @brief Calculates the minimum and maximum values of a shifted dataset
+ * @param x pointer to a vector of floating point numbers representing the dataset
+ * @param xOffset offset value applied to the dataset
+ * @return pair containing the minimum and maximum values of the shifted dataset
+ */
+// The above comment was written by an LLM. 
 std::pair<float,float> WCP2dToy::ToyLibPe::getShiftedXminXmax(std::vector<float> *x, float xOffset){
   std::pair<float,float> result;
 
@@ -199,6 +268,12 @@ std::pair<float,float> WCP2dToy::ToyLibPe::getShiftedXminXmax(std::vector<float>
   return result;
 }
 
+/**
+ * Checks if a given 2D point is within a specified fiducial volume
+ * @param[in] x pair of float values representing the x coordinates
+ * @return true if the point is inside the fiducial volume false otherwise
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyLibPe::xInFidVol(std::pair<float,float> &x){
   bool flag = false;
   double high_x_cut = 256 * units::cm;
@@ -216,6 +291,12 @@ bool WCP2dToy::ToyLibPe::xInFidVol(std::pair<float,float> &x){
   return flag;
 }
 
+/**
+ * Checks if a given pair of float values is at the boundary
+ * @param x pair of float values to check
+ * @return true if at boundary, false otherwise
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyLibPe::xAtBoundary(std::pair<float,float> &x){
   bool flag = false;
   double high_x_cut = 256 * units::cm;
@@ -233,6 +314,18 @@ bool WCP2dToy::ToyLibPe::xAtBoundary(std::pair<float,float> &x){
   return flag;
 }
 
+/**
+ * @brief Calculates predicted PMT light distribution from cluster data
+ * @param[in] x Vector of x-coordinates of cluster points
+ * @param[in] y Vector of y-coordinates of cluster points
+ * @param[in] z Vector of z-coordinates of cluster points
+ * @param[in] e Vector of energies associated with cluster points
+ * @param[in] xOffset X-axis offset value
+ * @param[in] yOffset Y-axis offset value
+ * @param[in] zOffset Z-axis offset value
+ * @return Vector of predicted PMT light values
+ */
+// The above comment was written by an LLM. 
 std::vector<double> WCP2dToy::ToyLibPe::fromClusterFindPeDist(std::vector<float> *x, std::vector<float> *y, std::vector<float> *z, std::vector<float> *e, float xOffset, float yOffset, float zOffset){
   std::vector<double> pred_pmt_light;
   pred_pmt_light.resize(32,0);

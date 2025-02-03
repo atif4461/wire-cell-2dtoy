@@ -9,6 +9,17 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for DataSignalGaus2DFDS class
+ * @param fds Frame data source
+ * @param gds Geometry data source
+ * @param bins_per_frame1 Number of bins per frame
+ * @param nframes_total Total number of frames
+ * @param time_offset_uv Time offset for uv plane
+ * @param time_offset_uw Time offset for uw plane
+ * @param overall_time_offset Overall time offset
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::DataSignalGaus2DFDS::DataSignalGaus2DFDS(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds, int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, float overall_time_offset)
   : fds(fds)
   , gds(gds)
@@ -134,6 +145,10 @@ int WCP2dToy::DataSignalGaus2DFDS::size() const{
   return max_frames;
 }
 
+/**
+ * Saves the current data signal to a ROOT file named temp_gausroot 
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalGaus2DFDS::Save(){
   TFile *file = new TFile("temp_gaus.root","RECREATE");
   // for (int i=0;i!=nwire_u;i++){
@@ -156,6 +171,13 @@ void WCP2dToy::DataSignalGaus2DFDS::Save(){
 }
 
 
+/**
+ * @brief Jumps to a specific frame number in the data signal processing sequence.
+ *
+ * @param frame_number The target frame number to jump to.
+ * @return The index of the current frame after jumping.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::DataSignalGaus2DFDS::jump(int frame_number){
   // fill the frame data ... 
   if (frame.index == frame_number) {
@@ -303,6 +325,10 @@ int WCP2dToy::DataSignalGaus2DFDS::jump(int frame_number){
 }
 
 
+/**
+ * Destructor to free allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::DataSignalGaus2DFDS::~DataSignalGaus2DFDS(){
   // for (int i=0;i!=nwire_u;i++){
   //   delete hu[i] ;

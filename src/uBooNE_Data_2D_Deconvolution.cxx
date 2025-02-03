@@ -13,6 +13,16 @@
 
 using namespace WCP;
 
+/**
+ * @brief Constructor for the uBooNEData2DDeconvolutionFDS class
+ * 
+ * @param hu_decon Pointer to the deconvoluted histogram for the U plane
+ * @param hv_decon Pointer to the deconvoluted histogram for the V plane
+ * @param hw_decon Pointer to the deconvoluted histogram for the W plane
+ * @param T_bad Pointer to the tree containing bad channel information
+ * @param gds Reference to the geometry data source object
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNEData2DDeconvolutionFDS::uBooNEData2DDeconvolutionFDS(TH2I *hu_decon, TH2I *hv_decon, TH2I *hw_decon, TTree *T_bad, const WCP::GeomDataSource& gds)
   : fds (0)
   , gds (gds)
@@ -144,6 +154,21 @@ WCP2dToy::uBooNEData2DDeconvolutionFDS::uBooNEData2DDeconvolutionFDS(TH2I *hu_de
 }
 
 
+/**
+ * @brief Constructor for the uBooNEData2DDeconvolutionFDS class.
+ *
+ * @param[in] fds1 Frame data source object.
+ * @param[in] gds Geometry data source object.
+ * @param[in] umap U plane chirp map object.
+ * @param[in] vmap V plane chirp map object.
+ * @param[in] wmap W plane chirp map object.
+ * @param[in] nframes_total Total number of frames.
+ * @param[in] time_offset_uv Time offset between U and V planes.
+ * @param[in] time_offset_uw Time offset between U and W planes.
+ * @param[in] overall_time_offset Overall time offset.
+ * @param[in] flag_sim Flag indicating simulation mode.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNEData2DDeconvolutionFDS::uBooNEData2DDeconvolutionFDS(WCP::FrameDataSource& fds1, const WCP::GeomDataSource& gds,WCP::ChirpMap& umap, WCP::ChirpMap& vmap, WCP::ChirpMap& wmap, int nframes_total, float time_offset_uv, float time_offset_uw, float overall_time_offset, int flag_sim)
   : fds(&fds1)
   , gds(gds)
@@ -390,6 +415,10 @@ WCP2dToy::uBooNEData2DDeconvolutionFDS::uBooNEData2DDeconvolutionFDS(WCP::FrameD
   // }
 }
 
+/**
+ * Destructor to free allocated memory when object is destroyed 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNEData2DDeconvolutionFDS::~uBooNEData2DDeconvolutionFDS()
 {
 
@@ -414,6 +443,13 @@ WCP2dToy::uBooNEData2DDeconvolutionFDS::~uBooNEData2DDeconvolutionFDS()
   }
 }
 
+/**
+ * Jumps to a specific frame number in the deconvolution process.
+ *
+ * @param frame_number The desired frame number to jump to.
+ * @return The actual frame number after jumping.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::uBooNEData2DDeconvolutionFDS::jump(int frame_number){
   
   if (load_results_from_file) return frame_number;
@@ -503,6 +539,16 @@ int WCP2dToy::uBooNEData2DDeconvolutionFDS::size() const{
   return max_frames;
 }
 
+/**
+ * @brief Performs 2D deconvolution of uBooNE data.
+ *
+ * This function takes in an integer representing the plane number and performs 
+ * 2D deconvolution on the corresponding data. It uses various filters and 
+ * transformations to process the data.
+ *
+ * @param plane The plane number for which to perform deconvolution.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEData2DDeconvolutionFDS::Deconvolute_2D(int plane){
   const Frame& frame1 = fds->get();
   size_t ntraces = frame1.traces.size();
@@ -1000,6 +1046,10 @@ void WCP2dToy::uBooNEData2DDeconvolutionFDS::Deconvolute_2D(int plane){
   
 }
 
+/**
+ * Resets all internal data structures to their initial state
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEData2DDeconvolutionFDS::Clear(){
   hu_2D_g->Reset();
   hv_2D_g->Reset();
@@ -1013,6 +1063,13 @@ void WCP2dToy::uBooNEData2DDeconvolutionFDS::Clear(){
 }
 
 
+/**
+ * Restores the baseline of a histogram by subtracting the average pedestal value 
+ * from each bin content.
+ *
+ * @param htemp input histogram to be corrected
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEData2DDeconvolutionFDS::restore_baseline(TH1F *htemp){
   //correct baseline 
   double max = htemp->GetMaximum();

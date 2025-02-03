@@ -5,6 +5,15 @@
 
 using namespace WCP;
 
+/**
+ * @brief Constructor for BlobToyTiling class
+ * @param toytiling ToyTiling object
+ * @param mergetiling MergeToyTiling object
+ * @param toymatrix ToyMatrix object
+ * @param time_slice Time slice value
+ * @param num_merge_wire Number of merge wires
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::BlobToyTiling::BlobToyTiling(WCP2dToy::ToyTiling& toytiling, WCP2dToy::MergeToyTiling& mergetiling, WCP2dToy::ToyMatrix& toymatrix, int time_slice, int num_merge_wire){
   num_wire = num_merge_wire;
   tiling = &toytiling;
@@ -189,6 +198,16 @@ WCP2dToy::BlobToyTiling::BlobToyTiling(WCP2dToy::ToyTiling& toytiling, WCP2dToy:
 }
 
 
+/**
+ * Forms a merge cell from three input merge geom wires in u, v, and w directions.
+ * @param[in] mwireu The merge geom wire in the u direction.
+ * @param[in] mwirev The merge geom wire in the v direction.
+ * @param[in] mwirew The merge geom wire in the w direction.
+ * @param[in] ident_cell The identifier of the cell.
+ * @param[in] time_slice The time slice of the cell.
+ * @return A pointer to the formed merge geom cell or null if no cell is formed.
+ */
+// The above comment was written by an LLM. 
 MergeGeomCell* WCP2dToy::BlobToyTiling::FormMergeCell(MergeGeomWire* mwireu, MergeGeomWire* mwirev, MergeGeomWire* mwirew,int ident_cell,int time_slice) {
   MergeGeomCell *mcell = 0;
 
@@ -223,12 +242,20 @@ MergeGeomCell* WCP2dToy::BlobToyTiling::FormMergeCell(MergeGeomWire* mwireu, Mer
 }
 
 
+/**
+ * Returns a constant pointer to a GeomCell object associated with the given wire selection
+ */
+// The above comment was written by an LLM. 
 const WCP::GeomCell* WCP2dToy::BlobToyTiling::cell(const WCP::GeomWireSelection& wires) const
 {
   return 0;
 }
 
 
+/**
+ * Destructor to free allocated memory and clear data structures 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::BlobToyTiling::~BlobToyTiling(){
   for (int i=0;i!=cell_all.size();i++){
     delete cell_all[i];

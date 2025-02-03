@@ -2,6 +2,10 @@
 
 using namespace WCP;
 
+/**
+ * Constructor initializing metric counters and conditions to default values
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMetric::ToyMetric(){
   rm_cell_true = 0;
   rm_cell_false = 0;
@@ -20,6 +24,11 @@ WCP2dToy::ToyMetric::ToyMetric(){
   threshold = 2000;
 }
 
+/**
+ * Increments the solve condition counter based on the input condition value
+ * @param cond the condition value to determine which counter to increment
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMetric::AddSolve(int cond){
   if (cond ==0 ){
     solve_condition[0] ++;
@@ -33,6 +42,13 @@ void WCP2dToy::ToyMetric::AddSolve(int cond){
 WCP2dToy::ToyMetric::~ToyMetric(){
 }
 
+/**
+ * Adds cells from the selection to the metric calculation.
+ * @param allmcell Geometric cell selection
+ * @param toymatrix Toy matrix containing cell charges
+ * @param ccmap Cell charge map
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMetric::Add(GeomCellSelection &allmcell,WCP2dToy::ToyMatrix& toymatrix, CellChargeMap& ccmap){
   for (int j=0;j!=allmcell.size();j++){
     MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j];
@@ -63,6 +79,11 @@ void WCP2dToy::ToyMetric::Add(GeomCellSelection &allmcell,WCP2dToy::ToyMatrix& t
   
 }
 
+/**
+ * Prints the current state of the toy metric including remaining cells,
+ * eliminated cells, their charges and solved cases.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMetric::Print(){
   // std::cout << "Remaining Cells Containing Truth     : " << rm_cell_true << " " << charge_rm_cell_true << std::endl;
   // std::cout << "Remaining Cells Not Containing Truth : " << rm_cell_false << " " << charge_rm_cell_false << std::endl;

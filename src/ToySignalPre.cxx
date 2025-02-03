@@ -10,6 +10,14 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for ToySignalPreFDS class
+ * @param fds Frame data source
+ * @param gds Geometry data source
+ * @param bins_per_frame1 Number of bins per frame
+ * @param nframes_total Total number of frames
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalPreFDS::ToySignalPreFDS(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds, int bins_per_frame1, int nframes_total)
   : fds(fds)
   , gds(gds)
@@ -164,6 +172,10 @@ int WCP2dToy::ToySignalPreFDS::size() const{
   return max_frames;
 }
 
+/**
+ * Saves the signal data to a root file named temp_preroot
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToySignalPreFDS::Save(){
   TFile *file = new TFile("temp_pre.root","RECREATE");
   for (int i=0;i!=nwire_u;i++){
@@ -189,6 +201,20 @@ void WCP2dToy::ToySignalPreFDS::Save(){
 }
 
 
+/**
+ * @brief Jumps to a specific frame number in the signal processing sequence.
+ *
+ * This function is responsible for filling the frame data structure with the appropriate
+ * values based on the input frame number. It performs various operations such as clearing
+ * the frame, calculating scaling factors, creating sparse matrices, and applying filters.
+ *
+ * The function also handles different types of wires (u, v, w) and applies corresponding
+ * filters to the traces.
+ *
+ * @param frame_number The target frame number to jump to.
+ * @return The index of the current frame after jumping.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToySignalPreFDS::jump(int frame_number){
   // fill the frame data ... 
   if (frame.index == frame_number) {
@@ -353,6 +379,10 @@ int WCP2dToy::ToySignalPreFDS::jump(int frame_number){
 }
 
 
+/**
+ * Destructor to free allocated memory for signal prefiltering in 2D toy model
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalPreFDS::~ToySignalPreFDS(){
   for (int i=0;i!=nwire_u;i++){
     delete hu[i] ;

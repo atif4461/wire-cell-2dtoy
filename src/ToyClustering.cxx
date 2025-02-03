@@ -23,6 +23,14 @@ using namespace std;
 
 #include "WCP2dToy/ExecMon.h"
 
+/**
+ * Calculates the projected angle difference between two directions in a specified plane.
+ * @param[in] dir1 The first direction vector.
+ * @param[in] dir2 The second direction vector.
+ * @param[in] planeAngle The angle of the projection plane.
+ * @return The projected angle difference between the two input directions.
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::cal_proj_angle_diff(TVector3& dir1, TVector3& dir2, double plane_angle){
   TVector3 temp_dir1;
   TVector3 temp_dir2;
@@ -33,6 +41,19 @@ double WCP2dToy::cal_proj_angle_diff(TVector3& dir1, TVector3& dir2, double plan
   return temp_dir1.Angle(temp_dir2);
 }
 
+/**
+ * Checks if two directions are consistent within certain angular cuts in multiple planes
+ * @param[in] dir1 first direction vector
+ * @param[in] dir2 second direction vector
+ * @param[in] same_direction whether the two directions should be in the same direction
+ * @param[in] angle_cut maximum allowed angle difference in radians
+ * @param[in] uplane_angle angle of u plane in degrees
+ * @param[in] vplane_angle angle of v plane in degrees
+ * @param[in] wplane_angle angle of w plane in degrees
+ * @param[in] num_cut minimum number of planes where angle difference should be within cut
+ * @return true if directions are consistent, false otherwise
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::is_angle_consistent(TVector3& dir1, TVector3& dir2, bool same_direction, double angle_cut, double uplane_angle, double vplane_angle, double wplane_angle, int num_cut){
   double angle_u = WCP2dToy::cal_proj_angle_diff(dir1,dir2,uplane_angle);
   double angle_v = WCP2dToy::cal_proj_angle_diff(dir1,dir2,vplane_angle);
@@ -56,6 +77,25 @@ bool WCP2dToy::is_angle_consistent(TVector3& dir1, TVector3& dir2, bool same_dir
 }
 
 
+/**
+ * @brief Finds the closest points between two clusters.
+ *
+ * This function calculates the distance between the closest points of two clusters.
+ * It iterates through the cells of the smaller cluster to find the minimum distance.
+ *
+ * @param cluster1 The first cluster.
+ * @param cluster2 The second cluster.
+ * @param length_1 The length of the first cluster.
+ * @param length_2 The length of the second cluster.
+ * @param length_cut The cut-off length.
+ * @param mcell1_save The saved merged cell of the first cluster.
+ * @param mcell2_save The saved merged cell of the second cluster.
+ * @param p1_save The saved point of the first cluster.
+ * @param p2_save The saved point of the second cluster.
+ *
+ * @return The minimum distance between the closest points of the two clusters.
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::Find_Closeset_Points(WCP::PR3DCluster *cluster1, WCP::PR3DCluster *cluster2,double length_1, double length_2, double length_cut, SlimMergeGeomCell *mcell1_save, SlimMergeGeomCell *mcell2_save, Point& p1_save, Point &p2_save){
   double dis_save = 1e9;
 
@@ -189,6 +229,21 @@ double WCP2dToy::Find_Closeset_Points(WCP::PR3DCluster *cluster1, WCP::PR3DClust
   return dis_save;
 }
 
+/**
+ * @brief Performs clustering on 3D point cloud data with gap and cosmic ray handling.
+ *
+ * @param live_clusters The set of live 3D clusters to be processed.
+ * @param dead_clusters The set of dead 3D clusters used as reference.
+ * @param dead_u_index Map of dead cluster indices in u-direction.
+ * @param dead_v_index Map of dead cluster indices in v-direction.
+ * @param dead_w_index Map of dead cluster indices in w-direction.
+ * @param global_point_cloud Global 3D toy point cloud data.
+ * @param ct_point_cloud CT 3D toy point cloud data.
+ * @param flag_neutrino Flag indicating neutrino event processing.
+ *
+ * @return A map of clustered 3D clusters.
+ */
+// The above comment was written by an LLM. 
 map_cluster_cluster_vec WCP2dToy::Clustering_jump_gap_cosmics(WCP::PR3DClusterSelection& live_clusters, WCP::PR3DClusterSelection& dead_clusters, std::map<int,std::pair<double,double>>& dead_u_index, std::map<int,std::pair<double,double>>& dead_v_index, std::map<int,std::pair<double,double>>& dead_w_index, WCP::DynamicToyPointCloud& global_point_cloud, WCP::ToyCTPointCloud& ct_point_cloud, bool flag_neutrino){
 
   

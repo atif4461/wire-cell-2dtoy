@@ -2,6 +2,18 @@
 
 using namespace WCP;
 
+/**
+ * @brief Constructor for the BadTiling class
+ * @param time The time parameter
+ * @param scale The scale factor
+ * @param uplane_map The map of u-plane wires
+ * @param vplane_map The map of v-plane wires
+ * @param wplane_map The map of w-plane wires
+ * @param gds The geometry data source
+ * @param flag_1plane Flag indicating whether to process one plane or all planes
+ * @param flag_all Flag indicating whether to consider all wires or only those within the specified time range
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::BadTiling::BadTiling(int time, int scale, WCP::ChirpMap& uplane_map, 
 				    WCP::ChirpMap& vplane_map, WCP::ChirpMap& wplane_map, WCP::GeomDataSource& gds, int flag_1plane, int flag_all){
   if (flag_1plane==0){
@@ -201,6 +213,22 @@ WCP2dToy::BadTiling::BadTiling(int time, int scale, WCP::ChirpMap& uplane_map,
 
 }
 
+/**
+ * @brief Function to perform bad tiling in 2D space
+ * 
+ * This function takes into account the time, scale, and maps of wires in different planes,
+ * as well as the geometry data source. It also considers a flag for all wires.
+ * The purpose is to identify and process bad tilings in the given space.
+ *
+ * @param time The current time
+ * @param scale The scaling factor
+ * @param uplane_map Map of wires in the U plane
+ * @param vplane_map Map of wires in the V plane
+ * @param wplane_map Map of wires in the W plane
+ * @param gds Geometry data source
+ * @param flag_all Flag indicating whether to consider all wires or not
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::BadTiling::BadTiling1(int time, int scale, WCP::ChirpMap& uplane_map, WCP::ChirpMap& vplane_map, WCP::ChirpMap& wplane_map, WCP::GeomDataSource& gds, int flag_all){
   MergeGeomWire *mwire = 0;
   int prev_wire = -1;

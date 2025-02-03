@@ -13,6 +13,13 @@
 
 using namespace WCP;
 
+/**
+ * @brief Returns cell charge or uncertainty value based on input flag
+ * @param[in] cell GeomCell object pointer
+ * @param[in] flag Flag indicating whether to retrieve charge or uncertainty
+ * @return Charge or uncertainty value of the cell
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::SimpleBlobToyTiling::Get_Cell_Charge( const WCP::GeomCell *cell, int flag )  {
   // flag == 1 charge
   // flag == 2 uncertainty
@@ -25,6 +32,19 @@ double WCP2dToy::SimpleBlobToyTiling::Get_Cell_Charge( const WCP::GeomCell *cell
 }
 
 
+/**
+ * Constructor for SimpleBlobToyTiling class.
+ *
+ * @param[in] toytiling1       ToyTiling object reference.
+ * @param[in] mergetiling1     MergeToyTiling object reference.
+ * @param[in] toymatrix1       ToyMatrix object reference.
+ * @param[in] prev_mergetiling Previous MergeToyTiling object reference.
+ * @param[in] prev_toymatrix   Previous ToyMatrix object reference.
+ * @param[in] next_mergetiling Next MergeToyTiling object reference.
+ * @param[in] next_toymatrix   Next ToyMatrix object reference.
+ * @param[in] recon_t         Reconstruction threshold value.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::SimpleBlobToyTiling::SimpleBlobToyTiling(WCP2dToy::ToyTiling& toytiling1, WCP2dToy::MergeToyTiling& mergetiling1, WCP2dToy::ToyMatrix& toymatrix1,
 							WCP2dToy::MergeToyTiling& prev_mergetiling, WCP2dToy::ToyMatrix& prev_toymatrix,
 							WCP2dToy::MergeToyTiling& next_mergetiling, WCP2dToy::ToyMatrix& next_toymatrix, int recon_t){
@@ -239,6 +259,15 @@ WCP2dToy::SimpleBlobToyTiling::SimpleBlobToyTiling(WCP2dToy::ToyTiling& toytilin
   }
 }
 
+/**
+ * @brief Calculates the chi-squared value for the SimpleBlobToyTiling algorithm.
+ *
+ * This function performs a series of calculations to determine the chi-squared value,
+ * including building indices, filling matrices, and performing linear algebra operations.
+ *
+ * @return The calculated chi-squared value.
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::SimpleBlobToyTiling::CalChi2(){
   //using namespace boost::numeric::ublas;
 
@@ -389,6 +418,10 @@ double WCP2dToy::SimpleBlobToyTiling::CalChi2(){
   return chi2;
 }
   
+/**
+ * Initializes and constructs the index mappings for cells and wires in preparation for tiling operations.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::SimpleBlobToyTiling::Buildup_index(){
   scindex = 0;
   swindex = 0;
@@ -429,6 +462,10 @@ void WCP2dToy::SimpleBlobToyTiling::Buildup_index(){
 }
 
 
+/**
+ * Saves the current results of the SimpleBlobToyTiling process.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::SimpleBlobToyTiling::SaveResult(){
   chi2_save = cur_chi2;
   //  std::cout << "abc1 " <<std::endl;
@@ -485,6 +522,15 @@ void WCP2dToy::SimpleBlobToyTiling::SaveResult(){
 }
 
 
+/**
+ * @brief Performs simple blob toy tiling.
+ *
+ * This function executes the simple blob toy tiling process, which involves merging 
+ * wires and cells, saving the merged results, and associating them with hypotheses.
+ *
+ * @return None
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::SimpleBlobToyTiling::DoTiling(){
   
   GeomWireSelection mwires; //save all the merged wires
@@ -639,6 +685,17 @@ void WCP2dToy::SimpleBlobToyTiling::DoTiling(){
 }
 
 
+/**
+ * @brief Forms hypotheses for simple blob toy tiling
+ *
+ * This function generates hypotheses for simple blob toy tiling based on the current state of the cells and flags.
+ * It clears the current hypotheses, checks the number of counts, and then proceeds to form hypotheses according to the flag values.
+ * For each cell, it creates a ToyHypothesis object and adds it to the hypos vector, which is then added to the cur_hypo vector.
+ *
+ * @param none
+ * @return void
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::SimpleBlobToyTiling::FormHypo(){
   // std::cout << ncount << std::endl;
    ClearHypo();
@@ -856,6 +913,10 @@ void WCP2dToy::SimpleBlobToyTiling::FormHypo(){
   ncount ++;
 }
 
+/**
+ * Clears the current hypothesis data structure by deallocating memory 
+ * and removing all stored elements from the internal container */
+// The above comment was written by an LLM. 
 void WCP2dToy::SimpleBlobToyTiling::ClearHypo(){
   if (cur_hypo.size() !=0){
     for (int i = 0;i!=cur_hypo.size();i++){
@@ -869,6 +930,12 @@ void WCP2dToy::SimpleBlobToyTiling::ClearHypo(){
 }
 
 
+/**
+ * Organizes the simple blob toy tiling for a given number of simple blobs.
+ *
+ * @param nsimple_blob The number of simple blobs.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::SimpleBlobToyTiling::Organize(int nsimple_blob){
   //fill the first rank, second rank and third rank and flag ... 
   // loop through the smcells and find the highest rank, fill in first rank, 
@@ -1206,6 +1273,10 @@ void WCP2dToy::SimpleBlobToyTiling::Organize(int nsimple_blob){
 }
 
 
+/**
+ * Destructor to free allocated memory for SimpleBlobToyTiling object 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::SimpleBlobToyTiling::~SimpleBlobToyTiling(){
   for (int i=0;i!=nsimple_blob;i++){
     for (int j=0;j!=corner_mcells[i].size();j++){

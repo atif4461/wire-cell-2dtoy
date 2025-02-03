@@ -11,6 +11,19 @@
 using namespace Eigen;
 using namespace WCP;
 
+/**
+ * @brief Constructor for the WCP2dToy::uBooNE_L1SP class.
+ *
+ * Initializes the object with raw and deconvolved histograms, rebinning factor,
+ * and time offset.
+ *
+ * @param hv_raw Raw histogram.
+ * @param hv_decon Deconvolved histogram.
+ * @param hv_decon_g Gaussian deconvolved histogram.
+ * @param nrebin Rebinning factor.
+ * @param time_offset Time offset value.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNE_L1SP::uBooNE_L1SP(TH2F *hv_raw, TH2F *hv_decon, TH2F *hv_decon_g, int nrebin, double time_offset)
   : hv_raw(hv_raw)
   , hv_decon(hv_decon)
@@ -212,12 +225,26 @@ WCP2dToy::uBooNE_L1SP::uBooNE_L1SP(TH2F *hv_raw, TH2F *hv_decon, TH2F *hv_decon_
   
 }
 
+/**
+ * Destructor to free allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNE_L1SP::~uBooNE_L1SP(){
   delete gv;
   delete gw;
   delete filter_g;
 }
 
+/**
+ * Adds raw wire time data to the deconvolution histograms.
+ *
+ * This function iterates over all wires in the detector, calculates a noise cut
+ * threshold for each wire, and applies this threshold to identify signal-like
+ * features in the raw data. If a feature is identified, its amplitude is calculated
+ * and stored in the deconvolution histogram. The function also updates an
+ * initialization map with the timing information of the identified features.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNE_L1SP::AddWireTime_Raw(){
   TH1F *h1 = new TH1F("h1","h1",200,-50,50);
   for (int wire_index= 1166; wire_index<=1905;wire_index++){
@@ -272,6 +299,12 @@ void WCP2dToy::uBooNE_L1SP::AddWireTime_Raw(){
   delete h1;
 }
 
+/**
+ * Adds wires to the data structure at a specified time slice.
+ * @param timeSlice The time slice at which the wires are added.
+ * @param wires A selection of geometric wires to be added.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNE_L1SP::AddWires(int time_slice, GeomWireSelection& wires){
   if (wires.size() >0){
     
@@ -296,6 +329,12 @@ void WCP2dToy::uBooNE_L1SP::AddWires(int time_slice, GeomWireSelection& wires){
   }
 }
 
+/**
+ * Forms regions of interest in the 2D toy data based on the provided pad value.
+ *
+ * @param pad The padding value used to extend the regions of interest.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNE_L1SP::Form_rois(int pad){
   
   for (auto it = init_map.begin(); it!=init_map.end(); it++){
@@ -374,6 +413,20 @@ void WCP2dToy::uBooNE_L1SP::Form_rois(int pad){
 }
 
 
+/**
+ * @brief Performs L1 fit for the given wire index and tick range.
+ *
+ * This function takes a wire index, start tick, and end tick as input, 
+ * and performs an L1 fit on the corresponding data. It uses various 
+ * algorithms and conditions to determine whether to apply the L1 
+ * correction or remove the signal. The result is stored in the 
+ * deconvoluted histograms.
+ *
+ * @param wire_index The index of the wire to perform the L1 fit on.
+ * @param start_tick The starting tick of the range to consider.
+ * @param end_tick The ending tick of the range to consider.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNE_L1SP::L1_fit(int wire_index, int start_tick, int end_tick){
   const int nbin_fit = end_tick-start_tick;
   // std::cout << start_tick << " " << end_tick << std::endl;

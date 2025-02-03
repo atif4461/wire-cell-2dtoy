@@ -2,6 +2,15 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for pdDataFDS class
+ * @param gds GeomDataSource object containing geometry data
+ * @param hu_decon pointer to TH2I histogram for u-plane deconvolution
+ * @param hv_decon pointer to TH2I histogram for v-plane deconvolution
+ * @param hw_decon pointer to TH2I histogram for w-plane deconvolution
+ * @param eve_num event number
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::pdDataFDS::pdDataFDS(const WCP::GeomDataSource& gds, TH2I *hu_decon, TH2I *hv_decon, TH2I *hw_decon, int eve_num)
   : gds(gds)
 {
@@ -63,6 +72,15 @@ WCP2dToy::pdDataFDS::pdDataFDS(const WCP::GeomDataSource& gds, TH2I *hu_decon, T
 
 
 
+/**
+ * Constructor for pdDataFDS class 
+ * @param gds Geom data source object
+ * @param hu_decon pointer to histogram of deconvoluted u plane data
+ * @param hv_decon pointer to histogram of deconvoluted v plane data
+ * @param hw_decon pointer to histogram of deconvoluted w plane data
+ * @param eve_num event number
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::pdDataFDS::pdDataFDS(const WCP::GeomDataSource& gds, TH2F *hu_decon, TH2F *hv_decon, TH2F *hw_decon, int eve_num)
   : gds(gds)
 {
@@ -122,6 +140,14 @@ WCP2dToy::pdDataFDS::pdDataFDS(const WCP::GeomDataSource& gds, TH2F *hu_decon, T
   //std::cout << frame.traces.size() << " " << bins_per_frame << std::endl;
 }
 
+/**
+ * Refreshes the pdDataFDS object with new data from the given histograms
+ * @param hu_decon histogram for U plane deconvolution
+ * @param hv_decon histogram for V plane deconvolution
+ * @param hw_decon histogram for W plane deconvolution
+ * @param eve_num event number
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::pdDataFDS::refresh(TH2F *hu_decon, TH2F *hv_decon, TH2F *hw_decon, int eve_num){
     
   frame.clear();		// win or lose, we start anew

@@ -4,6 +4,14 @@ using namespace WCP;
 
 #include "TMath.h"
 
+/**
+ * Constructor for ToyMatrixIterate class, initializes variables and performs initial setup
+ * @param toymatrix reference to ToyMatrix object
+ * @param already_removed vector of integers representing removed items
+ * @param recon_t integer reconstruction threshold
+ * @param limit integer limit value
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixIterate::ToyMatrixIterate(WCP2dToy::ToyMatrix &toymatrix, std::vector<int>& already_removed, int recon_t, int limit)
   : penalty_ncpt(0)
 {
@@ -46,6 +54,13 @@ WCP2dToy::ToyMatrixIterate::ToyMatrixIterate(WCP2dToy::ToyMatrix &toymatrix, std
 
 }
 
+/**
+ * Constructor for ToyMatrixIterate class 
+ * @param toymatrix reference to ToyMatrix object
+ * @param recon_t reconstruction threshold value
+ * @param limit loop estimation limit value
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixIterate::ToyMatrixIterate(WCP2dToy::ToyMatrix &toymatrix, int recon_t, float limit)
   : penalty_ncpt(0)
 {
@@ -83,6 +98,21 @@ WCP2dToy::ToyMatrixIterate::ToyMatrixIterate(WCP2dToy::ToyMatrix &toymatrix, int
   //if not use time information ... 
 }
 
+/**
+ * Constructor for ToyMatrixIterate class.
+ * Initializes the object with the given parameters.
+ * @param toybefore     pointer to the previous ToyMatrix object
+ * @param toycur       pointer to the current ToyMatrix object
+ * @param toyafter     pointer to the next ToyMatrix object
+ * @param mergebefore  pointer to the previous MergeToyTiling object
+ * @param mergecur     pointer to the current MergeToyTiling object
+ * @param mergeafter   pointer to the next MergeToyTiling object
+ * @param recon_t      reconstruction threshold value
+ * @param limit        loop estimation limit value
+ * @param penalty     penalty value for overlap detection
+ * @param penalty_ncpt penalty value for non-compatible points
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixIterate::ToyMatrixIterate(WCP2dToy::ToyMatrix *toybefore, WCP2dToy::ToyMatrix *toycur, WCP2dToy::ToyMatrix *toyafter, WCP2dToy::MergeToyTiling *mergebefore, WCP2dToy::MergeToyTiling *mergecur, WCP2dToy::MergeToyTiling *mergeafter, int recon_t, float limit, double penalty, double penalty_ncpt)
   : penalty_ncpt(penalty_ncpt)
 {
@@ -191,6 +221,15 @@ WCP2dToy::ToyMatrixIterate::ToyMatrixIterate(WCP2dToy::ToyMatrix *toybefore, WCP
 
 
 
+/**
+ * Constructor for ToyMatrixIterate class.
+ * Initializes the object with the given parameters.
+ * @param toycur reference to ToyMatrix object
+ * @param mergecur reference to MergeToyTiling object
+ * @param cells reference to GeomCellSelection object
+ * @param recon_t integer value
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixIterate::ToyMatrixIterate(WCP2dToy::ToyMatrix &toycur, WCP2dToy::MergeToyTiling &mergecur, WCP::GeomCellSelection &cells, int recon_t )
   : penalty_ncpt(0)
 {
@@ -274,6 +313,16 @@ WCP2dToy::ToyMatrixIterate::ToyMatrixIterate(WCP2dToy::ToyMatrix &toycur, WCP2dT
 
 
 
+/**
+ * @brief Uses time information to iterate through ToyMatrix objects
+ * @param toybefore previous ToyMatrix object
+ * @param toycur current ToyMatrix object
+ * @param toyafter next ToyMatrix object
+ * @param mergebefore previous MergeToyTiling object
+ * @param mergecur current MergeToyTiling object
+ * @param mergeafter next MergeToyTiling object
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixIterate::UseTime(WCP2dToy::ToyMatrix &toybefore, WCP2dToy::ToyMatrix &toycur, WCP2dToy::ToyMatrix &toyafter, WCP2dToy::MergeToyTiling &mergebefore, WCP2dToy::MergeToyTiling &mergecur, WCP2dToy::MergeToyTiling &mergeafter){
   
   GeomCellSelection allmcell_p = mergebefore.get_allcell();
@@ -374,6 +423,9 @@ void WCP2dToy::ToyMatrixIterate::UseTime(WCP2dToy::ToyMatrix &toybefore, WCP2dTo
 }
 
 
+/**
+ * Destructor to free allocated resources when estimated loop count is less than one million */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixIterate::~ToyMatrixIterate(){
   if (estimated_loop < 1e6){
     delete toymatrixkalman;
@@ -382,6 +434,12 @@ WCP2dToy::ToyMatrixIterate::~ToyMatrixIterate(){
 
 
 
+/**
+ * @brief Iterates over the ToyMatrix and performs operations based on certain conditions.
+ * @param toymatrix The input ToyMatrixKalman object.
+ * @param toymatrix1 The input ToyMatrix object.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixIterate::Iterate(WCP2dToy::ToyMatrixKalman &toymatrix,WCP2dToy::ToyMatrix &toymatrix1){
   nlevel ++;
   if (toymatrix.Get_numz()!=0 && toymatrix.Cal_numz(toymatrix1)==0){
@@ -461,6 +519,13 @@ void WCP2dToy::ToyMatrixIterate::Iterate(WCP2dToy::ToyMatrixKalman &toymatrix,WC
 
 
 
+/**
+ * @brief Recursively finds a subset of indices in a matrix that satisfy certain conditions
+ * @param toymatrix The input ToyMatrixKalman object
+ * @param toymatrix1 The input ToyMatrix object
+ * @param vec A vector of integers to store the result
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixIterate::find_subset(WCP2dToy::ToyMatrixKalman &toymatrix,WCP2dToy::ToyMatrix &toymatrix1, std::vector<int>& vec){
   //std::cout << toymatrix.Get_already_removed().size() << " " << toymatrix.Get_no_need_remove().size() << " " << vec.size() << std::endl;
 
@@ -496,6 +561,12 @@ void WCP2dToy::ToyMatrixIterate::find_subset(WCP2dToy::ToyMatrixKalman &toymatri
 
 
 
+/**
+ * @brief Iterates through the ToyMatrix in a simple manner
+ * @param toymatrix The input ToyMatrixKalman object
+ * @param toymatrix1 The input ToyMatrix object
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixIterate::Iterate_simple(WCP2dToy::ToyMatrixKalman &toymatrix,WCP2dToy::ToyMatrix &toymatrix1){
   nlevel ++;
   
@@ -541,6 +612,12 @@ void WCP2dToy::ToyMatrixIterate::Iterate_simple(WCP2dToy::ToyMatrixKalman &toyma
   }
 }
 
+/**
+ * @brief Iterates through the ToyMatrix using a simple iterative approach
+ * @param toymatrix The input ToyMatrixKalman object
+ * @param toymatrix1 The input ToyMatrix object
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixIterate::Iterate_simple1(WCP2dToy::ToyMatrixKalman &toymatrix,WCP2dToy::ToyMatrix &toymatrix1){
   nlevel ++;
   int ncount_cut = 100000;

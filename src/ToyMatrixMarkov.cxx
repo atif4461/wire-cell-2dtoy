@@ -4,6 +4,14 @@ using namespace WCP;
 #include "TMath.h"
 #include "TRandom.h"
 
+/**
+ * @brief Recursively finds a subset of indices that can be removed from a matrix without changing its properties.
+ *
+ * @param[in,out] toymatrix The input matrix to process.
+ * @param[in] toymatrix1 An additional matrix used in the processing.
+ * @param[out] vec A vector to store the resulting subset of indices.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixMarkov::find_subset(WCP2dToy::ToyMatrixKalman &toymatrix,WCP2dToy::ToyMatrix &toymatrix1, std::vector<int>& vec){
   //std::cout << toymatrix.Get_already_removed().size() << " " << toymatrix.Get_no_need_remove().size() << " " << vec.size() << std::endl;
 
@@ -70,6 +78,17 @@ void WCP2dToy::ToyMatrixMarkov::find_subset(WCP2dToy::ToyMatrixKalman &toymatrix
   }
 }
 
+/**
+ * Constructor for ToyMatrixMarkov class.
+ *
+ * @param[in] toycur         Reference to ToyMatrix object.
+ * @param[in] mergecur      Reference to MergeToyTiling object.
+ * @param[in] allmcell1     Pointer to GeomCellSelection object.
+ * @param[in] cells        Reference to GeomCellSelection object.
+ * @param[in] recon_t1      First reconstruction threshold value.
+ * @param[in] recon_t2      Second reconstruction threshold value.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixMarkov::ToyMatrixMarkov(WCP2dToy::ToyMatrix &toycur,WCP2dToy::MergeToyTiling &mergecur, WCP::GeomCellSelection *allmcell1, WCP::GeomCellSelection &cells, int recon_t1, int recon_t2)
   : penalty_ncpt(0)
 {
@@ -215,6 +234,23 @@ WCP2dToy::ToyMatrixMarkov::ToyMatrixMarkov(WCP2dToy::ToyMatrix &toycur,WCP2dToy:
   }
 }
 
+/**
+ * Constructor initializing the object with toy matrices and merge tilings 
+ * at different time steps along with cell selection and reconstruction times
+ * and penalties for nonconsecutive points
+ * @param[in] toy matrix before current time step
+ * @param[in] toy matrix at current time step
+ * @param[in] toy matrix after current time step
+ * @param[in] merge tiling before current time step
+ * @param[in] merge tiling at current time step
+ * @param[in] merge tiling after current time step
+ * @param[in] all cells in first manifold
+ * @param[in] first reconstruction time
+ * @param[in] second reconstruction time
+ * @param[in] penalty value
+ * @param[in] penalty for nonconsecutive points
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixMarkov::ToyMatrixMarkov(WCP2dToy::ToyMatrix &toybefore, WCP2dToy::ToyMatrix &toycur, WCP2dToy::ToyMatrix &toyafter, WCP2dToy::MergeToyTiling &mergebefore, WCP2dToy::MergeToyTiling &mergecur, WCP2dToy::MergeToyTiling &mergeafter, WCP::GeomCellSelection *allmcell1,int recon_t1, int recon_t2, double penalty, double penalty_ncpt)
   : penalty_ncpt(penalty_ncpt)
 {
@@ -222,6 +258,22 @@ WCP2dToy::ToyMatrixMarkov::ToyMatrixMarkov(WCP2dToy::ToyMatrix &toybefore, WCP2d
 }
 
 
+/**
+ * Constructor for ToyMatrixMarkov class.
+ *
+ * @param[in] toybefore     Pointer to previous ToyMatrix object.
+ * @param[in] toycur       Pointer to current ToyMatrix object.
+ * @param[in] toyafter     Pointer to next ToyMatrix object.
+ * @param[in] mergebefore  Pointer to previous MergeToyTiling object.
+ * @param[in] mergecur     Pointer to current MergeToyTiling object.
+ * @param[in] mergeafter   Pointer to next MergeToyTiling object.
+ * @param[in] allmcell1    Pointer to GeomCellSelection object.
+ * @param[in] recon_t1     First reconstruction threshold value.
+ * @param[in] recon_t2     Second reconstruction threshold value.
+ * @param[in] penalty     Penalty value for markov chain.
+ * @param[in] penalty_ncpt Non-compatible point penalty value.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixMarkov::ToyMatrixMarkov(WCP2dToy::ToyMatrix *toybefore, WCP2dToy::ToyMatrix *toycur, WCP2dToy::ToyMatrix *toyafter, WCP2dToy::MergeToyTiling *mergebefore, WCP2dToy::MergeToyTiling *mergecur, WCP2dToy::MergeToyTiling *mergeafter, WCP::GeomCellSelection *allmcell1,int recon_t1, int recon_t2, double penalty, double penalty_ncpt)
   : penalty_ncpt(penalty_ncpt)
 {
@@ -431,6 +483,14 @@ WCP2dToy::ToyMatrixMarkov::ToyMatrixMarkov(WCP2dToy::ToyMatrix *toybefore, WCP2d
 
 
 
+/**
+ * Constructor for ToyMatrixMarkov class
+ * @param toymatrix1 pointer to ToyMatrix object
+ * @param allmcell1 pointer to GeomCellSelection object
+ * @param recon_t1 reconstruction threshold 1
+ * @param recon_t2 reconstruction threshold 2
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixMarkov::ToyMatrixMarkov(WCP2dToy::ToyMatrix *toymatrix1,WCP::GeomCellSelection *allmcell1, int recon_t1, int recon_t2)
   : penalty_ncpt(0)
 {
@@ -516,6 +576,15 @@ WCP2dToy::ToyMatrixMarkov::~ToyMatrixMarkov(){
   delete toymatrixkalman;
 }
 
+/**
+ * @brief Makes an initial guess for the Toy Matrix Markov process.
+ *
+ * Increments the iteration count and checks if this is the first iteration.
+ * If so, initializes variables and performs an initial iteration.
+ * Then updates predictions, calculates residuals, and determines cell status and polarity.
+ * Finally, ranks cells based on their probabilities and applies penalties as needed.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixMarkov::make_guess(){
   
   ncount ++; 
@@ -725,6 +794,11 @@ void WCP2dToy::ToyMatrixMarkov::make_guess(){
   //std::cout << toymatrixkalman->Get_already_removed().size() << std::endl;
 }
 
+/**
+ * @brief Iterate through the ToyMatrixKalman object to refine the matrix
+ * @param[in] toykalman The ToyMatrixKalman object to iterate through
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixMarkov::Iterate(WCP2dToy::ToyMatrixKalman &toykalman){
   nlevel++;
   if (toykalman.Get_numz()!=0&&toymatrix->Get_Chi2()<0){

@@ -4,6 +4,13 @@
 
 using namespace WCP;
 
+/**
+ * Calculates boundary points of dead cells in a cluster.
+ *
+ * @param[in] gds Geom data source
+ * @param[in] cluster Cluster containing microcells
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::calc_boundary_points_dead(WCP::GeomDataSource& gds, WCP::PR3DCluster* cluster){
   SMGCSelection mcells = cluster->get_mcells();
   for (auto it = mcells.begin(); it!=mcells.end(); it++){
@@ -11,6 +18,15 @@ void WCP2dToy::calc_boundary_points_dead(WCP::GeomDataSource& gds, WCP::PR3DClus
   }
 }
 
+/**
+ * Calculate sampling points for all microcells in a cluster
+ * @param[in] gds Geom data source
+ * @param[in] cluster PR3D cluster
+ * @param[in] nrebin rebin number
+ * @param[in] frame_length frame length
+ * @param[in] unit_dis unit distance
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::calc_sampling_points(WCP::GeomDataSource& gds, WCP::PR3DCluster* cluster, int nrebin, int frame_length, double unit_dis){
   SMGCSelection mcells = cluster->get_mcells();
   for (auto it = mcells.begin(); it!=mcells.end(); it++){
@@ -18,6 +34,13 @@ void WCP2dToy::calc_sampling_points(WCP::GeomDataSource& gds, WCP::PR3DCluster* 
   }
 }
 
+/**
+ * @brief Calculates boundary points of a cell in a 2D toy geometry.
+ *
+ * @param gds The geometric data source.
+ * @param mcell The merge cell.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::calc_boundary_points_dead(WCP::GeomDataSource& gds, WCP::SlimMergeGeomCell* mcell){
   GeomWireSelection bad_wire_u = mcell->get_uwires();
   GeomWireSelection bad_wire_v = mcell->get_vwires();
@@ -610,6 +633,20 @@ void WCP2dToy::calc_boundary_points_dead(WCP::GeomDataSource& gds, WCP::SlimMerg
   
 }
 
+/**
+ * @brief Calculates the sampling points for a given geometry data source and merge cell.
+ * 
+ * This function determines the sampling points within a specified region of interest,
+ * defined by the intersection of two sets of wires in a 3D space. It takes into account
+ * the pitch and distance limits between wires to ensure accurate calculations.
+ * 
+ * @param gds The geometry data source containing information about the wires.
+ * @param mcell The merge cell object where the sampling points will be stored.
+ * @param nrebin The rebinning factor used for calculating the time slice.
+ * @param frame_length The length of the frame used for calculating the x-coordinate.
+ * @param unit_dis The unit distance used for scaling the coordinates.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::calc_sampling_points(WCP::GeomDataSource& gds, WCP::SlimMergeGeomCell* mcell, int nrebin, int frame_length, double unit_dis){
   GeomWireSelection wires_u = mcell->get_uwires();
   GeomWireSelection wires_v = mcell->get_vwires();

@@ -2,6 +2,16 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for TruthToyTiling class, initializes object with given parameters
+ * @param tiling reference to ToyTiling object
+ * @param pvv vector of PointValue pairs
+ * @param tbin time bin number
+ * @param gds reference to GeomDataSource object
+ * @param offset1 integer offset value
+ * @param unit_dis floating point unit distance value
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::TruthToyTiling::TruthToyTiling(WCP2dToy::ToyTiling& tiling, const WCP::PointValueVector &pvv, int tbin, const GeomDataSource& gds, int offset1, float unit_dis){
   offset = offset1;
 
@@ -63,6 +73,16 @@ WCP2dToy::TruthToyTiling::TruthToyTiling(WCP2dToy::ToyTiling& tiling, const WCP:
 }
 
 
+/**
+ * Constructor for TruthToyTiling class 
+ * @param tiling reference to ToyTiling object
+ * @param pvv vector of PointValue pairs
+ * @param time_offset vector of time offsets
+ * @param tbin time bin number
+ * @param gds reference to GeomDataSource object
+ * @param unit_dis distance unit
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::TruthToyTiling::TruthToyTiling(WCP2dToy::ToyTiling& tiling, const WCP::PointValueVector &pvv, const std::vector<int> &time_offset, int tbin, const GeomDataSource& gds, float unit_dis){
   if (tiling.get_allcell().size()>0){
     float sum = 0;
@@ -109,6 +129,16 @@ WCP2dToy::TruthToyTiling::TruthToyTiling(WCP2dToy::ToyTiling& tiling, const WCP:
 
 
 
+/**
+ * Constructor for TruthToyTiling class, initializes the object with given parameters.
+ * @param tiling ToyTiling object reference
+ * @param pvv PointValueVector containing points and their corresponding charges
+ * @param tbin time bin number
+ * @param gds DetectorGDS object reference
+ * @param offset1 integer offset value
+ * @param unit_dis floating point unit distance value
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::TruthToyTiling::TruthToyTiling(WCP2dToy::ToyTiling& tiling, const WCP::PointValueVector &pvv, int tbin, const DetectorGDS& gds, int offset1, float unit_dis){
   if (tiling.get_allcell().size()>0){
     offset = offset1;
@@ -193,6 +223,16 @@ WCP2dToy::TruthToyTiling::TruthToyTiling(WCP2dToy::ToyTiling& tiling, const WCP:
 }
 
 
+/**
+ * Constructor for TruthToyTiling class, initializes the object with given parameters
+ * @param tiling ToyTiling object reference
+ * @param pvv PointValueVector of points with their corresponding charges
+ * @param time_offset vector of time offsets
+ * @param tbin time bin number
+ * @param gds DetectorGDS object reference
+ * @param unit_dis unit distance
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::TruthToyTiling::TruthToyTiling(WCP2dToy::ToyTiling& tiling, const WCP::PointValueVector &pvv, const std::vector<int> &time_offset, int tbin, const DetectorGDS& gds, float unit_dis){
   if (tiling.get_allcell().size()>0){
     float sum = 0;

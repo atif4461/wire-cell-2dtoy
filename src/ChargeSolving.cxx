@@ -3,6 +3,12 @@
 
 using namespace WCP;
 
+/**
+ * Constructor initializing charge solving with geometry data source and tiling
+ * @param gds Geometry data source
+ * @param tiling Tiling object for division
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ChargeSolving::ChargeSolving(const WCP::GeomDataSource& gds, LowmemTiling& tiling)
   : gds(gds)
   , tiling(tiling)
@@ -23,6 +29,12 @@ WCP2dToy::ChargeSolving::~ChargeSolving(){
 
 
 
+/**
+ * Updates cell weights and resolves L1 charges for all group matrices.
+ * @param weight             initial weight value
+ * @param reduce_weight_factor factor to reduce weight
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ChargeSolving::L1_resolve(float weight, float reduce_weight_factor){
   update_cell_weight_map(weight, reduce_weight_factor);
   ccmap.clear();
@@ -43,6 +55,12 @@ void WCP2dToy::ChargeSolving::L1_resolve(float weight, float reduce_weight_facto
   }
 }
 
+/**
+ * Updates the cell weight map with a specified weight and reduction factor.
+ * @param weight             initial weight value
+ * @param reduce_weight_factor factor to reduce weight for connected cells
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ChargeSolving::update_cell_weight_map(float weight, float reduce_weight_factor){
   for (auto it= cell_weight_map.begin(); it!=cell_weight_map.end(); it++){
     const GeomCell *mcell = it->first;
@@ -56,6 +74,11 @@ void WCP2dToy::ChargeSolving::update_cell_weight_map(float weight, float reduce_
   }
 }
 
+/**
+ * Initializes the cell weight map with a specified weight value for all cells in the tiling.
+ * @param weight The weight value to be assigned to each cell in the map.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ChargeSolving::init_cell_weight_map(float weight){
   GeomCellSelection& one_wire_cells = tiling.get_one_good_wire_cells();
   GeomCellSelection& two_wire_cells = tiling.get_two_good_wire_cells();
@@ -81,6 +104,11 @@ void WCP2dToy::ChargeSolving::init_cell_weight_map(float weight){
   
 }
 
+/**
+ * Returns the weight associated with a given GeomCell object
+ * @param cell pointer to the GeomCell object
+ * @return weight of the cell if found in map otherwise negative one */
+// The above comment was written by an LLM. 
 float WCP2dToy::ChargeSolving::get_weight(WCP::GeomCell *cell){
   auto it = cell_weight_map.find(cell);
   if (it != cell_weight_map.end()){
@@ -90,6 +118,12 @@ float WCP2dToy::ChargeSolving::get_weight(WCP::GeomCell *cell){
   }
 }
 
+/**
+ * Returns the matrix identifier associated with a given geometric cell
+ * @param cell Geometric cell to retrieve matrix id for
+ * @return Matrix identifier or negative value if not found
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ChargeSolving::get_matrix_id(WCP::GeomCell *cell){
   auto it = map_mc_matrix_id.find(cell);
   if (it != map_mc_matrix_id.end()){
@@ -98,6 +132,12 @@ int WCP2dToy::ChargeSolving::get_matrix_id(WCP::GeomCell *cell){
     return -1;
   }
 }
+/**
+ * Returns the Monte Carlo ID associated with a given geometric cell
+ * @param cell Geometric cell to retrieve the ID for
+ * @return The Monte Carlo ID of the cell if found, -1 otherwise
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ChargeSolving::get_mc_id(WCP::GeomCell *cell){
   auto it = map_mc_index.find(cell);
   if (it != map_mc_index.end()){
@@ -106,6 +146,12 @@ int WCP2dToy::ChargeSolving::get_mc_id(WCP::GeomCell *cell){
     return -1;
   }
 }
+/**
+ * Returns the mapped mc lambda value for a given GeomCell object
+ * @param cell pointer to the GeomCell object
+ * @return the corresponding mc lambda value if found, -1 otherwise
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::ChargeSolving::get_mc_lambda(WCP::GeomCell *cell){
   auto it = map_mc_lambda.find(cell);
   if (it != map_mc_lambda.end()){
@@ -114,6 +160,12 @@ double WCP2dToy::ChargeSolving::get_mc_lambda(WCP::GeomCell *cell){
     return -1;
   }
 }
+/**
+ * Returns the migration cutoff time for a given GeomCell object
+ * @param cell pointer to the GeomCell object
+ * @return the migration cutoff time value associated with the cell or -1 if not found
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::ChargeSolving::get_mc_TOL(WCP::GeomCell *cell){
   auto it = map_mc_TOL.find(cell);
   if (it != map_mc_TOL.end()){
@@ -123,6 +175,12 @@ double WCP2dToy::ChargeSolving::get_mc_TOL(WCP::GeomCell *cell){
   }
 }
 
+/**
+ * Returns the index of the given GeomWire in the internal mapping
+ * @param mwire pointer to the GeomWire object
+ * @return index of the GeomWire if found, -1 otherwise
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ChargeSolving::get_mw_id(WCP::GeomWire *mwire){
   auto it = map_mw_index.find(mwire);
   if (it!= map_mw_index.end()){
@@ -131,6 +189,12 @@ int WCP2dToy::ChargeSolving::get_mw_id(WCP::GeomWire *mwire){
     return -1;
   }
 }
+/**
+ * Returns the calculated W value associated with the given GeomWire object
+ * @param mwire pointer to the GeomWire object
+ * @return the calculated W value or 0 if not found
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::ChargeSolving::get_W(WCP::GeomWire *mwire){
   auto it = map_W.find(mwire);
   if (it != map_W.end()){
@@ -139,6 +203,10 @@ double WCP2dToy::ChargeSolving::get_W(WCP::GeomWire *mwire){
     return 0;
   }
 }
+/**
+ * Returns the G value associated with a given cell and wire pair from the map_G data structure
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::ChargeSolving::get_G(WCP::GeomCell *cell, WCP::GeomWire *mwire){
   auto it = map_G.find(std::make_pair(cell, mwire));
   if (it != map_G.end()){
@@ -149,6 +217,10 @@ double WCP2dToy::ChargeSolving::get_G(WCP::GeomCell *cell, WCP::GeomWire *mwire)
 }
 
 
+/**
+ * Updates the information stored in various maps used for charge solving.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ChargeSolving::update_information(){
   GeomCellMap& cell_wire_map = tiling.get_cell_wires_map();
   GeomWireMap& wire_cell_map = tiling.get_wire_cells_map();
@@ -183,6 +255,13 @@ void WCP2dToy::ChargeSolving::update_information(){
 }
 
 
+/**
+ * Divide groups of geometric cells and wires into separate entities for charge solving.
+ *
+ * This function takes no parameters and returns no value. It operates on member variables
+ * of the class to perform the division and prepare for charge solving.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ChargeSolving::divide_groups(){
 
   GeomCellSelection& one_wire_cells = tiling.get_one_good_wire_cells();
@@ -307,6 +386,10 @@ double WCP2dToy::ChargeSolving::get_chi2(){
   return chi2;
 }
 
+/**
+ * Updates nondegree of freedom and chi squared values for charge solving
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ChargeSolving::Update_ndf_chi2(){
   ndf = 0;
   L1_ndf.clear();
@@ -347,6 +430,12 @@ void WCP2dToy::ChargeSolving::Update_ndf_chi2(){
   
 }
 
+/**
+ * Returns the number of degrees of freedom
+ *
+ * @return The number of degrees of freedom
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ChargeSolving::get_ndf(){
   
   

@@ -8,6 +8,17 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for ToySignalWienFDS class
+ * @param fds Frame data source
+ * @param gds Geometry data source
+ * @param bins_per_frame1 Number of bins per frame
+ * @param nframes_total Total number of frames
+ * @param time_offset_uv Time offset for uv plane
+ * @param time_offset_uw Time offset for uw plane
+ * @param overall_time_offset Overall time offset
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalWienFDS::ToySignalWienFDS(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds, int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, float overall_time_offset)
   : fds(fds)
   , gds_flag(0)
@@ -78,6 +89,17 @@ WCP2dToy::ToySignalWienFDS::ToySignalWienFDS(WCP::FrameDataSource& fds, const WC
   
 }
 
+/**
+ * Constructor for ToySignalWienFDS class 
+ * @param fds Frame data source object reference
+ * @param gds Detector geometry data structure constant reference
+ * @param bins_per_frame1 Number of bins per frame
+ * @param nframes_total Total number of frames
+ * @param time_offset_uv Time offset for uv channel
+ * @param time_offset_uw Time offset for uw channel
+ * @param overall_time_offset Overall time offset
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalWienFDS::ToySignalWienFDS(WCP::FrameDataSource& fds, const WCP::DetectorGDS& gds, int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, float overall_time_offset)
   : fds(fds)
   , gds_flag(1)
@@ -152,6 +174,10 @@ int WCP2dToy::ToySignalWienFDS::size() const{
   return max_frames;
 }
 
+/**
+ * Saves the current state of the Wien filter data to a ROOT file named temp_wienroot 
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToySignalWienFDS::Save(){
   TFile *file = new TFile("temp_wien.root","RECREATE");
   // for (int i=0;i!=nwire_u;i++){
@@ -167,6 +193,13 @@ void WCP2dToy::ToySignalWienFDS::Save(){
   file->Close();
 }
 
+/**
+ * @brief Jumps to a specific frame number in the signal processing pipeline.
+ *
+ * @param frame_number The target frame number to jump to.
+ * @return The index of the current frame after jumping.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToySignalWienFDS::jump(int frame_number){
   // fill the frame data ... 
   if (frame.index == frame_number) {
@@ -426,6 +459,10 @@ int WCP2dToy::ToySignalWienFDS::jump(int frame_number){
   return frame.index;
 }
 
+/**
+ * Destructor to free allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalWienFDS::~ToySignalWienFDS(){
   // for (int i=0;i!=nwire_u;i++){
   //   delete hu[i] ;

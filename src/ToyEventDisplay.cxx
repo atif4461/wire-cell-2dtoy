@@ -9,6 +9,10 @@
 
 using namespace WCP2dToy;
 
+/**
+ * Constructor initializing display with pad and geometry data source
+ */
+// The above comment was written by an LLM. 
 ToyEventDisplay::ToyEventDisplay(TPad& pad, const WCP::GeomDataSource& gds)
     : pad(pad)
     , gds_flag(0)
@@ -23,6 +27,10 @@ ToyEventDisplay::ToyEventDisplay(TPad& pad, const WCP::GeomDataSource& gds)
   truth_threshold = 2000;
 }
 
+/**
+ * Constructor initializing display with pad and detector geometry
+ */
+// The above comment was written by an LLM. 
 ToyEventDisplay::ToyEventDisplay(TPad& pad, const WCP::DetectorGDS& gds)
     : pad(pad)
     , gds_flag(1)
@@ -37,10 +45,17 @@ ToyEventDisplay::ToyEventDisplay(TPad& pad, const WCP::DetectorGDS& gds)
   truth_threshold = 2000;
 }
 
+/**
+ * Destructor to free allocated resources by clearing the object state */
+// The above comment was written by an LLM. 
 ToyEventDisplay::~ToyEventDisplay()
 {
     this->clear();
 }
+/**
+ * Clears all dynamically allocated resources held by the object
+ */
+// The above comment was written by an LLM. 
 void ToyEventDisplay::clear()
 {
     if (h1) {
@@ -57,6 +72,16 @@ void ToyEventDisplay::clear()
     }
 }
 
+/**
+ * Initializes the event display with specified boundaries.
+ *
+ * @param x_min Minimum value of the X axis
+ * @param x_max Maximum value of the X axis
+ * @param y_min Minimum value of the Y axis
+ * @param y_max Maximum value of the Y axis
+ * @return Initialization status
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::init(float x_min, float x_max, float y_min, float y_max)
 {
   this->clear();
@@ -88,6 +113,14 @@ int ToyEventDisplay::init(float x_min, float x_max, float y_min, float y_max)
   return 0;
 }
 
+/**
+ * Draws Monte Carlo events based on the provided flag and truth data.
+ * @param flag        The drawing mode flag.
+ * @param mctruth     A vector of point values representing Monte Carlo truth data.
+ * @param option      Drawing options string.
+ * @return           An integer indicating success.
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_mc(int flag, const WCP::PointValueVector& mctruth, TString option)
 {
   if (gds_flag == 0 ){
@@ -125,6 +158,12 @@ int ToyEventDisplay::draw_mc(int flag, const WCP::PointValueVector& mctruth, TSt
 }
 
 
+/**
+ * Draws bad cell boundaries in the event display.
+ *
+ * @param cells The collection of GeomCellSelection objects representing the cells to be drawn.
+ */
+// The above comment was written by an LLM. 
 void ToyEventDisplay::draw_bad_cell(WCP::GeomCellSelection& cells){
   pad.cd();
   for (int i=0;i!=cells.size();i++){
@@ -150,6 +189,15 @@ void ToyEventDisplay::draw_bad_cell(WCP::GeomCellSelection& cells){
   }
 }
 
+/**
+ * Draws bad regions in the event display.
+ * @param[in] chirpmap Chirp map data structure
+ * @param[in] time Time value
+ * @param[in] scale Scale factor
+ * @param[in] plane Plane number
+ * @param[in] option Drawing option
+ */
+// The above comment was written by an LLM. 
 void ToyEventDisplay::draw_bad_region(WCP::ChirpMap& chirpmap, int time, int scale, int plane, TString option){
   pad.cd();
 
@@ -174,6 +222,15 @@ void ToyEventDisplay::draw_bad_region(WCP::ChirpMap& chirpmap, int time, int sca
 }
 
 
+/**
+ * Draws merged wires on a display.
+ *
+ * @param[in] wires Selection of geometric wires to be drawn
+ * @param[in] option Drawing option for the lines
+ * @param[in] color Color of the lines to be drawn
+ * @return 0 on success
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_merged_wires(WCP::GeomWireSelection wires, TString option, int color){
    for (int j=0;j!=wires.size();j++){
       
@@ -203,6 +260,14 @@ int ToyEventDisplay::draw_merged_wires(WCP::GeomWireSelection wires, TString opt
   return 0;
 }
 
+/**
+ * Draws wires on a display with specified options.
+ *
+ * @param wires GeomWireSelection object containing wires to be drawn
+ * @param option Drawing option string
+ * @return integer value indicating success or failure
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_wires(WCP::GeomWireSelection& wires, TString option){
   
  
@@ -242,6 +307,18 @@ int ToyEventDisplay::draw_wires(WCP::GeomWireSelection& wires, TString option){
   return 0;
 }
 
+/**
+ * @brief Draws a slice of the detector geometry.
+ *
+ * This function takes a WCP::Slice object and an option string as input, 
+ * and draws the corresponding slice of the detector geometry.
+ *
+ * @param slice The slice of the detector geometry to be drawn.
+ * @param option The drawing option.
+ *
+ * @return An integer indicating the success of the operation.
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_slice(const WCP::Slice& slice, TString option)
 {
   
@@ -327,6 +404,13 @@ int ToyEventDisplay::draw_slice(const WCP::Slice& slice, TString option)
   return 0;
 }
 
+/**
+ * Draws points from a vector of 3D points in a 2D graph with specified options and color.
+ * @param[in] pcells Vector of 3D points to be drawn
+ * @param[in] option Drawing option for the graph
+ * @param[in] color Color of the markers for the points
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_points(WCP::PointVector pcells, TString option, int color){
   TGraph *g1 = new TGraph();
   for (int i=0; i!=pcells.size(); i++){
@@ -339,6 +423,16 @@ int ToyEventDisplay::draw_points(WCP::PointVector pcells, TString option, int co
 }
 
 
+/**
+ * @brief Draws cells in the event display.
+ * 
+ * @param cellall Selection of geometric cells to draw.
+ * @param option Drawing option for the graph.
+ * @param color Color used for drawing the cells.
+ * 
+ * @return Integer indicating success or failure.
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_cells(const WCP::GeomCellSelection& cellall, TString option, int color)
 {
   if (gds_flag == 1){
@@ -384,6 +478,14 @@ int ToyEventDisplay::draw_cells(const WCP::GeomCellSelection& cellall, TString o
 }
 
 
+/**
+ * Draws merged cells in the event display.
+ * @param cellall Collection of MergeGeomCell objects to be drawn.
+ * @param option Drawing option for the graph.
+ * @param flag Flag indicating whether to draw all cells or only those containing truth cells.
+ * @return Integer value indicating success or failure.
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_mergecells(const WCP::GeomCellSelection& cellall, TString option, int flag)
 {
  
@@ -442,6 +544,15 @@ int ToyEventDisplay::draw_mergecells(const WCP::GeomCellSelection& cellall, TStr
 
 
 
+/**
+ * @brief Draws truth cells from the given cell charge map.
+ * 
+ * @param ccmap Cell charge map containing the data to be drawn.
+ * @param option Drawing option for the graph.
+ * 
+ * @return Integer value indicating success or failure of the operation.
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_truthcells(const WCP::CellChargeMap& ccmap, TString option)
 {
   if (gds_flag==1){
@@ -503,6 +614,15 @@ int ToyEventDisplay::draw_truthcells(const WCP::CellChargeMap& ccmap, TString op
   return 0;
 }
 
+/**
+ * Draws truth cells with their corresponding charges on a pad.
+ *
+ * @param[in] ccmap Map of cell charges
+ * @param[in] option Drawing option for the poly line
+ * @param[in] FI Fill index for coloring
+ * @return 0 on success
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_truthcells_charge(const WCP::CellChargeMap& ccmap, TString option, int FI)
 {
   pad.cd();
@@ -547,6 +667,14 @@ int ToyEventDisplay::draw_truthcells_charge(const WCP::CellChargeMap& ccmap, TSt
 }
 
 
+/**
+ * Draws wires with charges on the display
+ * @param wcmap map of wire charges
+ * @param option drawing option
+ * @param FI fill index
+ * @return 0 on success
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_wires_charge(const WCP::WireChargeMap& wcmap, TString option, int FI)
 {
   pad.cd();
@@ -588,6 +716,13 @@ int ToyEventDisplay::draw_wires_charge(const WCP::WireChargeMap& wcmap, TString 
 
 
 
+/**
+ * Draws cells charge on the display
+ * @param[in] cellall vector of selected geometry cells
+ * @param[in] option drawing option for the poly line
+ * @return integer value indicating success
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_cells_charge(const WCP::GeomCellSelection& cellall, TString option)
 {
   pad.cd();
@@ -615,6 +750,15 @@ int ToyEventDisplay::draw_cells_charge(const WCP::GeomCellSelection& cellall, TS
   return 0;
 }
 
+/**
+ * Draws reconstructed cells on a graph with specified options and color.
+ * @param[in] cell selection of geometric cells
+ * @param[in] toy matrix for charge retrieval
+ * @param[in] drawing option string
+ * @param[in] marker color integer
+ * @return integer indicating success
+ */
+// The above comment was written by an LLM. 
 int ToyEventDisplay::draw_reconcells(const WCP::GeomCellSelection& cellall, WCP2dToy::ToyMatrix *toymatrix ,TString option, int color){
   
   pad.cd();

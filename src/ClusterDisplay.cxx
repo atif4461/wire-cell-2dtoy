@@ -6,6 +6,10 @@
 
 using namespace WCP;
 
+/**
+ * Constructor initializing cluster display with reference to TPad object 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ClusterDisplay::ClusterDisplay(TPad& pad)
   :pad(pad)
 {
@@ -15,6 +19,13 @@ WCP2dToy::ClusterDisplay::~ClusterDisplay(){
 }
 
 
+/**
+ * Draw a shower in a 3D graph
+ * @param[in] pointer to WCShower object
+ * @param[in] drawing option
+ * @param[in] marker color
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ClusterDisplay::DrawShower(WCP::WCShower* shower, TString option, int color){
   TGraph2D *g1 = new TGraph2D();
   int n = 0;
@@ -35,6 +46,17 @@ void WCP2dToy::ClusterDisplay::DrawShower(WCP::WCShower* shower, TString option,
   g1->SetMarkerColor(color);
 }
 
+/**
+ * @brief Draws a vertex in a 3D graph.
+ *
+ * This function takes a list of vertices and an option string as input,
+ * and draws each vertex as a point in a 3D graph. It also draws the
+ * associated tracks for each vertex.
+ *
+ * @param vertices A reference to a vector of WCVertexSelection objects.
+ * @param option A string specifying the drawing options.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ClusterDisplay::DrawVertex(WCVertexSelection& vertices, TString option){
   TGraph2D *g1 = new TGraph2D();
   int n = 0;
@@ -136,6 +158,14 @@ void WCP2dToy::ClusterDisplay::DrawVertex(WCVertexSelection& vertices, TString o
 }
 
 
+/**
+ * Draw tracks in 3D space with specified options and colors.
+ *
+ * @param tracks Collection of tracks to be drawn
+ * @param option Drawing option string
+ * @param color Color index for drawing tracks
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ClusterDisplay::DrawTracks(WCP::WCTrackSelection& tracks, TString option, int color ){
   double x1[2500],y1[2500],z1[2500];
   
@@ -186,6 +216,14 @@ void WCP2dToy::ClusterDisplay::DrawTracks(WCP::WCTrackSelection& tracks, TString
 }
 
 
+/**
+ * Draws Hough transform of space cells in a 2D histogram.
+ * @param[in] cells selection of space cells
+ * @param[in] p reference point
+ * @param[in] dis_near minimum distance threshold
+ * @param[in] dis_far maximum distance threshold
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ClusterDisplay::DrawHough(SpaceCellSelection& cells, Point& p, double dis_near, double dis_far){
   TH2F *h1 = new TH2F("h1","h1",180,0,3.1415926,360,-3.1415926,3.1415926);
   Double_t x,y,z;
@@ -209,6 +247,18 @@ void WCP2dToy::ClusterDisplay::DrawHough(SpaceCellSelection& cells, Point& p, do
   h1->Draw("COLZ");
 }
 
+/**
+ * @brief Draws a crawler in a 2D graph.
+ *
+ * This function takes a ToyCrawler object, an option string, and a flag integer as input.
+ * It uses the data from the ToyCrawler object to draw a 2D representation of the crawler.
+ * The option string determines the drawing options, and the flag integer determines which type of tracks to draw.
+ *
+ * @param toycrawler The ToyCrawler object containing the data to be drawn.
+ * @param option A string specifying the drawing options.
+ * @param flag An integer indicating whether to draw CT or MCT tracks.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ClusterDisplay::DrawCrawler(WCP2dToy::ToyCrawler& toycrawler, TString option, int flag){
   
   std::cout << "Draw Crawler " << " " << toycrawler.Get_allCT().size() << " " << toycrawler.Get_allMCT().size()<< std::endl;
@@ -299,6 +349,12 @@ void WCP2dToy::ClusterDisplay::DrawCrawler(WCP2dToy::ToyCrawler& toycrawler, TSt
 }
 					     
 
+/**
+ * Draws a cluster of space cells in a 3D graph.
+ * @param[in] mcells selection of space cells to draw
+ * @param[in] option drawing options for the graph
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ClusterDisplay::DrawCluster(SpaceCellSelection& mcells, TString option){
   Double_t x, y, z;
   TGraph2D *g1 = new TGraph2D();
@@ -322,6 +378,13 @@ void WCP2dToy::ClusterDisplay::DrawCluster(SpaceCellSelection& mcells, TString o
 
 
 
+/**
+ * @brief Draws a cluster of merged space cells in a 3D graph.
+ * 
+ * @param mcells A collection of merged space cells to be drawn.
+ * @param option Drawing options for the graph.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ClusterDisplay::DrawCluster(MergeSpaceCellSelection& mcells,TString option){
   Double_t x, y, z;
   TGraph2D *g1 = new TGraph2D();
@@ -374,6 +437,20 @@ void WCP2dToy::ClusterDisplay::DrawCluster(MergeSpaceCellSelection& mcells,TStri
 
 
 
+/**
+ * @brief Draws a cluster of space cells in a 3D graph.
+ * 
+ * This function takes a selection of merge space cells and a toy tracking object as input,
+ * and draws the corresponding cluster of space cells in a 3D graph.
+ * 
+ * The drawing process involves iterating over the selected merge space cells, checking
+ * if they contain any good tracks, and if so, calculating the distance between the
+ * cell and the track. If the distance is within a certain threshold, the cell is drawn.
+ * 
+ * @param mcells A reference to a vector of merge space cell selections.
+ * @param toytracking A reference to a toy tracking object.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ClusterDisplay::DrawCluster(MergeSpaceCellSelection& mcells,WCP2dToy::ToyTracking& toytracking){
   Double_t x, y, z;
   TGraph2D *g1 = new TGraph2D();

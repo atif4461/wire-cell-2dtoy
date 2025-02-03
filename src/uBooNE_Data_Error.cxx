@@ -3,6 +3,16 @@
 
 using namespace WCP;
 
+/**
+ * @brief Constructor for uBooNEDataError class
+ * @param gds GeomDataSource object
+ * @param hu_decon 2D histogram for deconvolution in U plane
+ * @param hv_decon 2D histogram for deconvolution in V plane
+ * @param hw_decon 2D histogram for deconvolution in W plane
+ * @param eve_num event number
+ * @param nrebin rebinning factor
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNEDataError::uBooNEDataError(const WCP::GeomDataSource& gds, TH2I *hu_decon, TH2I *hv_decon, TH2I *hw_decon, int eve_num, int nrebin)
   : gds(gds)
   , nrebin(nrebin)
@@ -237,6 +247,15 @@ WCP2dToy::uBooNEDataError::uBooNEDataError(const WCP::GeomDataSource& gds, TH2I 
   //std::cout << frame.traces.size() << " " << bins_per_frame << std::endl;
 }
 
+/**
+ * @brief Refreshes the data error for the uBoone detector
+ * 
+ * @param[in] hu_decon pointer to the deconvoluted histogram for the U plane
+ * @param[in] hv_decon pointer to the deconvoluted histogram for the V plane
+ * @param[in] hw_decon pointer to the deconvoluted histogram for the W plane
+ * @param[in] eve_num event number
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataError::refresh(TH2F *hu_decon, TH2F *hv_decon, TH2F *hw_decon, int eve_num){
    GeomWireSelection wires_u = gds.wires_in_plane(WirePlaneType_t(0));
   GeomWireSelection wires_v = gds.wires_in_plane(WirePlaneType_t(1));
@@ -462,6 +481,16 @@ void WCP2dToy::uBooNEDataError::refresh(TH2F *hu_decon, TH2F *hv_decon, TH2F *hw
 
 }
 
+/**
+ * @brief Constructor for uBooNE data error class
+ * @param gds Geom data source object
+ * @param hu_decon Deconvoluted histogram for U plane
+ * @param hv_decon Deconvoluted histogram for V plane
+ * @param hw_decon Deconvoluted histogram for W plane
+ * @param eve_num Event number
+ * @param nrebin Rebinning factor
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNEDataError::uBooNEDataError(const WCP::GeomDataSource& gds, TH2F *hu_decon, TH2F *hv_decon, TH2F *hw_decon, int eve_num, int nrebin)
   : gds(gds)
   , nrebin(nrebin)

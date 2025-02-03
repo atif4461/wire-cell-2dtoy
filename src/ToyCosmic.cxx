@@ -3,6 +3,13 @@
 
 using namespace WCP;
 
+/**
+ * @brief Constructor for ToyCosmic class
+ * @param trackings Input tracking selection
+ * @param abc Gap between two tracks
+ * @param abc1 Additional gap parameter
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyCosmic::ToyCosmic(WCP2dToy::ToyTrackingSelection& trackings, float abc, float abc1)
   : trackings(trackings)
 {
@@ -228,6 +235,14 @@ WCP2dToy::ToyCosmic::ToyCosmic(WCP2dToy::ToyTrackingSelection& trackings, float 
   // }
 }
 
+/**
+ * @brief Checks if two toy tracking objects are connected.
+ * 
+ * @param tracking1 The first toy tracking object.
+ * @param tracking2 The second toy tracking object.
+ * @return True if the two tracking objects are connected, false otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyCosmic::IsConnected(ToyTracking *tracking1, ToyTracking *tracking2){
   //return false;
   WCTrackSelection& tracking1_tracks = tracking1->get_good_tracks();
@@ -347,6 +362,14 @@ bool WCP2dToy::ToyCosmic::IsConnected(ToyTracking *tracking1, ToyTracking *track
   return false;
 }
 
+/**
+ * Checks if two merge space cells are connected within a certain distance cutoff.
+ * @param mcell1 The first merge space cell.
+ * @param mcell2 The second merge space cell.
+ * @param dis_cut The distance cutoff.
+ * @return True if the cells are connected, false otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyCosmic::IsConnected(MergeSpaceCell *mcell1, MergeSpaceCell *mcell2, float dis_cut){
   float dy1 = mcell1->get_dy();
   float dz1 = mcell1->get_dz();

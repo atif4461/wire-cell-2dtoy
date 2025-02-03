@@ -4,6 +4,17 @@
 
 using namespace WCP;
 
+/**
+ * @brief Judges whether a merge cell is a simple blob in a Toy Tiling.
+ * 
+ * This function iterates over all merge cells in the given Toy Tiling,
+ * checks their charges, finds edges, corners and wires, and determines
+ * if they meet the criteria for being a simple blob.
+ * 
+ * @param[in] toytiling The input Toy Tiling object.
+ * @param[out] mergetiling The output Merge Toy Tiling object.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrix::JudgeSimpleBlob(WCP2dToy::ToyTiling& toytiling, WCP2dToy::MergeToyTiling& mergetiling){
    GeomCellSelection allmcell = mergetiling.get_allcell();
    num_blob = 0;
@@ -87,6 +98,10 @@ void WCP2dToy::ToyMatrix::JudgeSimpleBlob(WCP2dToy::ToyTiling& toytiling, WCP2dT
 
 }
 
+/**
+ * Default constructor initializing all member variables to default values.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrix::ToyMatrix(){
   solve_flag = -1;
   chi2 = -1;
@@ -124,6 +139,14 @@ WCP2dToy::ToyMatrix::ToyMatrix(){
 }
 
 
+/**
+ * Constructor for ToyMatrix class.
+ * @param toytiling         reference to ToyTiling object
+ * @param mergetiling     reference to MergeToyTiling object
+ * @param svd_flag1        flag for SVD usage
+ * @param recon_t          reconstruction threshold
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrix::ToyMatrix(WCP2dToy::ToyTiling& toytiling, WCP2dToy::MergeToyTiling& mergetiling, int svd_flag1, int recon_t){
   solve_flag = -1;
   chi2 = -1;
@@ -254,6 +277,13 @@ WCP2dToy::ToyMatrix::ToyMatrix(WCP2dToy::ToyTiling& toytiling, WCP2dToy::MergeTo
   
 }
 
+/**
+ * Builds up the indices for merged cells, merged wires, and single channels.
+ *
+ * @param[in] gds Detector geometry description
+ * @param[in,out] mergetiling Merged tiling object to generate indices from
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrix::Buildup_index(const WCP::DetectorGDS& gds, WCP2dToy::MergeToyTiling& mergetiling){
   mcindex = 0; // merged cell
   mwindex = 0; // merged wire
@@ -293,6 +323,14 @@ void WCP2dToy::ToyMatrix::Buildup_index(const WCP::DetectorGDS& gds, WCP2dToy::M
   }
 }
 
+/**
+ * Constructor for ToyMatrix class.
+ * @param gds        Detector geometry description
+ * @param toytiling  Toy tiling object
+ * @param mergetiling Merge toy tiling object
+ * @param recon_t    Reconstruction threshold
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrix::ToyMatrix(const DetectorGDS& gds,WCP2dToy::ToyTiling& toytiling, WCP2dToy::MergeToyTiling& mergetiling, int recon_t){
   solve_flag = -1;
   chi2 = -1;
@@ -387,6 +425,16 @@ WCP2dToy::ToyMatrix::ToyMatrix(const DetectorGDS& gds,WCP2dToy::ToyTiling& toyti
   }
 }
 
+/**
+ * Constructor for ToyMatrix class.
+ * Initializes the object with the given toy tiling, merge toy tiling, and reconstruction threshold.
+ * Builds up the index and constructs the matrices and vectors required for the analysis.
+ *
+ * @param toytiling The toy tiling object.
+ * @param mergetiling The merged toy tiling object.
+ * @param recon_t The reconstruction threshold.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrix::ToyMatrix(WCP2dToy::ToyTiling& toytiling, WCP2dToy::MergeToyTiling& mergetiling, int recon_t){
   solve_flag = -1;
   chi2 = -1;
@@ -512,11 +560,20 @@ WCP2dToy::ToyMatrix::ToyMatrix(WCP2dToy::ToyTiling& toytiling, WCP2dToy::MergeTo
 
 
 
+/**
+ * Updates prediction matrix MWy_pred using MA and Cx matrices
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrix::Update_pred(){
   *MWy = (*MB) * (*Wy);
   *MWy_pred = (*MA) * (*Cx);
 }
 
+/**
+ * Prints the contents of the ToyMatrix object including matrix A, 
+ * correction vector x, and wire information with predicted values 
+ * and uncertainties.*/
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrix::Print(){
 
   MA->Print();
@@ -528,6 +585,12 @@ void WCP2dToy::ToyMatrix::Print(){
   }
 }
 
+/**
+ * Calculates the residual value of a cell in the toy matrix
+ * @param cell GeomCell object containing cell information
+ * @return calculated residual value
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::ToyMatrix::Get_residual(const WCP::GeomCell *cell){
   double res=0;
   int index = mcimap[cell];
@@ -539,6 +602,10 @@ double WCP2dToy::ToyMatrix::Get_residual(const WCP::GeomCell *cell){
   return res;
 }
 
+/**
+ * Destructor to free allocated memory for matrix components and vectors 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrix::~ToyMatrix(){
   
   
@@ -560,6 +627,11 @@ WCP2dToy::ToyMatrix::~ToyMatrix(){
   delete MWy;
 }
 
+/**
+ * Solves the matrix equation and calculates the solution vector and its uncertainty
+ * @return flag indicating whether the solution was successful
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToyMatrix::Solve(){
   
   // double det = MC->Determinant();
@@ -596,6 +668,12 @@ int WCP2dToy::ToyMatrix::Solve(){
   return solve_flag;
 }
 
+/**
+ * Solves the system of linear equations using Singular Value Decomposition SVD.
+ *
+ * @return solve flag indicating success or failure of the solution process
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToyMatrix::Solve_SVD(){
   
   // if (svd_removed.size()!=0){
@@ -684,6 +762,13 @@ int WCP2dToy::ToyMatrix::Solve_SVD(){
 
 
 
+/**
+ * Returns cell charge or uncertainty value based on input flag
+ * @param cell pointer to GeomCell object
+ * @param flag integer indicating whether to retrieve charge or uncertainty
+ * @return double value of either charge or uncertainty
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::ToyMatrix::Get_Cell_Charge( const WCP::GeomCell *cell, int flag )  {
   // flag == 1 charge
   // flag == 2 uncertainty
@@ -696,6 +781,15 @@ double WCP2dToy::ToyMatrix::Get_Cell_Charge( const WCP::GeomCell *cell, int flag
 }
 
 
+/**
+ * Builds up the indices for the ToyMatrix.
+ *
+ * This function initializes and constructs the indices for the merged cells,
+ * merged wires, and single wires within the MergeToyTiling object.
+ *
+ * @param mergetiling The MergeToyTiling object containing the geometric data.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrix::Buildup_index(WCP2dToy::MergeToyTiling& mergetiling){
 
   mcindex = 0;
