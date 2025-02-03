@@ -1,5 +1,16 @@
 #include "WCP2dToy/ToyDataQuality.h"
 
+/**
+ * Reorganizes dead channels in the u, v, and w planes by adjusting their boundaries.
+ *
+ * @param[in,out] uplane_map Map of chirps in the u plane
+ * @param[in,out] vplane_map Map of chirps in the v plane
+ * @param[in,out] wplane_map Map of chirps in the w plane
+ * @param[in] nbins Total number of bins
+ * @param[in] nrebin Rebinning factor
+ * @param[in] n_div Number of divisions for reorganization
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::Organize_Dead_Channels(WCP::ChirpMap& uplane_map, WCP::ChirpMap& vplane_map, WCP::ChirpMap& wplane_map, int nbins, int nrebin, int n_div){
   std::vector<std::pair<int,int>> boundaries;
   
@@ -61,6 +72,28 @@ void WCP2dToy::Organize_Dead_Channels(WCP::ChirpMap& uplane_map, WCP::ChirpMap& 
   
 }
 
+/**
+ * @brief Identifies noisy events in the data.
+ *
+ * @param hu_decon Deconvoluted histogram for the u-plane.
+ * @param hv_decon Deconvoluted histogram for the v-plane.
+ * @param hw_decon Deconvoluted histogram for the w-plane.
+ * @param uplane_rms RMS values for the u-plane wires.
+ * @param vplane_rms RMS values for the v-plane wires.
+ * @param wplane_rms RMS values for the w-plane wires.
+ * @param uplane_map Map of wire numbers to their corresponding event times for the u-plane.
+ * @param vplane_map Map of wire numbers to their corresponding event times for the v-plane.
+ * @param wplane_map Map of wire numbers to their corresponding event times for the w-plane.
+ * @param hu_decon_g Global deconvoluted histogram for the u-plane.
+ * @param hv_decon_g Global deconvoluted histogram for the v-plane.
+ * @param hw_decon_g Global deconvoluted histogram for the w-plane.
+ * @param nrebin Rebinning factor.
+ * @param hv_raw Raw histogram for the v-plane.
+ * @param flag_corr Flag indicating whether correction is applied.
+ *
+ * @return An integer indicating the type of event identified.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::Noisy_Event_ID(TH2F *hu_decon, TH2F *hv_decon, TH2F *hw_decon, std::vector<float>& uplane_rms, std::vector<float>& vplane_rms, std::vector<float>& wplane_rms, WCP::ChirpMap& uplane_map, WCP::ChirpMap& vplane_map, WCP::ChirpMap& wplane_map, TH2F *hu_decon_g, TH2F *hv_decon_g, TH2F *hw_decon_g, int nrebin, TH2F *hv_raw, bool flag_corr){
 
   int nwire_u = hu_decon->GetNbinsX();

@@ -6,6 +6,14 @@
 
 using namespace WCP;
 
+/**
+ * Calculates local average of histogram values within specified range
+ * @param[in] h1 input histogram
+ * @param[in] bin central bin number
+ * @param[in] width range of bins to consider on either side of central bin
+ * @return calculated local average value
+ */
+// The above comment was written by an LLM. 
 Double_t WCP2dToy::uBooNEDataROI::local_ave(TH1F *h1, Int_t bin, Int_t width){
   Double_t sum1 = 0;
   Double_t sum2 = 0;
@@ -30,6 +38,10 @@ Double_t WCP2dToy::uBooNEDataROI::local_ave(TH1F *h1, Int_t bin, Int_t width){
 }
 
 
+/**
+ * Clears all ROI data structures to their initial empty state 
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataROI::Clear(){
   self_rois_u.clear();
   self_rois_v.clear();
@@ -45,6 +57,14 @@ void WCP2dToy::uBooNEDataROI::Clear(){
 }
 
 
+/**
+ * Finds the end of the region of interest in a histogram.
+ * @param h1 input histogram
+ * @param bin starting bin number
+ * @param th threshold value
+ * @return ending bin number of the region of interest
+ */
+// The above comment was written by an LLM. 
 Int_t WCP2dToy::uBooNEDataROI::find_ROI_end(TH1F *h1, Int_t bin, Double_t th){
   Int_t end = bin;
   Double_t content = h1->GetBinContent(end+1);
@@ -73,6 +93,14 @@ Int_t WCP2dToy::uBooNEDataROI::find_ROI_end(TH1F *h1, Int_t bin, Double_t th){
   return end;
 }
 
+/**
+ * Finds the beginning of the region of interest in a histogram.
+ * @param h1 input histogram
+ * @param bin starting bin number
+ * @param th threshold value
+ * @return beginning bin number of the region of interest
+ */
+// The above comment was written by an LLM. 
 Int_t WCP2dToy::uBooNEDataROI::find_ROI_begin(TH1F *h1, Int_t bin, Double_t th){
   // find the first one before bin and is below threshold ... 
   Int_t begin = bin;
@@ -106,6 +134,18 @@ Int_t WCP2dToy::uBooNEDataROI::find_ROI_begin(TH1F *h1, Int_t bin, Double_t th){
 
 
 
+/**
+ * Constructor for uBooNEDataROI class.
+ *
+ * @param raw_fds    Raw frame data source.
+ * @param fds       Frame data source.
+ * @param gds       Geometry data source.
+ * @param umap      U Chirp map.
+ * @param vmap      V Chirp map.
+ * @param wmap      W Chirp map.
+ * @param lf_noisy_channels Set of noisy channels.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNEDataROI::uBooNEDataROI(WCP::FrameDataSource& raw_fds,WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds, WCP::ChirpMap& umap, WCP::ChirpMap& vmap, WCP::ChirpMap& wmap, std::set<int>& lf_noisy_channels)
   : fds(fds)
   , raw_fds(raw_fds)
@@ -180,6 +220,10 @@ WCP2dToy::uBooNEDataROI::uBooNEDataROI(WCP::FrameDataSource& raw_fds,WCP::FrameD
   //merge_ROIs();
 }
 
+/**
+ * Extends the ROI loosely by comparing it with the tight ROI and updating the boundaries accordingly.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataROI::extend_ROI_loose(){
   // compare the loose one with tight one 
   for(int i=0;i!=nwire_u;i++){
@@ -242,6 +286,16 @@ void WCP2dToy::uBooNEDataROI::extend_ROI_loose(){
 
 }
 
+/**
+ * Creates ROI connect info for u, v, and w planes.
+ *
+ * This function iterates over the ROIs in each plane, checks for similar lengths,
+ * calculates new ROI positions, and adds them to the list if they do not overlap
+ * with existing ROIs.
+ *
+ * @param asy The asymmetry parameter used to determine similar lengths.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataROI::create_ROI_connect_info(float asy){
   
   // u 
@@ -716,6 +770,12 @@ void WCP2dToy::uBooNEDataROI::find_ROI_loose(int rebin){
 }
 
 
+/**
+ * Extends the ROI of the object by a specified padding in all directions.
+ *
+ * @param pad The amount of padding to apply to the ROI.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataROI::extend_ROI_self(int pad){
   const int nbins = raw_fds.Get_Bins_Per_Frame();
 
@@ -795,6 +855,10 @@ void WCP2dToy::uBooNEDataROI::extend_ROI_self(int pad){
 }
 
 
+/**
+ * Destructor for the class 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNEDataROI::~uBooNEDataROI()
 {
   
@@ -1840,6 +1904,13 @@ void WCP2dToy::uBooNEDataROI::find_ROI_by_decon_itself(int th_factor_ind, int th
 
 
 
+/**
+ * Restores the baseline of a histogram by subtracting the average 
+ * value of the bins within a certain range from all bin contents.
+ *
+ * @param htemp input histogram with data to be corrected
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataROI::restore_baseline(TH1F *htemp){
   //correct baseline 
   double max = htemp->GetMaximum();
@@ -1873,6 +1944,15 @@ void WCP2dToy::uBooNEDataROI::restore_baseline(TH1F *htemp){
 
 
 
+/**
+ * Calculates the root mean square value of a histogram for a specific channel ID,
+ * excluding the region of interest defined in the maps.
+ *
+ * @param htemp The input histogram
+ * @param chid The channel ID
+ * @return The calculated RMS value
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::uBooNEDataROI::cal_rms(TH1F *htemp, int chid){
   //calculate rms, this is to be used for threshold purpose
   float rms = 0, rms1 = 0,rms2 = 0;

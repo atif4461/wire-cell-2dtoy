@@ -4,6 +4,18 @@
 
 using namespace::WCP;
 
+/**
+ * Constructor initializing ToyDepositor object with frame data source and various parameters
+ * @param fds1 pointer to WCP FrameDataSource object
+ * @param flag integer flag value
+ * @param unit_dis floating point unit distance value
+ * @param toffset integer time offset value
+ * @param x_center floating point x coordinate of center
+ * @param y_center floating point y coordinate of center
+ * @param z_center floating point z coordinate of center
+ * @param rotate_angle floating point rotation angle in degrees
+ */
+// The above comment was written by an LLM. 
 ToyDepositor::ToyDepositor(WCP::FrameDataSource* fds1, int flag, float unit_dis, int toffset, float x_center, float y_center, float z_center, float rotate_angle)
   : fds(fds1)
   , flag(flag)
@@ -19,6 +31,13 @@ ToyDepositor::ToyDepositor(WCP::FrameDataSource* fds1, int flag, float unit_dis,
   z_shift = 0.;
 }
 
+/**
+ * Returns a vector of point values representing depositions at a specified frame number.
+ *
+ * @param frame_number The frame number for which depositions are retrieved.
+ * @return A constant reference to a vector of point values.
+ */
+// The above comment was written by an LLM. 
 const PointValueVector& ToyDepositor::depositions(int frame_number) const{
   if (frame_number >=0 && frame_number < fds->size()){
     if (fds->jump(frame_number) < 0) {
@@ -66,6 +85,13 @@ const PointValueVector& ToyDepositor::depositions(int frame_number) const{
   return mchits;
 }
 
+/**
+ * Sets the translation shifts in the x, y, and z directions.
+ * @param xshift The shift value along the x axis.
+ * @param yshift The shift value along the y axis.
+ * @param zshift The shift value along the z axis.
+ */
+// The above comment was written by an LLM. 
 void ToyDepositor::translation(float xshift, float yshift, float zshift)
 {
   x_shift = xshift;

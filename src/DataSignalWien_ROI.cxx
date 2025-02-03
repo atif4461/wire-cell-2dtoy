@@ -13,6 +13,21 @@
 
 using namespace WCP;
 
+/**
+ * @brief Constructor for DataSignalWienROIFDS class
+ * 
+ * @param fds Frame data source
+ * @param gds Geometry data source
+ * @param umap U Chirp map
+ * @param vmap V Chirp map
+ * @param wmap W Chirp map
+ * @param bins_per_frame1 Bins per frame
+ * @param nframes_total Total number of frames
+ * @param time_offset_uv Time offset UV
+ * @param time_offset_uw Time offset UW
+ * @param overall_time_offset Overall time offset
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::DataSignalWienROIFDS::DataSignalWienROIFDS(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds,WCP::ChirpMap& umap, WCP::ChirpMap& vmap, WCP::ChirpMap& wmap, int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, float overall_time_offset)
   : fds(fds)
   , gds(gds)
@@ -219,6 +234,10 @@ WCP2dToy::DataSignalWienROIFDS::DataSignalWienROIFDS(WCP::FrameDataSource& fds, 
   scale_v_2d = 1.0;
 }
 
+/**
+ * Destructor to free allocated memory resources
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::DataSignalWienROIFDS::~DataSignalWienROIFDS(){
   delete hu_1D_c;
   delete hu_1D_c_gaus;
@@ -263,6 +282,14 @@ void WCP2dToy::DataSignalWienROIFDS::Save(){
 }
 
 
+/**
+ * Deconvolutes the V signal in the ROI of the FDS data.
+ *
+ * This function performs a series of operations to deconvolve the V signal,
+ * including filtering, FFTs, and inverse FFTs. It uses various filters and
+ * parameters to process the data.
+ */
+// The above comment was written by an LLM. 
 void  WCP2dToy::DataSignalWienROIFDS::Deconvolute_V_2D_g(){
   const Frame& frame1 = fds.get();
   size_t ntraces = frame1.traces.size();
@@ -618,6 +645,16 @@ void  WCP2dToy::DataSignalWienROIFDS::Deconvolute_V_2D_g(){
 }
 
 
+/**
+ * Deconvolutes the signal in the U plane of the 2D toy data.
+ *
+ * This function performs a series of operations including filtering,
+ * Fourier transforms, and inverse Fourier transforms to remove
+ * distortions from the signal and improve its quality.
+ *
+ * The output is stored in various histograms such as hu_2D_g, hu_2D_g_f, and hu_2D_g_gaus.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalWienROIFDS::Deconvolute_U_2D_g(){
   const Frame& frame1 = fds.get();
   size_t ntraces = frame1.traces.size();
@@ -974,6 +1011,21 @@ void WCP2dToy::DataSignalWienROIFDS::Deconvolute_U_2D_g(){
 }
 
 
+/**
+ * @brief Calculates the Regions Of Interest (ROIs) in two dimensions.
+ *
+ * @param h1_1 One dimensional histogram.
+ * @param h2_1 Two dimensional histogram.
+ * @param h3_1 Filtered two dimensional histogram.
+ * @param h4_1 One dimensional filtered histogram.
+ * @param h5_1 Two dimensional filtered histogram.
+ * @param threshold0 Threshold value for one dimension.
+ * @param threshold2 Threshold value for two dimensions.
+ * @param hresult Resultant histogram for adaptive baseline subtraction.
+ * @param hresult1 Resultant histogram for Gaussian filtering.
+ * @param flag_u Optional flag for under-shoot correction.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalWienROIFDS::ROI_cal(TH1F *h1_1, TH1F *h2_1, TH1F *h3_1, TH1F *h4_1, TH1F *h5_1, Double_t threshold0,Double_t threshold2, TH1F *hresult, TH1F *hresult1, int flag_u = 0){
   
     Double_t th = threshold2*2.0; // do 2 sigma
@@ -1873,6 +1925,14 @@ void WCP2dToy::DataSignalWienROIFDS::ROI_cal(TH1F *h1_1, TH1F *h2_1, TH1F *h3_1,
 
 
 
+/**
+ * Finds the ending index of the region of interest in a histogram
+ * @param h1 input histogram
+ * @param bin starting bin index
+ * @param th threshold value
+ * @return ending index of the region of interest
+ */
+// The above comment was written by an LLM. 
 Int_t WCP2dToy::DataSignalWienROIFDS::find_ROI_end(TH1F *h1, Int_t bin, Double_t th=0){
   Int_t end = bin;
   Double_t content = h1->GetBinContent(end+1);
@@ -1892,6 +1952,14 @@ Int_t WCP2dToy::DataSignalWienROIFDS::find_ROI_end(TH1F *h1, Int_t bin, Double_t
   return end;
 }
 
+/**
+ * Finds the beginning of the region of interest in a histogram.
+ * @param h1 input histogram
+ * @param bin starting bin number
+ * @param th threshold value
+ * @return beginning bin number of the region of interest
+ */
+// The above comment was written by an LLM. 
 Int_t WCP2dToy::DataSignalWienROIFDS::find_ROI_begin(TH1F *h1, Int_t bin, Double_t th=0){
   // find the first one before bin and is below threshold ... 
   Int_t begin = bin;
@@ -1919,6 +1987,14 @@ Int_t WCP2dToy::DataSignalWienROIFDS::find_ROI_begin(TH1F *h1, Int_t bin, Double
   return begin;
 }
 
+/**
+ * Calculates local average of histogram values within specified range
+ * @param[in] h1 input histogram
+ * @param[in] bin central bin number
+ * @param[in] width range of bins to consider
+ * @return calculated local average value
+ */
+// The above comment was written by an LLM. 
 Double_t WCP2dToy::DataSignalWienROIFDS::local_ave(TH1F *h1, Int_t bin, Int_t width){
   Double_t sum1 = 0;
   Double_t sum2 = 0;
@@ -1943,6 +2019,14 @@ Double_t WCP2dToy::DataSignalWienROIFDS::local_ave(TH1F *h1, Int_t bin, Int_t wi
 }
 
 
+/**
+ * Deconvolutes the V signal in the ROI FDS of the 2D toy data.
+ *
+ * This function performs deconvolution on the V signal in the specified region of interest
+ * using Fourier transform techniques. It applies filters to remove noise and artifacts,
+ * and then transforms the signal back to the time domain for further processing.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalWienROIFDS::Deconvolute_V_1D_g(){
   const Frame& frame1 = fds.get();
   size_t ntraces = frame1.traces.size();
@@ -2159,6 +2243,18 @@ void WCP2dToy::DataSignalWienROIFDS::Deconvolute_V_1D_g(){
 
 }
 
+/**
+ * @brief Deconvolutes the signal in the W plane using a Wiener filter.
+ *
+ * This function takes the input data from the FDS, applies a Wiener filter,
+ * and then performs an inverse Fourier transform to obtain the deconvoluted signal.
+ *
+ * The resulting signal is then corrected for baseline effects and stored in the output histograms.
+ *
+ * @param none
+ * @return void
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalWienROIFDS::Deconvolute_W_1D_g(){
   const Frame& frame1 = fds.get();
   size_t ntraces = frame1.traces.size();
@@ -2331,6 +2427,14 @@ void WCP2dToy::DataSignalWienROIFDS::Deconvolute_W_1D_g(){
 }
 
 
+/**
+ * @brief Deconvolutes the signal in the V plane using Wiener filter.
+ *
+ * This function performs deconvolution of the signal in the V plane using 
+ * Wiener filter. It first applies the filter to the data, then transforms 
+ * the result back to the time domain.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalWienROIFDS::Deconvolute_V_1D_c(){
   const Frame& frame1 = fds.get();
   size_t ntraces = frame1.traces.size();
@@ -2504,6 +2608,17 @@ void WCP2dToy::DataSignalWienROIFDS::Deconvolute_V_1D_c(){
 }
 
 
+/**
+ * Deconvolutes the signal in the U plane using Wiener filter.
+ *
+ * This function performs deconvolution of the signal in the U plane
+ * using a Wiener filter. It takes into account the response function
+ * of the detector and applies corrections to the baseline and RMS.
+ *
+ * @param none
+ * @return void
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalWienROIFDS::Deconvolute_U_1D_c(){
   
   const Frame& frame1 = fds.get();
@@ -2673,6 +2788,15 @@ void WCP2dToy::DataSignalWienROIFDS::Deconvolute_U_1D_c(){
   delete filter_u;
 }
 
+/**
+ * Calculates the root mean square of a histogram within a specified range,
+ * excluding signal regions, for threshold purposes.
+ *
+ * @param htemp input histogram
+ * @param chid channel identifier
+ * @return calculated root mean square value
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::DataSignalWienROIFDS::cal_rms(TH1F *htemp, int chid){
   //calculate rms, this is to be used for threshold purpose
   float rms = 0, rms1 = 0,rms2 = 0;
@@ -2744,6 +2868,13 @@ double WCP2dToy::DataSignalWienROIFDS::cal_rms(TH1F *htemp, int chid){
 }
 
 
+/**
+ * Restores the baseline of a histogram by subtracting the average 
+ * value of the bins within a certain range from all bin contents.
+ *
+ * @param htemp input histogram to be corrected
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalWienROIFDS::restore_baseline(TH1F *htemp){
   //correct baseline 
   double max = htemp->GetMaximum();
@@ -2774,6 +2905,13 @@ void WCP2dToy::DataSignalWienROIFDS::restore_baseline(TH1F *htemp){
 }
 
 
+/**
+ * @brief Jumps to a specific frame number in the data signal Wien ROIFDS.
+ * 
+ * @param frame_number The frame number to jump to.
+ * @return The index of the jumped frame.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::DataSignalWienROIFDS::jump(int frame_number){
   // fill the frame data ... 
   if (frame.index == frame_number) {

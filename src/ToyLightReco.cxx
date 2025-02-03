@@ -13,6 +13,13 @@ using namespace WCP;
 using namespace Eigen;
 
 
+/**
+ * Constructor for ToyLightReco class
+ * @param root_file input file path
+ * @param imagingoutput flag indicating whether imaging output is required
+ * @param datatier data tier level
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyLightReco::ToyLightReco(const char* root_file, bool imagingoutput, int datatier){
   //file = new TFile(root_file);
   file = TFile::Open(root_file);
@@ -104,6 +111,10 @@ WCP2dToy::ToyLightReco::ToyLightReco(const char* root_file, bool imagingoutput, 
   //delete_status = true;
 }
 
+/**
+ * Destructor to free allocated memory resources.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyLightReco::~ToyLightReco(){
   //  if(delete_status){
 
@@ -192,6 +203,11 @@ WCP2dToy::ToyLightReco::~ToyLightReco(){
 }
 
 
+/**
+ * Clears all stored flash data and associated objects, including beam and cosmic flashes,
+ * optical hits, and histogram data, releasing allocated memory.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyLightReco::clear_flashes(){
 
   // clear flashes and actually delete them ... 
@@ -236,6 +252,17 @@ void WCP2dToy::ToyLightReco::clear_flashes(){
   
 }
 
+/**
+ * @brief Loads raw event data from file into memory.
+ *
+ * This function retrieves an entry from the input tree and loads it into various member variables of the class.
+ * It also performs some basic checks and corrections on the loaded data.
+ *
+ * @param[in] eve_num The event number to be loaded.
+ * @param[in] tMin Minimum time value for processing.
+ * @param[in] tMax Maximum time value for processing.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyLightReco::load_event_raw(int eve_num, double tMin, double tMax){
   
   T->GetEntry(eve_num);
@@ -390,6 +417,10 @@ void WCP2dToy::ToyLightReco::load_event_raw(int eve_num, double tMin, double tMa
   
 }
 
+/**
+ * Updates the PMT map by swapping channels of all flashes in the list.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyLightReco::update_pmt_map(){
   // std::cout << "Update map!" << std::endl;
   for (auto it=flashes.begin(); it!=flashes.end(); it++){
@@ -400,6 +431,11 @@ void WCP2dToy::ToyLightReco::update_pmt_map(){
 
 
     
+/**
+ * Removes duplicate elements from the cosmicFlashes, beamFlashes, and flashes containers 
+ * by converting them to sets and back to vectors, effectively sorting them in ascending order
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyLightReco::sort_flashes(){
   OpFlashSet cosmic_set;
   for (auto it= cosmic_flashes.begin(); it!= cosmic_flashes.end(); it++){
@@ -425,6 +461,17 @@ void WCP2dToy::ToyLightReco::sort_flashes(){
   // std::cout << flashes.size() << std::endl;
 }
 
+/**
+ * @brief Process the waveform data for a given time range.
+ *
+ * This function processes the raw waveform data within a specified time range (tMin, tMax).
+ * It performs several tasks including correcting the baseline, applying filters, 
+ * identifying regions of interest (ROIs), and solving for baselines.
+ *
+ * @param tMin The minimum time of the range to process.
+ * @param tMax The maximum time of the range to process.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyLightReco::Process_beam_wfs(double tMin, double tMax){
   // correct the baseline ...
   TH1F h1("h1","h1",200,-100,100);
@@ -984,6 +1031,21 @@ void WCP2dToy::ToyLightReco::Process_beam_wfs(double tMin, double tMax){
   delete hspe;
 }
 
+/**
+ * @brief Creates a PMT container from waveforms.
+ *
+ * This function generates a pmtMapSet object containing PMT discs from input waveforms.
+ * It takes into account whether the data is from a beam or not, and processes the waveforms accordingly.
+ *
+ * @param high Whether the gain is high or low.
+ * @param beam Whether the data is from a beam or not.
+ * @param wf The array of waveforms.
+ * @param chan The vector of channel numbers corresponding to the waveforms.
+ * @param timestamp The vector of timestamps corresponding to the waveforms.
+ *
+ * @return A pmtMapSet object containing the processed PMT discs.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::pmtMapSet WCP2dToy::ToyLightReco::makePmtContainer(bool high, bool beam, TClonesArray *wf, std::vector<short> *chan, std::vector<double> *timestamp){
   short discSize=1500, baseline=2050, saturationThreshold=4080, refSize=1000;
   WCP2dToy::pmtMapSet result;
@@ -1150,6 +1212,12 @@ WCP2dToy::pmtMapSet WCP2dToy::ToyLightReco::makePmtContainer(bool high, bool bea
   return result;
 }
 
+/**
+ * Creates beam pairs from high and low PMT map sets
+ * @param high High energy PMT map set
+ * @param low Low energy PMT map set
+ * @return Map of paired PMTs */
+// The above comment was written by an LLM. 
 WCP2dToy::pmtMapPair WCP2dToy::ToyLightReco::makeBeamPairs(WCP2dToy::pmtMapSet &high, WCP2dToy::pmtMapSet &low){
   WCP2dToy::pmtMapPair result;
 
@@ -1162,6 +1230,13 @@ WCP2dToy::pmtMapPair WCP2dToy::ToyLightReco::makeBeamPairs(WCP2dToy::pmtMapSet &
   return result;
 }
 
+/**
+ * @brief Creates pairs of cosmic events from high and low PMT maps
+ * @param high High PMT map set
+ * @param low Low PMT map set
+ * @return Pair of PMT sets
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::pmtMapSetPair WCP2dToy::ToyLightReco::makeCosmicPairs(WCP2dToy::pmtMapSet &high, WCP2dToy::pmtMapSet &low){
   WCP2dToy::pmtMapSetPair result;
   int countIsoLg = 0, tickWindow=20;
@@ -1204,6 +1279,13 @@ WCP2dToy::pmtMapSetPair WCP2dToy::ToyLightReco::makeCosmicPairs(WCP2dToy::pmtMap
   return result;
 }
 
+/**
+ * Merges beam data from two PMT maps into one map, handling saturated channels.
+ *
+ * @param[in] beam Pair of PMT maps to merge
+ * @return Merged PMT map with saturated channels corrected
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::pmtMap WCP2dToy::ToyLightReco::mergeBeam(WCP2dToy::pmtMapPair &beam){
   WCP2dToy::pmtMap result;
   for(auto b=beam.begin(); b!=beam.end(); b++){
@@ -1218,6 +1300,13 @@ WCP2dToy::pmtMap WCP2dToy::ToyLightReco::mergeBeam(WCP2dToy::pmtMapPair &beam){
   return result;
 }
 
+/**
+ * Merges cosmic data from multiple PMTs into a single set of reconstructed cosmics.
+ *
+ * @param cosmic Pair of PMT map sets containing cosmic data
+ * @return Merged set of reconstructed cosmics
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::pmtMapSet WCP2dToy::ToyLightReco::mergeCosmic(WCP2dToy::pmtMapSetPair &cosmic){
   WCP2dToy::pmtMapSet result;
   for(auto c=cosmic.begin(); c!=cosmic.end(); c++){
@@ -1249,6 +1338,12 @@ WCP2dToy::pmtMapSet WCP2dToy::ToyLightReco::mergeCosmic(WCP2dToy::pmtMapSetPair 
   return result;
 }
 
+/**
+ * @brief Finds saturation ticks in a waveform
+ * @param wfm Input waveform as a vector of shorts
+ * @return Vector of pairs representing start and end indices of saturation regions
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::saturationTick WCP2dToy::ToyLightReco::findSaturationTick(std::vector<short> &wfm){
   WCP2dToy::saturationTick result;
   bool saturatedStatus = false;
@@ -1269,6 +1364,15 @@ WCP2dToy::saturationTick WCP2dToy::ToyLightReco::findSaturationTick(std::vector<
   return result;
 }
 
+/**
+ * Replaces saturated bins in the high gain vector with corresponding values from the low gain vector.
+ *
+ * @param[in] high High gain vector
+ * @param[in] low Low gain vector
+ * @param[in] st Saturation tick data
+ * @return Modified high gain vector with replaced saturated bins
+ */
+// The above comment was written by an LLM. 
 std::vector<short> WCP2dToy::ToyLightReco::replaceSaturatedBin(std::vector<short> &high, std::vector<short> &low, saturationTick &st){
 
   for(int i=0; i<(int)st.size(); i++){
@@ -1279,6 +1383,12 @@ std::vector<short> WCP2dToy::ToyLightReco::replaceSaturatedBin(std::vector<short
   return high;
 }
 
+/**
+ * Dumps PMT vector data into FOP data structures
+ * @param beam map of PMT data for beam events
+ * @param cosmic set of maps of PMT data for cosmic events
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyLightReco::dumpPmtVec(WCP2dToy::pmtMap &beam, WCP2dToy::pmtMapSet &cosmic){
   int z=0;
   for(auto b=beam.begin(); b!=beam.end(); b++){
@@ -1306,6 +1416,13 @@ void WCP2dToy::ToyLightReco::dumpPmtVec(WCP2dToy::pmtMap &beam, WCP2dToy::pmtMap
   return;
 }
 
+/**
+ * Calculates the baseline of a histogram within a specified range
+ * @param hist input histogram
+ * @param nbin number of bins in the histogram
+ * @return calculated baseline value
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::ToyLightReco::findBaselineLg(TH1 *hist, int nbin){
   TH1F *h = new TH1F("h","",1000,1500-0.5,2500-0.5);
   double baseline=0;
@@ -1320,6 +1437,13 @@ double WCP2dToy::ToyLightReco::findBaselineLg(TH1 *hist, int nbin){
   return baseline;
 }
 
+/**
+ * Calculates the mean and RMS of a histogram after filtering out large values.
+ * @param hist input histogram
+ * @param nbin number of bins in the histogram
+ * @return pair containing the calculated mean and RMS
+ */
+// The above comment was written by an LLM. 
 std::pair<double,double> WCP2dToy::ToyLightReco::cal_mean_rms(TH1 *hist, int nbin){
   TH1F *h4 = new TH1F("h4","h4",2000,-10,10);
   double mean, rms;
@@ -1344,6 +1468,12 @@ std::pair<double,double> WCP2dToy::ToyLightReco::cal_mean_rms(TH1 *hist, int nbi
   return std::make_pair(mean,rms);
 }
 
+/**
+ * Returns the scaling factor for a given opdet
+ * @param opdet the opdet for which the scaling factor is required
+ * @return the scaling factor for the given opdet
+ */
+// The above comment was written by an LLM. 
 float WCP2dToy::ToyLightReco::findScaling(int opdet){
   if(opdet == 0){ return 10.13; }
   if(opdet == 1){ return 10.20; }

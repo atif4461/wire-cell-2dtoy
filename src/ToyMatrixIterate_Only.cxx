@@ -6,6 +6,12 @@ WCP2dToy::ToyMatrixIterate_Only::~ToyMatrixIterate_Only(){
 
 }
 
+/**
+ * Constructor initializing ToyMatrixIterate_Only object with ToyMatrix and MergeToyTiling
+ * @param toymatrix reference to ToyMatrix object
+ * @param mergetiling pointer to MergeToyTiling object
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixIterate_Only::ToyMatrixIterate_Only(WCP2dToy::ToyMatrix &toymatrix, WCP2dToy::MergeToyTiling* mergetiling)
   : toymatrix(toymatrix)
   , mergetiling(mergetiling)
@@ -30,6 +36,23 @@ WCP2dToy::ToyMatrixIterate_Only::ToyMatrixIterate_Only(WCP2dToy::ToyMatrix &toym
  
 }
 
+/**
+ * @brief Iterates over the remaining cells in the ToyMatrix.
+ *
+ * This function iterates over the remaining cells, checks if they have been tried,
+ * and updates the lists of good cells, used wires, and bad cells accordingly.
+ * If a cell has not been tried, it is added to the list of tried cells and its
+ * corresponding wires are checked. If the number of remaining cells becomes zero,
+ * the function attempts to solve the matrix. Otherwise, it recursively calls itself
+ * with the updated lists of cells.
+ *
+ * @param remaining_cells The list of remaining cells to iterate over.
+ * @param good_cells The list of good cells found so far.
+ * @param used_wires The list of used wires found so far.
+ * @param bad_cells The list of bad cells found so far.
+ * @param tried_cells The list of cells that have been tried.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixIterate_Only::Iterate(GeomCellSelection remaining_cells, GeomCellSelection good_cells, GeomWireSelection used_wires, GeomCellSelection bad_cells, GeomCellSelection& tried_cells){
   nlevel ++;
 

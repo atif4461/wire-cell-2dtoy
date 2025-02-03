@@ -8,6 +8,19 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for ToySignalSimuDeadFDS class 
+ * @param fds Frame data source object reference
+ * @param gds Geometry data source object constant reference
+ * @param bins_per_frame1 Number of bins per frame
+ * @param nframes_total Total number of frames
+ * @param time_offset_uv Time offset for uv channel
+ * @param time_offset_uw Time offset for uw channel
+ * @param flag_random Flag indicating randomization
+ * @param overall_time_offset Overall time offset
+ * @param overall_time_shift Overall time shift
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuDeadFDS::ToySignalSimuDeadFDS(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds,int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, int flag_random, float overall_time_offset, int overall_time_shift)
   : fds(fds)
   , gds(&gds)
@@ -72,6 +85,19 @@ WCP2dToy::ToySignalSimuDeadFDS::ToySignalSimuDeadFDS(WCP::FrameDataSource& fds, 
   
 }
 
+/**
+ * Constructor for ToySignalSimuDeadFDS class 
+ * @param fds Frame data source object reference
+ * @param gds Detector geometry data structure constant reference
+ * @param bins_per_frame1 Number of bins per frame
+ * @param nframes_total Total number of frames
+ * @param time_offset_uv Time offset for uv plane
+ * @param time_offset_uw Time offset for uw plane
+ * @param flag_random Flag indicating randomization
+ * @param overall_time_offset Overall time offset
+ * @param overall_time_shift Overall time shift
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuDeadFDS::ToySignalSimuDeadFDS(WCP::FrameDataSource& fds, const WCP::DetectorGDS& gds,int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, int flag_random, float overall_time_offset, int overall_time_shift)
   : fds(fds)
   , gds(0)
@@ -137,6 +163,10 @@ int WCP2dToy::ToySignalSimuDeadFDS::size() const{
   return max_frames;
 }
 
+/**
+ * Saves simulation data to a root file named temp_simuroot 
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToySignalSimuDeadFDS::Save(){
   TFile *file = new TFile("temp_simu.root","RECREATE");
   //test save
@@ -154,6 +184,16 @@ void WCP2dToy::ToySignalSimuDeadFDS::Save(){
   file->Close();
 }
 
+/**
+ * @brief Simulates a signal for a given frame number.
+ *
+ * This function simulates a signal for a given frame number by performing an FFT,
+ * adding noise, and transforming back to the time domain.
+ *
+ * @param frame_number The frame number for which to simulate the signal.
+ * @return The simulated frame index.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToySignalSimuDeadFDS::jump(int frame_number){
   // do simulation
   
@@ -441,6 +481,10 @@ int WCP2dToy::ToySignalSimuDeadFDS::jump(int frame_number){
   return frame.index;
 }
 
+/**
+ * Destructor to free allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuDeadFDS::~ToySignalSimuDeadFDS(){
   //test save
   // for (int i=0;i!=nwire_u;i++){

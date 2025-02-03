@@ -7,6 +7,10 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for ToyTiling class 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyTiling::ToyTiling()
   : ave_charge(0)
   , ncell(0)
@@ -14,6 +18,24 @@ WCP2dToy::ToyTiling::ToyTiling()
 }
 
 
+/**
+ * Adds a cell to the tiling with its associated charges and wires.
+ *
+ * @param[in] gds        Detector geometry description
+ * @param[in] cryo       Cryostat number
+ * @param[in] apa        APA number
+ * @param[in,out] cell   Cell object being added
+ * @param[in] u_index    U wire index
+ * @param[in] v_index    V wire index
+ * @param[in] w_index    W wire index
+ * @param[in] u_charge   Charge on U wire
+ * @param[in] v_charge   Charge on V wire
+ * @param[in] w_charge   Charge on W wire
+ * @param[in] u_charge_err Error in charge on U wire
+ * @param[in] v_charge_err Error in charge on V wire
+ * @param[in] w_charge_err Error in charge on W wire
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTiling::AddCell(WCP::DetectorGDS& gds, int cryo, int apa, GeomCell *cell, int u_index, int v_index, int w_index, 
 				       float u_charge, float v_charge, float w_charge,
 				       float u_charge_err, float v_charge_err, float w_charge_err){
@@ -99,6 +121,22 @@ void WCP2dToy::ToyTiling::AddCell(WCP::DetectorGDS& gds, int cryo, int apa, Geom
 
 
 
+/**
+ * Adds a cell to the tiling with specified charges and errors.
+ *
+ * @param[in] gds        Geometry data source
+ * @param[in] cell      Cell to be added
+ * @param[in] u_index   Index of the u plane wire
+ * @param[in] v_index   Index of the v plane wire
+ * @param[in] w_index   Index of the w plane wire
+ * @param[in] u_charge Charge associated with the u wire
+ * @param[in] v_charge Charge associated with the v wire
+ * @param[in] w_charge Charge associated with the w wire
+ * @param[in] u_charge_err Error in charge associated with the u wire
+ * @param[in] v_charge_err Error in charge associated with the v wire
+ * @param[in] w_charge_err Error in charge associated with the w wire
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTiling::AddCell(WCP::GeomDataSource& gds, GeomCell *cell, int u_index, int v_index, int w_index, 
 				       float u_charge, float v_charge, float w_charge,
 				       float u_charge_err, float v_charge_err, float w_charge_err){
@@ -182,6 +220,21 @@ void WCP2dToy::ToyTiling::AddCell(WCP::GeomDataSource& gds, GeomCell *cell, int 
 
 }
 
+/**
+ * @brief Constructor for ToyTiling class
+ * @param slice Input slice object
+ * @param gds Detector geometry data source
+ * @param rel_u Relative uncertainty in u direction
+ * @param rel_v Relative uncertainty in v direction
+ * @param rel_w Relative uncertainty in w direction
+ * @param noise_u Noise in u direction
+ * @param noise_v Noise in v direction
+ * @param noise_w Noise in w direction
+ * @param uplane_rms RMS values for u planes
+ * @param vplane_rms RMS values for v planes
+ * @param wplane_rms RMS values for w planes
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyTiling::ToyTiling(const WCP::Slice& slice,WCP::DetectorGDS& gds, float rel_u , float rel_v, float rel_w, float noise_u, float noise_v, float noise_w, std::vector<float>* uplane_rms, std::vector<float>* vplane_rms, std::vector<float>* wplane_rms){
   WCP::Channel::Group group = slice.group();
   float tolerance = 0.1 * units::mm;
@@ -310,6 +363,23 @@ WCP2dToy::ToyTiling::ToyTiling(const WCP::Slice& slice,WCP::DetectorGDS& gds, fl
 
 
 
+/**
+ * @brief Constructor of ToyTiling class
+ *
+ * @param slice Slice object containing channel information
+ * @param gds Geometry data source object
+ * @param rel_u Relative uncertainty in u direction
+ * @param rel_v Relative uncertainty in v direction
+ * @param rel_w Relative uncertainty in w direction
+ * @param noise_u Noise value in u direction
+ * @param noise_v Noise value in v direction
+ * @param noise_w Noise value in w direction
+ * @param uplane_rms Pointer to vector of rms values for u planes
+ * @param vplane_rms Pointer to vector of rms values for v planes
+ * @param wplane_rms Pointer to vector of rms values for w planes
+ 
+ToyTiling(const WCP::Slice& slice,WCP::GeomDataSource& gds, float rel_u, float rel_v, float rel_w, float noise_u, float noise_v, float noise_w, std::vector<float>* uplane_rms, std::vector<float>* vplane_rms, std::vector<float>* wplane_rms)*/
+// The above comment was written by an LLM. 
 WCP2dToy::ToyTiling::ToyTiling(const WCP::Slice& slice,WCP::GeomDataSource& gds, float rel_u , float rel_v, float rel_w, float noise_u, float noise_v, float noise_w, std::vector<float>* uplane_rms, std::vector<float>* vplane_rms, std::vector<float>* wplane_rms)
   : ave_charge(0)
   , ncell(0)
@@ -772,6 +842,20 @@ WCP2dToy::ToyTiling::ToyTiling(const WCP::Slice& slice,WCP::GeomDataSource& gds,
 
 
 
+/**
+ * @brief Performs two-plane tiling for the Toy experiment.
+ *
+ * @param time The current time.
+ * @param nrebin The rebinning factor.
+ * @param gds The geometry data source.
+ * @param uplane_rms The RMS values of the U plane wires.
+ * @param vplane_rms The RMS values of the V plane wires.
+ * @param wplane_rms The RMS values of the W plane wires.
+ * @param uplane_map The charge map of the U plane wires.
+ * @param vplane_map The charge map of the V plane wires.
+ * @param wplane_map The charge map of the W plane wires.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTiling::twoplane_tiling(int time, int nrebin, WCP::GeomDataSource& gds, std::vector<float>& uplane_rms, std::vector<float>& vplane_rms, std::vector<float>& wplane_rms, WCP::ChirpMap& uplane_map, WCP::ChirpMap& vplane_map, WCP::ChirpMap& wplane_map){
   float tolerance = 0.1 * units::mm;
   int ncell = 10000;
@@ -1519,6 +1603,9 @@ void WCP2dToy::ToyTiling::twoplane_tiling(int time, int nrebin, WCP::GeomDataSou
 
 
 
+/**
+ * Destructor to clean up resources by deleting all cells and clearing data structures */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyTiling::~ToyTiling()
 {
   //delete all the cells
@@ -1537,6 +1624,13 @@ WCP2dToy::ToyTiling::~ToyTiling()
   
 }
 
+/**
+ * Returns the wire selection associated with a given geometric cell.
+ *
+ * @param cell The geometric cell to retrieve the wire selection for.
+ * @return The wire selection associated with the given cell, or an empty selection if the cell is not found.
+ */
+// The above comment was written by an LLM. 
 GeomWireSelection WCP2dToy::ToyTiling::wires(const GeomCell& cell) const
 {
   if (cellmap.find(&cell) == cellmap.end()){
@@ -1549,6 +1643,10 @@ GeomWireSelection WCP2dToy::ToyTiling::wires(const GeomCell& cell) const
     
 }
 	
+/**
+ * Returns the cell selection associated with the given wire object
+ */
+// The above comment was written by an LLM. 
 GeomCellSelection WCP2dToy::ToyTiling::cells(const GeomWire& wire) const
 {
   if (wiremap.find(&wire) == wiremap.end()){
@@ -1559,6 +1657,13 @@ GeomCellSelection WCP2dToy::ToyTiling::cells(const GeomWire& wire) const
 }
 
 
+/**
+ * Returns the geometric cell that intersects with three input wires.
+ *
+ * @param wires A selection of three geometric wires.
+ * @return A pointer to the intersecting geometric cell, or null if no intersection is found.
+ */
+// The above comment was written by an LLM. 
 const GeomCell* WCP2dToy::ToyTiling::cell(const GeomWireSelection& wires) const
 {
   if (wires.size()!=3) return 0;
@@ -1630,6 +1735,22 @@ const GeomCell* WCP2dToy::ToyTiling::cell(const GeomWireSelection& wires) const
 
 
 
+/**
+ * @brief Creates a cell in the toy tiling system.
+ *
+ * This function generates a cell in the toy tiling system based on the provided parameters.
+ * It calculates the distances and crossing points of the wires, creates a new cell,
+ * and updates the cell and wire maps accordingly.
+ *
+ * @param tolerance The tolerance value used for calculations.
+ * @param gds The geometry data source object.
+ * @param face The face number.
+ * @param n_tpc The TPC number.
+ * @param temp_wire_u The temporary U-wire selection.
+ * @param temp_wire_v The temporary V-wire selection.
+ * @param temp_wire_w The temporary W-wire selection.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTiling::CreateCell(float tolerance, const GeomDataSource& gds, int face, int n_tpc, GeomWireSelection& temp_wire_u, 
 					  GeomWireSelection& temp_wire_v, GeomWireSelection& temp_wire_w){
   float dis_u[3]={0.0},dis_v[3]={0.0},dis_w[3]={0.0},

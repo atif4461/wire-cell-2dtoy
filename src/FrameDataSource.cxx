@@ -2,6 +2,12 @@
 #include "WCPData/Point.h"
 #include "TRandom.h"
 
+/**
+ * Constructor initializing frame data source with specified number of events and geometry data source
+ * @param nevents Number of events
+ * @param gds Geometry data source object
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::FrameDataSource::FrameDataSource(int nevents,
 						const WCP::GeomDataSource& gds)
     : WCP::FrameDataSource()
@@ -13,11 +19,22 @@ WCP2dToy::FrameDataSource::~FrameDataSource()
 {
 }
 
+/**
+ * Returns the total number of events stored in the data source
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::FrameDataSource::size() const
 {
   return Nevent;
 }
 
+/**
+ * Jumps to a specific frame in the data source.
+ *
+ * @param frame_number The number of the frame to jump to.
+ * @return The index of the jumped-to frame.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::FrameDataSource::jump(int frame_number)
 {
   if (frame_number >= Nevent) frame_number = Nevent;

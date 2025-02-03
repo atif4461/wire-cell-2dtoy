@@ -8,6 +8,15 @@ WCP2dToy::TotalTiling::TotalTiling(){
 WCP2dToy::TotalTiling::~TotalTiling(){
 }
 
+/**
+ * Adds a cell and its associated wires to the total tiling data structure.
+ *
+ * @param[in] cell   The geometric cell to be added.
+ * @param[in] uwire The u-direction wire of the cell.
+ * @param[in] vwire The v-direction wire of the cell.
+ * @param[in] wwire The w-direction wire of the cell.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::TotalTiling::AddCellWire(const GeomCell *cell, const GeomWire *uwire, const GeomWire *vwire, const GeomWire *wwire){
   cell_all.push_back(cell);
   
@@ -54,6 +63,10 @@ void WCP2dToy::TotalTiling::AddCellWire(const GeomCell *cell, const GeomWire *uw
 }
 
 
+/**
+ * Clears all data structures used in the TotalTiling class
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::TotalTiling::Clear(){
   wire_u.clear();
   wire_v.clear();
@@ -65,6 +78,13 @@ void WCP2dToy::TotalTiling::Clear(){
 }
 
 
+/**
+ * Returns the wire selection associated with a given geometric cell.
+ *
+ * @param cell The geometric cell to retrieve the wire selection for.
+ * @return The wire selection associated with the given cell, or an empty selection if the cell is not found.
+ */
+// The above comment was written by an LLM. 
 GeomWireSelection WCP2dToy::TotalTiling::wires(const GeomCell& cell) const
 {
   if (cellmap.find(&cell) == cellmap.end()){
@@ -77,6 +97,10 @@ GeomWireSelection WCP2dToy::TotalTiling::wires(const GeomCell& cell) const
     
 }
 	
+/**
+ * Returns the cell selection associated with the given wire object
+ */
+// The above comment was written by an LLM. 
 GeomCellSelection WCP2dToy::TotalTiling::cells(const GeomWire& wire) const
 {
   if (wiremap.find(&wire) == wiremap.end()){
@@ -87,6 +111,13 @@ GeomCellSelection WCP2dToy::TotalTiling::cells(const GeomWire& wire) const
 }
 
 
+/**
+ * Returns the geometric cell that contains all three input wires.
+ *
+ * @param wires A selection of three geometric wires.
+ * @return A pointer to the geometric cell containing all three wires, or null if no such cell exists.
+ */
+// The above comment was written by an LLM. 
 const GeomCell* WCP2dToy::TotalTiling::cell(const GeomWireSelection& wires)
 {
   if (wires.size()!=3) return 0;

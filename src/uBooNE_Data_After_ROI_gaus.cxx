@@ -2,6 +2,13 @@
 
 using namespace WCP;
 
+/**
+ * Constructor initializing data members with input parameters
+ * @param[in] frame_data pointer to uBooNEData2DDeconvolutionFDS object
+ * @param[in] frame_rois pointer to uBooNEDataAfterROI object
+ * @param[in] gds reference to GeomDataSource object
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNEDataAfterROI_Gaus::uBooNEDataAfterROI_Gaus(WCP2dToy::uBooNEData2DDeconvolutionFDS* frame_data, WCP2dToy::uBooNEDataAfterROI* frame_rois, const WCP::GeomDataSource& gds)
   : frame_data(frame_data)
   , frame_rois(frame_rois)
@@ -27,6 +34,14 @@ int WCP2dToy::uBooNEDataAfterROI_Gaus::size() const{
   return 1;
 }
 
+/**
+ * Jumps to a specific frame number in the data after ROI and applies Gaussian 
+ * processing to the signal.
+ *
+ * @param frame_number The desired frame number to jump to.
+ * @return The actual frame number jumped to.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::uBooNEDataAfterROI_Gaus::jump(int frame_number){
   Clear();
   if (frame.index == frame_number) {

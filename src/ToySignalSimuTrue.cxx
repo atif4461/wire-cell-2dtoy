@@ -8,6 +8,15 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for ToySignalSimuTrueFDS class 
+ * @param fds1 reference to FrameDataSource object
+ * @param gds constant reference to GeomDataSource object
+ * @param bins_per_frame1 number of bins per frame
+ * @param nframes_total total number of frames
+ * @param flag_smear smearing flag
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuTrueFDS::ToySignalSimuTrueFDS(WCP::FrameDataSource& fds1, const WCP::GeomDataSource& gds,
 							  int bins_per_frame1, int nframes_total, int flag_smear)
   : fds(&fds1)
@@ -64,6 +73,15 @@ WCP2dToy::ToySignalSimuTrueFDS::ToySignalSimuTrueFDS(WCP::FrameDataSource& fds1,
 }
 
 
+/**
+ * Constructor for ToySignalSimuTrueFDS class 
+ * @param fds1 reference to FrameDataSource object
+ * @param gds constant reference to DetectorGDS object
+ * @param bins_per_frame1 number of bins per frame
+ * @param nframes_total total number of frames
+ * @param flag_smear smearing flag
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuTrueFDS::ToySignalSimuTrueFDS(WCP::FrameDataSource& fds1, const WCP::DetectorGDS& gds,
 							  int bins_per_frame1, int nframes_total, int flag_smear)
   : fds(&fds1)
@@ -126,6 +144,10 @@ int WCP2dToy::ToySignalSimuTrueFDS::size() const{
   return max_frames;
 }
 
+/**
+ * Saves simulation data to a root file named temp_true.root
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToySignalSimuTrueFDS::Save(){
   TFile *file = new TFile("temp_true.root","RECREATE");
   // for (int i=0;i!=nwire_u;i++){
@@ -143,6 +165,17 @@ void WCP2dToy::ToySignalSimuTrueFDS::Save(){
   file->Close();
 }
 
+/**
+ * @brief Simulates true FDS signal for a given frame number.
+ *
+ * This function simulates the true FDS signal by performing an FFT 
+ * convolution with the response function, applying smearing if required,
+ * and filling the frame data structure accordingly.
+ *
+ * @param frame_number The frame number for which the signal is simulated.
+ * @return The index of the simulated frame.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToySignalSimuTrueFDS::jump(int frame_number){
   // do simulation
   // for (int i=0;i!=nwire_u;i++){
@@ -383,6 +416,10 @@ int WCP2dToy::ToySignalSimuTrueFDS::jump(int frame_number){
   return frame.index;
 }
 
+/**
+ * Destructor to free allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuTrueFDS::~ToySignalSimuTrueFDS(){
   
   fds = 0;

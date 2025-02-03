@@ -8,6 +8,19 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for ToySignalSimuFDS class
+ * @param fds Frame data source
+ * @param gds Geometry data source
+ * @param bins_per_frame1 Number of bins per frame
+ * @param nframes_total Total number of frames
+ * @param time_offset_uv Time offset for uv plane
+ * @param time_offset_uw Time offset for uw plane
+ * @param flag_random Flag for randomization
+ * @param overall_time_offset Overall time offset
+ * @param overall_time_shift Overall time shift
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuFDS::ToySignalSimuFDS(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds,int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, int flag_random, float overall_time_offset, int overall_time_shift)
   : fds(fds)
   , gds(&gds)
@@ -89,6 +102,19 @@ WCP2dToy::ToySignalSimuFDS::ToySignalSimuFDS(WCP::FrameDataSource& fds, const WC
   */
 }
  
+/**
+ * Constructor for ToySignalSimuFDS class
+ * @param fds Frame data source
+ * @param gds Detector geometry data structure
+ * @param bins_per_frame1 Number of bins per frame
+ * @param nframes_total Total number of frames
+ * @param time_offset_uv Time offset for U and V planes
+ * @param time_offset_uw Time offset for U and W planes
+ * @param flag_random Flag for randomization
+ * @param overall_time_offset Overall time offset
+ * @param overall_time_shift Overall time shift
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuFDS::ToySignalSimuFDS(WCP::FrameDataSource& fds, const WCP::DetectorGDS& gds,int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, int flag_random, float overall_time_offset, int overall_time_shift)
   : fds(fds)
   , gds(0)
@@ -165,6 +191,19 @@ WCP2dToy::ToySignalSimuFDS::ToySignalSimuFDS(WCP::FrameDataSource& fds, const WC
   */
 }
 
+/**
+ * Constructor for ToySignalSimuFDS class 
+ * @param[in] fds Frame data source object reference
+ * @param[in] gds Detector geometry data structure constant reference
+ * @param[in] conf Electronics configuration object reference
+ * @param[in] nframes_total Total number of frames
+ * @param[in] time_offset_uv Time offset for uv channel
+ * @param[in] time_offset_uw Time offset for uw channel
+ * @param[in] flag_random Flag indicating randomization
+ * @param[in] overall_time_offset Overall time offset
+ * @param[in] overall_time_shift Overall time shift
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuFDS::ToySignalSimuFDS(WCP::FrameDataSource& fds, const WCP::DetectorGDS& gds, WCPSignal::ElectronicsConfig& conf, int nframes_total, float time_offset_uv, float time_offset_uw, int flag_random, float overall_time_offset, int overall_time_shift)
   : fds(fds)
   , gds(0)
@@ -187,6 +226,19 @@ WCP2dToy::ToySignalSimuFDS::ToySignalSimuFDS(WCP::FrameDataSource& fds, const WC
   //fds.SetResponseFunctions(fRsp);
 }
 
+/**
+ * Constructor for ToySignalSimuFDS class 
+ * @param[in] fds reference to FrameDataSource object
+ * @param[in] gds constant reference to GeomDataSource object
+ * @param[in] conf reference to ElectronicsConfig object
+ * @param[in] nframes_total total number of frames
+ * @param[in] time_offset_uv time offset for uv channel
+ * @param[in] time_offset_uw time offset for uw channel
+ * @param[in] flag_random randomization flag
+ * @param[in] overall_time_offset overall time offset
+ * @param[in] overall_time_shift overall time shift
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuFDS::ToySignalSimuFDS(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds, WCPSignal::ElectronicsConfig& conf, int nframes_total, float time_offset_uv, float time_offset_uw, int flag_random, float overall_time_offset, int overall_time_shift)
   : fds(fds)
   , gds(&gds)
@@ -210,6 +262,10 @@ int WCP2dToy::ToySignalSimuFDS::size() const{
   return max_frames;
 }
 
+/**
+ * Saves simulation data to a ROOT file named temp_simu_root
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToySignalSimuFDS::Save(){
   /*
   std::cout<<"save"<<std::endl;
@@ -241,6 +297,17 @@ void WCP2dToy::ToySignalSimuFDS::Save(){
   */
 }
 
+/**
+ * @brief Simulates a toy signal for a given frame number.
+ *
+ * This function simulates a toy signal for a given frame number by performing
+ * a Fast Fourier Transform (FFT) on the input histograms, adding noise,
+ * and then transforming back to the time domain.
+ *
+ * @param frame_number The frame number for which to simulate the signal.
+ * @return The simulated frame index.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToySignalSimuFDS::jump(int frame_number){
   // do simulation
   
@@ -588,6 +655,10 @@ int WCP2dToy::ToySignalSimuFDS::jump(int frame_number){
   return frame.index;
 }
 
+/**
+ * Destructor to free allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToySignalSimuFDS::~ToySignalSimuFDS(){
   //test save
   // for (int i=0;i!=nwire_u;i++){

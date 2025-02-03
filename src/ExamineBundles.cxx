@@ -2,6 +2,13 @@
 
 using namespace WCP;
 
+/**
+ * Examines the input bundles and returns a new set of bundles after processing
+ * @param[in] bundles Input flash TPC bundle selection
+ * @param[out] ct_point_cloud Toy CT point cloud reference
+ * @return New flash TPC bundle selection
+ */
+// The above comment was written by an LLM. 
 FlashTPCBundleSelection WCP2dToy::ExamineBundles(WCP::FlashTPCBundleSelection bundles, WCP::ToyCTPointCloud& ct_point_cloud){
 
   std::set<int> used_cluster_ids;
@@ -32,6 +39,16 @@ FlashTPCBundleSelection WCP2dToy::ExamineBundles(WCP::FlashTPCBundleSelection bu
   
 }
 
+/**
+ * Examines a flash TPC bundle and separates its clusters into new bundles.
+ *
+ * @param bundle The input flash TPC bundle to be examined.
+ * @param used_cluster_ids A set of cluster IDs that have already been used.
+ * @param ct_point_cloud The point cloud data used for examination.
+ *
+ * @return A new flash TPC bundle with separated clusters.
+ */
+// The above comment was written by an LLM. 
 WCP::FlashTPCBundle* WCP2dToy::ExamineBundle(WCP::FlashTPCBundle* bundle, std::set<int>& used_cluster_ids, WCP::ToyCTPointCloud& ct_point_cloud){
   
   int cluster_id;

@@ -14,6 +14,19 @@ double WCP2dToy::MergeToyTiling::time_convert = 0.32;
 double WCP2dToy::MergeToyTiling::dis_offset = -256;
 
 
+/**
+ * @brief Constructor for the MergeToyTiling class.
+ *
+ * This constructor initializes the object with the given ToyTiling object,
+ * time slice, merge strategy, and re-merge flag.
+ *
+ * @param tiling The input ToyTiling object.
+ * @param time_slice The time slice value.
+ * @param merge_strategy The merge strategy to be used (1, 2, or 3).
+ * @param flag_remerge The re-merge flag (1 or 2).
+ 
+MergeToyTilingWCP2dToyToyTilingintintint*/
+// The above comment was written by an LLM. 
 WCP2dToy::MergeToyTiling::MergeToyTiling(WCP2dToy::ToyTiling& tiling, int time_slice, int merge_strategy, int flag_remerge)
 {
   IsRemerged = false;
@@ -457,6 +470,19 @@ WCP2dToy::MergeToyTiling::MergeToyTiling(WCP2dToy::ToyTiling& tiling, int time_s
 }
 
 
+/**
+ * @brief Constructor for MergeToyTiling class
+ * @param gds Detector geometry description
+ * @param tiling Toy tiling object
+ * @param time_slice Time slice number
+   * @brief Forms a wire map for the merged toy tiling
+ * @param gds Detector geometry description
+ * @param tiling Toy tiling object
+ * @param time_slice Time slice number
+  * @brief Finds edges of merged cells
+  * @brief Initializes the mapping between merged cells
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::MergeToyTiling::MergeToyTiling(const DetectorGDS& gds, WCP2dToy::ToyTiling& tiling, int time_slice){
   
   //check cells
@@ -686,6 +712,19 @@ WCP2dToy::MergeToyTiling::MergeToyTiling(const DetectorGDS& gds, WCP2dToy::ToyTi
 }
 
 
+/**
+ * @brief Forms a wire map from a detector GDS and toy tiling.
+ * 
+ * This function takes a DetectorGDS object, a ToyTiling object, and an integer time slice as input,
+ * and constructs a wire map based on the geometry of the detector and the tiling pattern.
+ * It iterates over all cells in the detector, merges wires within each cell, and creates maps between cells and wires.
+ * The resulting wire map is stored in various data structures for later use.
+ *
+ * @param gds DetectorGDS object representing the detector geometry.
+ * @param tiling ToyTiling object representing the tiling pattern.
+ * @param time_slice Integer time slice for which the wire map is constructed.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::MergeToyTiling::form_wiremap(const DetectorGDS& gds, WCP2dToy::ToyTiling& tiling, int time_slice){
   int ident_wire = 50000;
 
@@ -863,6 +902,17 @@ void WCP2dToy::MergeToyTiling::form_wiremap(const DetectorGDS& gds, WCP2dToy::To
 
 
 
+/**
+ * @brief De-ghosts the toy tiling by removing unwanted cells.
+ * 
+ * This function takes a selection of good merge geometry cells as input and removes 
+ * cells that do not meet certain criteria. It first identifies and separates cells 
+ * with two and three wires, then iteratively removes cells that share wires with 
+ * three-wire cells. The process is repeated until no more cells can be removed.
+ * 
+ * @param good_mcells A selection of good merge geometry cells.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::MergeToyTiling::deghost(GeomCellSelection &good_mcells){
   
   // fill the three-wires cells and two-wires cells 
@@ -1106,6 +1156,13 @@ void WCP2dToy::MergeToyTiling::deghost(GeomCellSelection &good_mcells){
 }
 
 
+/**
+ * Forms a wire map from the given toy tiling and time slice.
+ *
+ * @param tiling The toy tiling object.
+ * @param time_slice The time slice value.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::MergeToyTiling::form_wiremap(WCP2dToy::ToyTiling& tiling, int time_slice){
   int ident_wire = 50000;
   
@@ -1261,6 +1318,10 @@ void WCP2dToy::MergeToyTiling::form_wiremap(WCP2dToy::ToyTiling& tiling, int tim
 
 
 
+/**
+ * Destructor to free allocated memory and clear data structures 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::MergeToyTiling::~MergeToyTiling(){
   for (int i=0;i!=cell_all.size();i++){
     delete cell_all[i];
@@ -1288,6 +1349,14 @@ WCP2dToy::MergeToyTiling::~MergeToyTiling(){
 }
 
 
+/**
+ * @brief Merges wires in a selection into fewer wires where possible
+ * @param allwire GeomWireSelection to merge
+ * @param nwire initial number of wires
+ * @param time_slice time slice for merged wires
+ * @return difference in size between original and merged selections
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::MergeToyTiling::further_mergewire(WCP::GeomWireSelection &allwire, int nwire, int time_slice){
 
   WCP::GeomWireSelection tempwire = allwire;
@@ -1336,6 +1405,17 @@ int WCP2dToy::MergeToyTiling::further_mergewire(WCP::GeomWireSelection &allwire,
 
 
 
+/**
+ * Merges adjacent cells in a selection of geometric cells further together 
+ * based on a specified distance threshold and updates the cell list.
+ *
+ * @param[in,out] allcell The input and output list of merged geometric cells.
+ * @param[in] ncell The initial number of cells.
+ * @param[in] time_slice The time slice associated with the merged cells.
+ * @param[in] dis The minimum distance required between cell centers for merging.
+ * @return The difference in the number of cells after merging.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::MergeToyTiling::further_merge(WCP::GeomCellSelection &allcell, int ncell,int time_slice, double dis){
   WCP::GeomCellSelection tempcell = allcell;
   allcell.clear();
@@ -1377,6 +1457,11 @@ int WCP2dToy::MergeToyTiling::further_merge(WCP::GeomCellSelection &allcell, int
 }
 
 
+/**
+ * Returns a constant pointer to a GeomCell object 
+ * representing merged cell from given wire selection
+ */
+// The above comment was written by an LLM. 
 const WCP::GeomCell* WCP2dToy::MergeToyTiling::cell(const WCP::GeomWireSelection& wires) const
 {
   return 0;

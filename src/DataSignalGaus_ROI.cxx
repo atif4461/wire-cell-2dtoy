@@ -2,6 +2,13 @@
 
 using namespace WCP;
 
+/**
+ * Constructor initializing DataSignalGausROIFDS object from DataSignalWienROIFDS 
+ * and setting total number of frames
+ * @param[in] fds input DataSignalWienROIFDS object
+ * @param[in] nframes_total total number of frames
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::DataSignalGausROIFDS::DataSignalGausROIFDS(WCP2dToy::DataSignalWienROIFDS& fds, int nframes_total)
   : fds(fds)
   , max_frames(nframes_total)
@@ -15,6 +22,12 @@ int WCP2dToy::DataSignalGausROIFDS::size() const{
   return max_frames;
 }
 
+/**
+ * Returns the index of the current frame after filling it with data from Gaussian ROIs
+ * @param frame_number The number of the frame to be filled
+ * @return The index of the filled frame
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::DataSignalGausROIFDS::jump(int frame_number){
   // fill the frame data ... 
   if (frame.index == frame_number) {

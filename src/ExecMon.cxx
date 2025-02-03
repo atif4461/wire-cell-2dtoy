@@ -9,6 +9,14 @@ ExecMon::ExecMon(const std::string& msg, TimeKeeper::ptime starting_time)
     
 ExecMon::~ExecMon() { }
 
+/**
+ * @brief Generates a formatted string containing time and memory usage information
+ * @param msg input message
+ * @param now current time
+ * @param mumu memory usage data
+ * @return formatted string with time and memory details
+ */
+// The above comment was written by an LLM. 
 std::string ExecMon::operator()(std::string msg, TimeKeeper::ptime now, MemUsage::memusage mumu)
 {
     std::stringstream ss;
@@ -18,6 +26,10 @@ std::string ExecMon::operator()(std::string msg, TimeKeeper::ptime now, MemUsage
 }
 
 
+/**
+ * Returns a string containing time and memory usage summaries
+ */
+// The above comment was written by an LLM. 
 std::string ExecMon::summary() const
 {
     std::stringstream ss;

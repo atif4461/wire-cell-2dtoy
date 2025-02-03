@@ -5,6 +5,13 @@ using namespace WCP;
 
 typedef std::pair<int, double> EigenPair;
 struct EigenCompare {
+/**
+ * @brief Comparison operator for EigenPairs
+ * @param a First EigenPair to compare
+ * @param b Second EigenPair to compare
+ * @return True if a is less than b, false otherwise
+ */
+// The above comment was written by an LLM. 
   bool operator() (const EigenPair& a, const EigenPair& b) const {
     if (a.second == b.second){
       return a.first < b.first;
@@ -15,6 +22,12 @@ struct EigenCompare {
 typedef std::set<EigenPair, EigenCompare> EigenSet;
 
 
+/**
+ * Constructor for ToyMatrixExclusive class.
+ *
+ * @param toymatrix Reference to ToyMatrix object.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixExclusive::ToyMatrixExclusive(WCP2dToy::ToyMatrix &toymatrix){
   Eigen = new TMatrixDEigen(*(toymatrix.Get_MC()));
   EigenValue = new TVectorD(Eigen->GetEigenValuesRe());
@@ -123,6 +136,10 @@ WCP2dToy::ToyMatrixExclusive::ToyMatrixExclusive(WCP2dToy::ToyMatrix &toymatrix)
 
 
 
+/**
+ * Destructor to release allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixExclusive::~ToyMatrixExclusive(){
   delete Eigen;
   delete EigenValue;
@@ -140,6 +157,18 @@ WCP2dToy::ToyMatrixExclusive::~ToyMatrixExclusive(){
 }
 
 
+/**
+ * @brief Solves the ToyMatrixExclusive problem.
+ *
+ * This function takes in a vector of flags and a ToyMatrix object,
+ * and solves the system of equations to obtain the solution vector.
+ *
+ * @param[in,out] flag Vector of flags indicating which indices to exclude
+ * @param[in,out] toymatrix The ToyMatrix object containing the matrix data
+ *
+ * @return 0 if the determinant is close to zero, 1 otherwise
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::ToyMatrixExclusive::Solve(std::vector<int>& flag, WCP2dToy::ToyMatrix &toymatrix){
   const TMatrixD *MA_big = toymatrix.Get_MA();
   const TMatrixD *VBy = toymatrix.Get_VBy();
@@ -226,6 +255,13 @@ int WCP2dToy::ToyMatrixExclusive::Solve(std::vector<int>& flag, WCP2dToy::ToyMat
 
 }
 
+/**
+ * Moves the value at the specified index in the flag vector to the next available integer.
+ * @param flag The vector of integers to modify.
+ * @param index The position in the flag vector to update.
+ * @param max The maximum allowed integer value in the flag vector.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixExclusive::move(std::vector<int>& flag, int index, int max){
   int temp = flag.at(index);
   auto it = find(flag.begin(),flag.end(),temp);

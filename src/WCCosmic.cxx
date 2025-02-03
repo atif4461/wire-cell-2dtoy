@@ -4,6 +4,12 @@
 
 using namespace WCP;
 
+/**
+ * @brief Checks if a set of points is nearby a collection of merged space cells within good tracks.
+ * @param toytracking Pointer to ToyTracking object containing good tracks.
+ * @return True if the points are sufficiently close to the merged space cells, False otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::WCCosmic::IsNearBy(ToyTracking *toytracking){
   //collect all the mcells inside the good tracks.
   MergeSpaceCellSelection mcells;
@@ -38,6 +44,13 @@ bool WCP2dToy::WCCosmic::IsNearBy(ToyTracking *toytracking){
   return false;
 }
 
+/**
+ * Constructor for initializing the object with toy tracking selection data.
+ * Initializes member variables and calculates the center of the cluster.
+ *
+ * @param[in] toytrackings Reference to ToyTrackingSelection object containing tracking data.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::WCCosmic::WCCosmic(WCP2dToy::ToyTrackingSelection& toytrackings)
   : toytrackings(toytrackings)
 {
@@ -94,6 +107,14 @@ WCP2dToy::WCCosmic::WCCosmic(WCP2dToy::ToyTrackingSelection& toytrackings)
   }
 }
 
+/**
+ * @brief Judges whether a set of points represents a cosmic ray.
+ *
+ * This function iterates over a collection of points to determine if they fall within certain boundaries,
+ * checks their alignment with respect to a predefined direction, and counts the number of tracks that match this direction.
+ * If these conditions indicate the points do not represent a valid particle trajectory, it sets a flag indicating they might be from a cosmic source.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::WCCosmic::judge_cosmic(){
   cosmic_flag = false;
   
@@ -292,6 +313,12 @@ void WCP2dToy::WCCosmic::judge_cosmic(){
 }
 
 
+/**
+ * Adds a cosmic track to the current object by merging its trackings and space cells,
+ * recalculates the center of the combined space cells, and updates the cluster track
+ * accordingly.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::WCCosmic::Add(WCCosmic *cosmic){
   toytrackings.insert(toytrackings.end(), cosmic->get_trackings().begin(),
 		      cosmic->get_trackings().end());
@@ -334,6 +361,14 @@ void WCP2dToy::WCCosmic::Add(WCCosmic *cosmic){
 }
 
 
+/**
+ * Fills the points vector with calculated positions.
+ *
+ * This function iterates over the merge space cells and calculates the minimum and maximum distances.
+ * It then fills the points vector with the minimum point, followed by intermediate points calculated
+ * using histograms, and finally the maximum point.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::WCCosmic::fill_points(){
   points.clear();
   
@@ -424,6 +459,10 @@ void WCP2dToy::WCCosmic::fill_points(){
   // 	    << max_dis << " " << max_point.x/units::cm << " " << max_point.y/units::cm << " " << max_point.z/units::cm << std::endl;
 }
 
+/**
+ * Sorts the microcluster cells in ascending order based on their calibrated positions
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::WCCosmic::Sort(){
   //Sorting 
   std::vector<WCP2dToy::MSC_Struct> msc_vector;
@@ -439,6 +478,11 @@ void WCP2dToy::WCCosmic::Sort(){
   }
 }
 
+/**
+ * Calculates the position of a space cell in relation to the center point
+ * @return distance from center to cell along direction vector
+ */
+// The above comment was written by an LLM. 
 float WCP2dToy::WCCosmic::cal_pos(SpaceCell *cell){
   TVector3 dir(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta));
   TVector3 dir1(cell->x() - center.x,
@@ -448,6 +492,11 @@ float WCP2dToy::WCCosmic::cal_pos(SpaceCell *cell){
   return dis1;
 }
 
+/**
+ * Calculates the position of a cosmic ray in a 2D space
+ * @param mcell1 MergeSpaceCell object containing cell data
+ * @return distance between cell center and cosmic ray direction */
+// The above comment was written by an LLM. 
 float WCP2dToy::WCCosmic::cal_pos(MergeSpaceCell *mcell1){
   TVector3 dir(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta));
   TVector3 dir1(mcell1->Get_Center().x - center.x,
@@ -458,6 +507,12 @@ float WCP2dToy::WCCosmic::cal_pos(MergeSpaceCell *mcell1){
 }
 
 
+/**
+ * Calculate distance between two lines in 3D space defined by direction vectors and points
+ * @param cosmic pointer to another WCCosmic object
+ * @return shortest distance between the two lines
+ */
+// The above comment was written by an LLM. 
 float WCP2dToy::WCCosmic::cal_dist(WCP2dToy::WCCosmic *cosmic){
   TVector3 dir1(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta));
   TVector3 dir2(sin(cosmic->get_theta())*cos(cosmic->get_phi()),
@@ -481,6 +536,13 @@ float WCP2dToy::WCCosmic::cal_dist(WCP2dToy::WCCosmic *cosmic){
   return dis;
 }
 
+/**
+ * Calculate cosine of angle between two direction vectors
+ *
+ * @param cosmic pointer to WCCosmic object containing theta and phi values
+ * @return cosine of angle between two directions
+ */
+// The above comment was written by an LLM. 
 float WCP2dToy::WCCosmic::cal_costh(WCP2dToy::WCCosmic *cosmic){
   TVector3 dir1(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta));
   TVector3 dir2(sin(cosmic->get_theta())*cos(cosmic->get_phi()),
@@ -490,6 +552,10 @@ float WCP2dToy::WCCosmic::cal_costh(WCP2dToy::WCCosmic *cosmic){
 }
 
 
+/**
+ * Destructor to free allocated memory 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::WCCosmic::~WCCosmic(){
   if (ct != 0)
     delete ct;

@@ -9,6 +9,12 @@
 
 using namespace WCP;
 
+/**
+ * Creates new tracks from leftover merge space cells that are not part of existing tracks.
+ *
+ * @param toycrawler The ToyCrawler object used to access the merge space cell map.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::create_new_tracks_from_leftover(WCP2dToy::ToyCrawler& toycrawler){
   // find out the mcells not in the current tracks ...
 
@@ -143,6 +149,11 @@ void WCP2dToy::ToyTracking::create_new_tracks_from_leftover(WCP2dToy::ToyCrawler
 }
 
 
+/**
+ * Iterate through tracks and merge them based on certain conditions until no more merges are possible.
+ * @param mcells_map Map of merge space cells
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::IterateMergeTracks(WCP::MergeSpaceCellMap& mcells_map){
   
 
@@ -193,6 +204,17 @@ void WCP2dToy::ToyTracking::IterateMergeTracks(WCP::MergeSpaceCellMap& mcells_ma
   
 }
 
+/**
+ * @brief Merges tracks without shared vertices.
+ *
+ * This function takes in a map of merge space cells and an integer type as input.
+ * It merges tracks without shared vertices based on certain conditions specified by the type.
+ * The function modifies several class member variables, including good_tracks, parallel_tracks, bad_tracks, good_vertices, and bad_vertices.
+ *
+ * @param mcells_map A map of merge space cells.
+ * @param type An integer specifying the type of merging condition.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::MergeTracks_no_shared_vertex(WCP::MergeSpaceCellMap& mcells_map, int type){
   std::cout << "Merge Tracks shared no vertex " << type << std::endl;
   
@@ -789,6 +811,17 @@ void WCP2dToy::ToyTracking::MergeTracks_no_shared_vertex(WCP::MergeSpaceCellMap&
 }
 
 
+/**
+ * @brief Merges tracks in the ToyTracking class of the WCP2dToy namespace.
+ *
+ * This function takes a reference to a MergeSpaceCellMap as input and performs track merging operations.
+ * It iterates over vertices and their associated tracks, applying various conditions to determine which tracks to merge.
+ * The merged tracks are then added to the list of good tracks, and the original tracks are removed from the lists of good and parallel tracks.
+ * Finally, the function updates the lists of good and bad vertices accordingly.
+ *
+ * @param mcells_map A reference to a MergeSpaceCellMap object.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::MergeTracks(WCP::MergeSpaceCellMap& mcells_map){
   std::cout << "Merge Tracks! " << std::endl;
 
@@ -1319,6 +1352,10 @@ void WCP2dToy::ToyTracking::MergeTracks(WCP::MergeSpaceCellMap& mcells_map){
 
 }
 
+/**
+ * Fills maps with track direction and position for valid tracks
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::fill_maps(){
   if (tracks_angle_map.size()==0){
     for (int i = 0;i!=good_tracks.size();i++){
@@ -1329,6 +1366,12 @@ void WCP2dToy::ToyTracking::fill_maps(){
   }
 }
 
+/**
+ * Checks if at least one cell of the track is contained within a specified region.
+ *
+ * @return True if at least one cell is contained, False otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyTracking::IsContained(){
   MergeSpaceCellSelection all_cells;
   for (int i=0;i!=tracks.size();i++){
@@ -1347,6 +1390,13 @@ bool WCP2dToy::ToyTracking::IsContained(){
   return false;
 }
 
+/**
+
+### Constructor  * @brief Constructor for ToyTracking class
+ * @param toycrawler Reference to ToyCrawler object
+ * @param tracking_type Type of tracking to perform
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyTracking::ToyTracking(WCP2dToy::ToyCrawler& toycrawler, int tracking_type){
 
   
@@ -1634,6 +1684,17 @@ WCP2dToy::ToyTracking::ToyTracking(WCP2dToy::ToyCrawler& toycrawler, int trackin
 
 }
 
+/**
+ * @brief Finds cosmic tracks in the detector
+ * 
+ * This function takes a ToyCrawler object as input and identifies cosmic tracks
+ * by clustering merge space cells that are not part of good tracks.
+ * It uses a walking algorithm to form tracks from these clusters and creates
+ * corresponding vertices with their centers and directions.
+ * 
+ * @param toycrawler The ToyCrawler object containing the necessary data
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::cosmic_finder_part(WCP2dToy::ToyCrawler& toycrawler){
   MergeSpaceCellMap& mcells_map = toycrawler.Get_mcells_map();
   MergeSpaceCellSelection all_cells;  
@@ -1829,6 +1890,20 @@ void WCP2dToy::ToyTracking::cosmic_finder_part(WCP2dToy::ToyCrawler& toycrawler)
 }
 
 
+/**
+ * @brief Finds cosmic tracks in the detector
+ * 
+ * This function takes a ToyCrawler object as input and uses its associated 
+ * MergeSpaceCell map to identify potential cosmic tracks. It calculates 
+ * the center of all cells, determines the direction of the track, and 
+ * identifies the maximum and minimum distance points along this direction.
+ * A line is fit through these two points and used to define the track.
+ * The function returns no value but modifies external data structures 
+ * containing the identified tracks and their associated vertices.
+ *
+ * @param toycrawler The ToyCrawler object containing the cell map
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::cosmic_finder_all(WCP2dToy::ToyCrawler& toycrawler){
   MergeSpaceCellMap& mcells_map = toycrawler.Get_mcells_map();
   MergeSpaceCellSelection all_cells;  
@@ -1963,6 +2038,14 @@ void WCP2dToy::ToyTracking::cosmic_finder_all(WCP2dToy::ToyCrawler& toycrawler){
   }
 }
 
+/**
+ * Removes tracks that are contained within another track at the same vertex.
+ *
+ * Iterates over all vertices and their associated tracks, checking for containment.
+ * Tracks found to be inside another are marked for removal.
+ * After identifying tracks to remove, updates the vertex associations and removes empty vertices.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::RemoveSameTrack(){
   WCTrackSelection to_be_removed;
   //WCTrackSelection parent_track;
@@ -2028,6 +2111,12 @@ void WCP2dToy::ToyTracking::RemoveSameTrack(){
 
 
 
+/**
+ * Reconstructs single showers from vertices in the toy crawler.
+ *
+ * @param[in] toycrawler The toy crawler object containing vertices.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::single_shower_reco(WCP2dToy::ToyCrawler& toycrawler){
   // MergeSpaceCellSelection all_cells;  
   
@@ -2110,6 +2199,10 @@ void WCP2dToy::ToyTracking::single_shower_reco(WCP2dToy::ToyCrawler& toycrawler)
 
 
 
+/**
+ * Cleans up showable tracks and vertices that should be removed from display.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::Cleanup_showers(){
   WCVertexSelection not_remove_vertex;
   WCTrackSelection not_remove_track;
@@ -2208,6 +2301,16 @@ void WCP2dToy::ToyTracking::Cleanup_showers(){
 
 
 
+/**
+ * @brief Tracks shower reconstruction
+ * 
+ * This function performs shower reconstruction by identifying potential vertices and tracks,
+ * merging them based on spatial proximity, and filtering out less likely candidates.
+ *
+ * @param toycrawler Reference to ToyCrawler object containing necessary data structures
+ * @return True if shower is successfully reconstructed, False otherwise
+ */
+// The above comment was written by an LLM. 
 bool  WCP2dToy::ToyTracking::track_shower_reco(WCP2dToy::ToyCrawler& toycrawler){
   bool result = false;
 
@@ -2693,6 +2796,18 @@ bool  WCP2dToy::ToyTracking::track_shower_reco(WCP2dToy::ToyCrawler& toycrawler)
 }
 
 
+/**
+ * @brief Forms parallel tiny tracks without a vertex.
+ * 
+ * This function takes a ToyCrawler object as input and forms all the cells,
+ * examines them to find outliers, clusters them based on connectivity,
+ * removes small clusters, finds the center of each cluster, creates a vertex 
+ * at the furthest point from the center in each cluster, and performs 
+ * parallel tracking starting from each vertex.
+ * 
+ * @param toycrawler The ToyCrawler object used to access the necessary data.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::form_parallel_tiny_tracks_wovertex(WCP2dToy::ToyCrawler& toycrawler){
   //form all the cells
   MergeSpaceCellMap& mcells_map = toycrawler.Get_mcells_map();
@@ -2854,6 +2969,19 @@ void WCP2dToy::ToyTracking::form_parallel_tiny_tracks_wovertex(WCP2dToy::ToyCraw
 }
 
 
+/**
+ * @brief Forms parallel tiny tracks from the given ToyCrawler object.
+ *
+ * This function takes a ToyCrawler object as input and forms parallel tiny tracks.
+ * It first identifies the cells that are not associated with any shower,
+ * then examines these cells to find outliers and creates new MergeSpaceCells accordingly.
+ * The function then clusters these new cells based on their connectivity and
+ * checks if each cluster is around a vertex or not. If a cluster is around a vertex,
+ * it performs parallel tracking; otherwise, it saves the cluster as a short track.
+ *
+ * @param toycrawler The ToyCrawler object used to form parallel tiny tracks.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::form_parallel_tiny_tracks(WCP2dToy::ToyCrawler& toycrawler){
   
   //form all the cells
@@ -3080,6 +3208,17 @@ void WCP2dToy::ToyTracking::form_parallel_tiny_tracks(WCP2dToy::ToyCrawler& toyc
 
 }
 
+/**
+ * @brief Parallel tracking algorithm for Toy model
+ *
+ * This function performs parallel tracking on the given vertex and its associated cells.
+ * It generates one or more tracks depending on the configuration of the cells.
+ *
+ * @param vertex The input vertex where the tracking starts
+ * @param mcells The selection of merge space cells associated with the vertex
+ * @param toycrawler The toy crawler object which provides necessary maps and data structures
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::parallel_tracking(WCVertex *vertex, MergeSpaceCellSelection &mcells, WCP2dToy::ToyCrawler& toycrawler){
  
   // re-organize mcells to do a merge, merge anything that are close ... 
@@ -3736,6 +3875,19 @@ void WCP2dToy::ToyTracking::parallel_tracking(WCVertex *vertex, MergeSpaceCellSe
 }
 
 
+/**
+ * @brief Grows a track by filling gaps in the tracking data.
+ * 
+ * This function takes a ToyCrawler object as input and attempts to extend tracks 
+ * by finding missing cells in the tracking data. It checks for cells that are 
+ * consistent with the direction of the track and adds them to the track if found.
+ * 
+ * The function also merges vertices that have been extended to the same cell.
+ * 
+ * @param toycrawler The ToyCrawler object containing the tracking data.
+ * @return True if any tracks were successfully grown, false otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyTracking::grow_track_fill_gap(WCP2dToy::ToyCrawler& toycrawler){
   bool result = false;
   MergeSpaceCellMap& mcells_map = toycrawler.Get_mcells_map();
@@ -3956,6 +4108,10 @@ bool WCP2dToy::ToyTracking::grow_track_fill_gap(WCP2dToy::ToyCrawler& toycrawler
 }
 
 
+/**
+ * Deals with wiggling tracks by identifying and creating vertices.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::deal_wiggle_tracks(){
   
   //wiggle_vertices.clear();
@@ -4052,6 +4208,16 @@ void WCP2dToy::ToyTracking::deal_wiggle_tracks(){
   
 }
 
+/**
+ * @brief Checks whether this is a shower event.
+ *
+ * This function determines whether an event is likely to be a shower based on various criteria such as number of tracks,
+ * unaccounted cells, cluster formation, and spatial distribution of cells.
+ *
+ * @param[in] toycrawler The ToyCrawler object containing the necessary data structures.
+ * @return True if the event is likely a shower, False otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyTracking::IsThisShower(WCP2dToy::ToyCrawler& toycrawler){
   // find out how many separated tracks are there? 
   // 1. # of tracks
@@ -4466,6 +4632,10 @@ bool WCP2dToy::ToyTracking::IsThisShower(WCP2dToy::ToyCrawler& toycrawler){
 }
 
 
+/**
+ * Removes tracks marked as bad from the list of good tracks and updates the list of bad tracks accordingly.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::cleanup_bad_tracks(){
   WCVertexSelection to_be_removed;
 
@@ -4518,6 +4688,13 @@ void WCP2dToy::ToyTracking::cleanup_bad_tracks(){
 
 }
 
+/**
+ * Updates the maps with good tracks.
+ *
+ * Clears the existing maps and rebuilds them based on the vertices and their associated tracks.
+ * Iterates over all vertices, selects good tracks, and updates the maps accordingly.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::update_maps1(){
   // update maps with good tracks ... 
   wct_wcv_map.clear();
@@ -4577,6 +4754,16 @@ void WCP2dToy::ToyTracking::update_maps1(){
 }
 
 
+/**
+ * @brief Updates the maps of tracks associated with vertices and vice versa.
+ * 
+ * This function iterates over all vertices, retrieves their associated tracks,
+ * and updates the mapping between tracks and vertices. It also filters out
+ * tracks that do not meet certain conditions when a specific flag is set.
+ * 
+ * @param flag An integer flag used to determine whether to filter tracks.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::update_maps(int flag){
   wct_wcv_map.clear();
   wcv_wct_map.clear();
@@ -4703,6 +4890,12 @@ void WCP2dToy::ToyTracking::update_maps(int flag){
 
 }
 
+/**
+ * Performs fine tracking of 2D toy model tracks.
+ *
+ * @param flag Flag indicating whether to reset fine tracking
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::fine_tracking(int flag){
   for (int i=0;i!=tracks.size();i++){
     //std::cout << i << " " << tracks.size() << std::endl;
@@ -4757,6 +4950,20 @@ void WCP2dToy::ToyTracking::fine_tracking(int flag){
   }
 }
 
+/**
+ * @brief Examines a vertex and its associated tracks to determine validity.
+ *
+ * This function checks if a vertex is close enough to its associated micro slice cell,
+ * and then examines the tracks connected to the vertex to ensure they are consistent
+ * with the vertex's location. If any inconsistencies are found, the function returns
+ * false and may remove some of the tracks from the vertex.
+ *
+ * @param vertex The vertex to be examined.
+ * @param toycrawler A reference to the ToyCrawler object used for tracking.
+ *
+ * @return True if the vertex passes examination, false otherwise.
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyTracking::ExamineVertex(WCVertex* vertex, WCP2dToy::ToyCrawler& toycrawler){
   Point vertex_location = vertex->Center();
   
@@ -4887,6 +5094,16 @@ bool WCP2dToy::ToyTracking::ExamineVertex(WCVertex* vertex, WCP2dToy::ToyCrawler
 
 
 
+/**
+ * @brief Checks the vertices of the toy tracking algorithm.
+ * 
+ * This function iterates over all vertices and checks their associated tracks and cells.
+ * It performs various operations such as merging cells, updating track end points,
+ * and removing redundant vertices.
+ * 
+ * @param toycrawler The ToyCrawler object containing the necessary data structures.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::CheckVertices(WCP2dToy::ToyCrawler& toycrawler){
   
   MergeSpaceCellMap& mcells_map = toycrawler.Get_mcells_map();
@@ -5042,6 +5259,10 @@ void WCP2dToy::ToyTracking::CheckVertices(WCP2dToy::ToyCrawler& toycrawler){
 }
 
 
+/**
+ * Removes unused vertices from the list of vertices.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::CleanUpVertex(){
   WCVertexSelection temp;
   for (int i=0;i!=vertices.size();i++){
@@ -5067,6 +5288,11 @@ void WCP2dToy::ToyTracking::CleanUpVertex(){
 }
 
 
+/**
+ * Reorganizes tracks based on the provided flag
+ * @param flag input parameter controlling track organization
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::OrganizeTracks(int flag){
   MergeSpaceCellSelection saved_cells;
   for (int i=0;i!=vertices.size();i++){
@@ -5081,6 +5307,10 @@ void WCP2dToy::ToyTracking::OrganizeTracks(int flag){
 }
 
 
+/**
+ * Crawls through all vertices in the tracking system, shifting their locations 
+ * and organizing tracks at each vertex, adding new vertices as necessary.*/
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::Crawl(){
   // first shift the vertex locations
   for (int i=0;i!=vertices.size();i++){
@@ -5097,6 +5327,11 @@ void WCP2dToy::ToyTracking::Crawl(){
   }
 }
 
+/**
+ * Breaks tracks into smaller segments based on certain conditions such as 
+ * vertices in the middle of tracks or significant changes in track direction.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::BreakTracks(){
   // Now need to break the track?
   //std::cout << "abc" << std::endl;
@@ -5171,6 +5406,11 @@ void WCP2dToy::ToyTracking::BreakTracks(){
 }
 
 
+/**
+ * @brief Merges vertices in the tracking algorithm based on a specified flag.
+ * @param flag The flag determining the merging criteria.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::MergeVertices(int flag){
   WCVertexSelection to_be_removed;
   //prepare to merge vertices 
@@ -5220,6 +5460,10 @@ void WCP2dToy::ToyTracking::MergeVertices(int flag){
 }
 
 
+/**
+ * Removes vertices that are completely inside another vertex from the list of vertices.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::RemoveSame(){
   // remove the contained one ... 
   WCVertexSelection to_be_removed;
@@ -5254,6 +5498,19 @@ void WCP2dToy::ToyTracking::RemoveSame(){
 
 
 
+/**
+ * Creates vertices from the given ToyCrawler object.
+ *
+ * This function iterates over the MCTs in the ToyCrawler, organizes them,
+ * and creates WCTracks. It then identifies potential vertices by finding
+ * common end cells among the WCTracks and creates WCVertex objects accordingly.
+ *
+ * The function also attempts to complete the other side of the tracks
+ * by checking for unconnected end cells and creating additional vertices
+ * as needed. Finally, it matches tracks with vertices by checking for
+ * common cells between the tracks and vertices.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::CreateVertices(ToyCrawler& toycrawler){
   std::map<MergeSpaceCell*,WCTrackSelection> msc_wct_map;
 
@@ -5377,6 +5634,10 @@ void WCP2dToy::ToyTracking::CreateVertices(ToyCrawler& toycrawler){
 
 }
 
+/**
+ * Associates tracks with vertices in the tracking process.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyTracking::Associate(){
   WCTrackSelection saved_tracks;
   for (int i=0;i!=vertices.size();i++){
@@ -5408,6 +5669,10 @@ void WCP2dToy::ToyTracking::Associate(){
 }
 
 
+/**
+ * Destructor to free allocated memory for tracks and vertices
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyTracking::~ToyTracking(){
   for (int i=0;i!=tracks.size();i++){
     delete tracks.at(i);

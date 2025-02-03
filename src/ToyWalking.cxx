@@ -2,6 +2,10 @@
 
 using namespace WCP;
 
+/**
+ * Constructor initializing walking object with starting cell and references to merge space cells map and selections
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyNWalking::ToyNWalking(WCP::MergeSpaceCell *start_cell, WCP::MergeSpaceCellMap& mcells_map, WCP::MergeSpaceCellSelection& used_cell, WCP::MergeSpaceCellSelection& must_cell)
   : start_cell(start_cell)
   , mcells_map(mcells_map)
@@ -11,6 +15,11 @@ WCP2dToy::ToyNWalking::ToyNWalking(WCP::MergeSpaceCell *start_cell, WCP::MergeSp
   Iterate(start_cell);
 }
 
+/**
+ * Iterates through neighboring cells in a recursive manner
+ * @param curr_cell the current cell being processed
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyNWalking::Iterate(MergeSpaceCell *curr_cell){
   cells.push_back(curr_cell);
   
@@ -32,6 +41,10 @@ WCP2dToy::ToyNWalking::~ToyNWalking(){
 }
 
 
+/**
+ * Constructor initializing toy walking with start cell point target cell point 
+ * and merge space cell map with specified counter limit */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyWalking::ToyWalking(WCP::MergeSpaceCell *start_cell, Point start_point, WCP::MergeSpaceCell *target_cell, Point target_point, WCP::MergeSpaceCellMap& mcells_map, int counter_limit)
   : start_cell(start_cell)
   , target_cell(target_cell)
@@ -50,6 +63,10 @@ WCP2dToy::ToyWalking::ToyWalking(WCP::MergeSpaceCell *start_cell, Point start_po
 }
 
 
+/**
+ * Constructor initializing toy walking with start cell point target cell point 
+ * merge space cell map required cells and iteration limit */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyWalking::ToyWalking(WCP::MergeSpaceCell *start_cell, Point start_point, WCP::MergeSpaceCell *target_cell, Point target_point, WCP::MergeSpaceCellMap& mcells_map, WCP::MergeSpaceCellSelection must_cells, int counter_limit)
   : start_cell(start_cell)
   , target_cell(target_cell)
@@ -68,6 +85,14 @@ WCP2dToy::ToyWalking::ToyWalking(WCP::MergeSpaceCell *start_cell, Point start_po
 }
 
 
+/**
+ * @brief Iterates through the merge space cells to find the shortest path.
+ * 
+ * @param curr_cell The current cell being processed.
+ * @param curr_cells A selection of cells that have been visited so far.
+ * @param dis The current distance traveled.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyWalking::Iterate(MergeSpaceCell *curr_cell, MergeSpaceCellSelection &curr_cells, double dis){
   curr_cells.push_back(curr_cell);
   global_counter ++;

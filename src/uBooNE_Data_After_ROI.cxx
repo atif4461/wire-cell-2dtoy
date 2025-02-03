@@ -5,6 +5,14 @@
 using namespace WCP;
 
 
+/**
+ * Constructor for uBooNEDataAfterROI class 
+ * @param fds Frame data source object reference
+ * @param gds Geometry data source object constant reference
+ * @param rois ROI data object reference
+ * @param rebin Rebinning factor for frame data
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNEDataAfterROI::uBooNEDataAfterROI(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds, WCP2dToy::uBooNEDataROI& rois, int rebin)
   : fds(fds)
   , gds(gds)
@@ -66,6 +74,10 @@ int WCP2dToy::uBooNEDataAfterROI::size() const{
   return 1;
 }
 
+/**
+ * Clears all stored ROI data structures by deleting dynamically allocated memory and clearing vectors.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::Clear(){
   for (int i=0;i!=nwire_u;i++){
     for (auto it = rois_u_tight.at(i).begin(); it!=rois_u_tight.at(i).end();it++){
@@ -108,6 +120,14 @@ void WCP2dToy::uBooNEDataAfterROI::Clear(){
 
 }
 
+/**
+ * @brief Cleans up Regions of Interest (ROIs)
+ *
+ * This function cleans up the ROIs in the u and v loose lists by removing
+ * those that do not contain good data and updating the front and back maps
+ * accordingly.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::CleanUpROIs(){
   // clean up ROIs
   std::map<SignalROI*, int> ROIsaved_map;
@@ -279,6 +299,16 @@ void WCP2dToy::uBooNEDataAfterROI::CleanUpROIs(){
 
 }
 
+/**
+ * Cleans up induction ROIs by removing bad regions of interest.
+ *
+ * This function iterates over all loose ROIs in both u and v planes,
+ * checks their properties such as average heights and thresholds,
+ * and removes those that do not meet certain criteria.
+ *
+ * It also updates the front and back ROI maps accordingly.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::CleanUpInductionROIs(){
   // deal with loose ROIs
   // focus on the isolated ones first
@@ -510,6 +540,12 @@ void WCP2dToy::uBooNEDataAfterROI::CleanUpInductionROIs(){
 }
 
 
+/**
+ * Cleans up the collection of ROIs by removing those that do not meet certain criteria.
+ * The cleanup process involves scanning the tight ROIs to identify peaks above a certain threshold,
+ * and then removing any ROIs that are not connected to these identified ROIs.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::CleanUpCollectionROIs(){
   // deal with tight ROIs, 
   // scan with all the tight ROIs to look for peaks above certain threshold, put in a temporary set
@@ -595,6 +631,12 @@ void WCP2dToy::uBooNEDataAfterROI::CleanUpCollectionROIs(){
 }
 
 
+/**
+ * Breaks down an ROI into smaller sub-ROIs based on signal content.
+ *
+ * @param roi The input ROI to be broken down.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::BreakROI1(SignalROI* roi){
   int start_bin = roi->get_start_bin();
   int end_bin = roi->get_end_bin();
@@ -713,6 +755,13 @@ void WCP2dToy::uBooNEDataAfterROI::BreakROI1(SignalROI* roi){
 
 }
 
+/**
+ * Breaks down an ROI into smaller sub-ROIs based on signal peaks and valleys.
+ *
+ * @param roi The input SignalROI object to be broken down.
+ * @param rms The root mean square value of the noise in the signal.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::BreakROI(SignalROI* roi, float rms){
   // main algorithm 
   int start_bin = roi->get_start_bin();
@@ -1041,6 +1090,12 @@ void WCP2dToy::uBooNEDataAfterROI::BreakROI(SignalROI* roi, float rms){
 
 }
 
+/**
+ * Unlinks two ROI signals from their respective lists.
+ * @param prev_roi The previous ROI signal in the list.
+ * @param next_roi The next ROI signal in the list.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::unlink(SignalROI* prev_roi, SignalROI* next_roi){
   if (front_rois.find(prev_roi)!=front_rois.end()){
     SignalROISelection& temp_rois = front_rois[prev_roi];
@@ -1056,6 +1111,12 @@ void WCP2dToy::uBooNEDataAfterROI::unlink(SignalROI* prev_roi, SignalROI* next_r
   }
 }
 
+/**
+ * Links two signal ROIs in both forward and backward directions.
+ * @param prev_roi The previous ROI in the link.
+ * @param next_roi The next ROI in the link.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::link(SignalROI* prev_roi, SignalROI* next_roi){
   if (front_rois.find(prev_roi)!=front_rois.end()){
     SignalROISelection& temp_rois = front_rois[prev_roi];
@@ -1081,6 +1142,10 @@ void WCP2dToy::uBooNEDataAfterROI::link(SignalROI* prev_roi, SignalROI* next_roi
 }
 
 
+/**
+ * Breaks down Regions Of Interest into smaller segments after applying ROI selection criteria
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::BreakROIs(){
   // get RMS value, and put in 
   std::vector<float>& rms_u = rois.get_uplane_rms();
@@ -1136,6 +1201,16 @@ void WCP2dToy::uBooNEDataAfterROI::BreakROIs(){
   // std::cout << num_tight[0] << " " << num_tight[1] << " " << num_tight[2] << " " << num_loose[0] << " " << num_loose[1] << " " << num_loose[2] << " " << front_rois.size() << " " << back_rois.size() << " " << contained_rois.size() << std::endl;
 }
 
+/**
+ * @brief Shrinks the Region Of Interest (ROI) in the signal data.
+ *
+ * This function takes a SignalROI object as input, checks for nearby ROIs,
+ * updates the boundaries of the input ROI based on certain conditions,
+ * and finally updates various maps containing ROI relationships.
+ *
+ * @param roi The input SignalROI object to be shrunk.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::ShrinkROI(SignalROI *roi){
   
   // get tight ROI as a inner boundary
@@ -1367,6 +1442,10 @@ void WCP2dToy::uBooNEDataAfterROI::ShrinkROI(SignalROI *roi){
   
 }
 
+/**
+ * Shrinks all collected regions of interest
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::ShrinkROIs(){
   // collect all ROIs
   SignalROISelection all_rois;
@@ -1385,6 +1464,15 @@ void WCP2dToy::uBooNEDataAfterROI::ShrinkROIs(){
   }
 }
 
+/**
+ * @brief Generates merged ROIs by duplicating tight ROIs not contained in loose ROIs.
+ *
+ * This function iterates over both u and v wire planes, identifies tight ROIs that are not
+ * fully enclosed within loose ROIs, duplicates these tight ROIs as new loose ROIs,
+ * and updates various mapping data structures to reflect the relationships between
+ * the original and duplicated ROIs.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::generate_merge_ROIs(){
   // find tight ROIs not contained by the loose ROIs
   for (int i = 0;i!=nwire_u;i++){
@@ -1563,6 +1651,13 @@ void WCP2dToy::uBooNEDataAfterROI::generate_merge_ROIs(){
 }
 
 
+/**
+ * @brief Jumps to a specific frame number in the event data.
+ *
+ * @param frame_number The target frame number to jump to.
+ * @return The actual frame number after jumping.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::uBooNEDataAfterROI::jump(int frame_number){
   Clear();
   if (frame.index == frame_number) {
@@ -2165,6 +2260,13 @@ int WCP2dToy::uBooNEDataAfterROI::jump(int frame_number){
 
 }
 
+/**
+ * @brief Extends the Regions of Interest (ROIs) in the detector planes.
+ *
+ * This function iterates over the ROIs in each plane, extending their boundaries
+ * based on neighboring ROIs and updating their start and end bin values accordingly.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::ExtendROIs(){
 
   bool flag = true;
@@ -2374,6 +2476,14 @@ void WCP2dToy::uBooNEDataAfterROI::ExtendROIs(){
 
 
 
+/**
+ * Checks ROIs after ROI process.
+ *
+ * This function iterates through all loose ROIs in both u and v planes,
+ * checks their overlap with previously linked ROIs, and unlinks them
+ * if they do not overlap within a certain threshold.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::CheckROIs(){
   std::vector<float>& rms_u = rois.get_uplane_rms();
   std::vector<float>& rms_v = rois.get_vplane_rms();
@@ -2495,6 +2605,13 @@ void WCP2dToy::uBooNEDataAfterROI::CheckROIs(){
 
 
 
+/**
+ * Tests ROIs in different planes.
+ *
+ * This function iterates over all channels in the u, v, and w planes,
+ * checking for missing ROIs in adjacent channels.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNEDataAfterROI::TestROIs(){
 
   for (int chid = 0; chid != nwire_u; chid ++){

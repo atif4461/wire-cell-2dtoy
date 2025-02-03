@@ -11,6 +11,19 @@
 using namespace Eigen;
 using namespace WCP;
 
+/**
+ * @brief Constructor for the WCP2dToy::uBooNE_L1SP class.
+ *
+ * Initializes the object with raw and deconvolved histograms, rebinning factor,
+ * and time offset.
+ *
+ * @param hv_raw Raw histogram.
+ * @param hv_decon Deconvolved histogram.
+ * @param hv_decon_g Gaussian deconvolved histogram.
+ * @param nrebin Rebinning factor.
+ * @param time_offset Time offset value.
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNE_L1SP::uBooNE_L1SP(TH2F *hv_raw, TH2F *hv_decon, TH2F *hv_decon_g, int nrebin, double time_offset)
   : hv_raw(hv_raw)
   , hv_decon(hv_decon)
@@ -212,12 +225,28 @@ WCP2dToy::uBooNE_L1SP::uBooNE_L1SP(TH2F *hv_raw, TH2F *hv_decon, TH2F *hv_decon_
   
 }
 
+/**
+ * Destructor to free allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::uBooNE_L1SP::~uBooNE_L1SP(){
   delete gv;
   delete gw;
   delete filter_g;
 }
 
+/**
+ * Adds raw wire time data to the deconvolution histograms.
+ *
+ * This function iterates over all wires in the detector, calculates a noise cut
+ * threshold for each wire, and applies this threshold to identify signal-like
+ * features in the raw data. If a feature is identified, its amplitude is used
+ * to fill the corresponding bin in the deconvolution histogram.
+ *
+ * @note The noise cut threshold is calculated as 4.2 sigma, where sigma is the
+ * standard deviation of the noise distribution. A minimum cut value of 9 is applied.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNE_L1SP::AddWireTime_Raw(){
   TH1F *h1 = new TH1F("h1","h1",200,-50,50);
   for (int wire_index= 1166; wire_index<=1905;wire_index++){
@@ -272,6 +301,12 @@ void WCP2dToy::uBooNE_L1SP::AddWireTime_Raw(){
   delete h1;
 }
 
+/**
+ * Adds wires to the data structure at a specified time slice.
+ * @param timeSlice The time slice at which the wires are added.
+ * @param wires A selection of geometric wires to be added.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNE_L1SP::AddWires(int time_slice, GeomWireSelection& wires){
   if (wires.size() >0){
     
@@ -296,6 +331,12 @@ void WCP2dToy::uBooNE_L1SP::AddWires(int time_slice, GeomWireSelection& wires){
   }
 }
 
+/**
+ * Forms regions of interest in the 2D toy data based on the provided pad value.
+ *
+ * @param pad The padding value used to expand the regions of interest.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNE_L1SP::Form_rois(int pad){
   
   for (auto it = init_map.begin(); it!=init_map.end(); it++){
@@ -374,6 +415,20 @@ void WCP2dToy::uBooNE_L1SP::Form_rois(int pad){
 }
 
 
+/**
+ * @brief Performs L1 fit on the input data.
+ *
+ * This function takes in several parameters including wire index, start tick, and end tick.
+ * It first calculates the number of bins to be fitted and initializes necessary vectors.
+ * Then it fills the data and performs checks to determine whether to perform L1 fit or remove signals.
+ * If L1 fit is performed, it divides the data into sections, constructs matrices, and uses a lasso model to fit the data.
+ * The fitted results are then used to update the deconvoluted histograms.
+ *
+ * @param wire_index Index of the wire.
+ * @param start_tick Start tick of the fitting range.
+ * @param end_tick End tick of the fitting range.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::uBooNE_L1SP::L1_fit(int wire_index, int start_tick, int end_tick){
   const int nbin_fit = end_tick-start_tick;
   // std::cout << start_tick << " " << end_tick << std::endl;

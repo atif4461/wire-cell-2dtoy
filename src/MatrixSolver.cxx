@@ -9,6 +9,16 @@ using namespace Eigen;
 
 using namespace WCP;
 
+/**
+ * @brief Constructor for the MatrixSolver class
+ * @param allmcell GeomCellSelection object containing all merge cells
+ * @param mwires GeomWireSelection object containing all merge wires
+ * @param cell_wire_map Map of cells to their corresponding wires
+ * @param wire_cell_map Map of wires to their corresponding cells
+ * @param wire_charge_map Map of wires to their charges
+ * @param wire_charge_error_map Map of wires to their charge errors
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::MatrixSolver::MatrixSolver(GeomCellSelection& allmcell, GeomWireSelection& mwires, WCP::GeomCellMap& cell_wire_map, WCP::GeomWireMap& wire_cell_map, WCP::WireChargeMap& wire_charge_map, WCP::WireChargeMap& wire_charge_error_map)
 {
   //
@@ -223,6 +233,11 @@ WCP2dToy::MatrixSolver::MatrixSolver(GeomCellSelection& allmcell, GeomWireSelect
   }
   
 }
+/**
+ * @brief Solves the L1 problem using the Lasso model with given cell weights
+ * @param cell_weight_map map of cell pointers to their corresponding weights
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::MatrixSolver::L1_Solve(std::map<const GeomCell*, double, WCP::GeomCellComparep>& cell_weight_map){
     
 
@@ -272,6 +287,12 @@ void WCP2dToy::MatrixSolver::L1_Solve(std::map<const GeomCell*, double, WCP::Geo
   solve_flag = 2;
 }
 
+/**
+ * Returns a collection of all geometric cells in the matrix solver.
+ *
+ * @return A list of geometric cells
+ */
+// The above comment was written by an LLM. 
 GeomCellSelection WCP2dToy::MatrixSolver::get_all_cells(){
   GeomCellSelection cells;
   for (auto it = mcimap.begin(); it!=mcimap.end();it++){
@@ -281,6 +302,12 @@ GeomCellSelection WCP2dToy::MatrixSolver::get_all_cells(){
 }
 
 
+/**
+ * Returns the charge associated with a given merge geometry cell
+ * @param mcell MergeGeomCell object to retrieve charge for
+ * @return Charge value of the specified merge geometry cell
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::MatrixSolver::get_mcell_charge(MergeGeomCell *mcell){
   double charge = 0;
 
@@ -334,6 +361,11 @@ int WCP2dToy::MatrixSolver::get_mc_index(const WCP::GeomCell* cell){
     return -1;
   }
 }
+/**
+ * Returns the index of the given wire in the matrix world
+ * @param wire pointer to GeomWire object
+ * @return index of the wire if found otherwise negative value */
+// The above comment was written by an LLM. 
 int WCP2dToy::MatrixSolver::get_mw_index(const WCP::GeomWire* wire){
   auto it = mwimap.find(wire);
   if (it!=mwimap.end()){
@@ -342,12 +374,25 @@ int WCP2dToy::MatrixSolver::get_mw_index(const WCP::GeomWire* wire){
     return -1;
   }
 };
+/**
+ * Returns the W value at specified index if within valid range
+ * @param index the index of the W value to retrieve
+ * @return the W value at the specified index or 0 if out of range
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::MatrixSolver::get_W_value(int index){
   if (index < mwindex && index >=0)
     return W(index);
   else return 0;
 
 };
+/**
+ * Returns the value of G at specified indices if within valid range
+ * @param index_mw row index
+ * @param index_mc column index
+ * @return G value at specified position or 0 if out of bounds
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::MatrixSolver::get_G_value(int index_mw, int index_mc){
   if (index_mw < mwindex && index_mc < mcindex && index_mw >=0 && index_mc >=0)
     return G(index_mw, index_mc);
@@ -356,6 +401,10 @@ double WCP2dToy::MatrixSolver::get_G_value(int index_mw, int index_mc){
 };
 
 
+/**
+ * Destructor to release allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::MatrixSolver::~MatrixSolver(){
   
     

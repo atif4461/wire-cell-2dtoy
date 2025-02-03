@@ -4,6 +4,13 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for ToyCrawler class 
+ * @param mcells reference to MergeSpaceCellSelection object
+ * @param flag integer flag
+ * @param flag1 integer flag
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyCrawler::ToyCrawler(MergeSpaceCellSelection& mcells, int flag, int flag1){
 
   CreateClusterTrack(mcells);
@@ -54,6 +61,14 @@ WCP2dToy::ToyCrawler::ToyCrawler(MergeSpaceCellSelection& mcells, int flag, int 
   //  }
 }
 
+/**
+ * @brief Prepares tracking by merging cluster tracks.
+ *
+ * This function prepares tracking by iterating over all merge cluster tracks,
+ * checking for same and different direction tracks, and splitting them into two new tracks
+ * if necessary. It also updates the list of merge cluster tracks accordingly.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyCrawler::PrepareTracking(){
   MergeClusterTrackSelection to_be_removed;
   MergeClusterTrackSelection to_be_added;
@@ -260,6 +275,13 @@ void WCP2dToy::ToyCrawler::PrepareTracking(){
 }
 
 
+/**
+ * Returns the closest MergeSpaceCell to a given point in space.
+ * @param p The point in space to find the closest MergeSpaceCell to.
+ * @param cells2 A selection of MergeSpaceCells to consider first.
+ * @return The closest MergeSpaceCell to the given point.
+ */
+// The above comment was written by an LLM. 
 MergeSpaceCell* WCP2dToy::ToyCrawler::GetClosestMSC(Point p, WCP::MergeSpaceCellSelection& cells2){
   // loop all mergeclustertrack
   // find the right time slice and search for mergespace cell (or the closest)
@@ -310,6 +332,12 @@ MergeSpaceCell* WCP2dToy::ToyCrawler::GetClosestMSC(Point p, WCP::MergeSpaceCell
 }
 
 
+/**
+ * Cleans up CT tracks based on the provided flag.
+ *
+ * @param flag The cleaning mode, either 1 or 2.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyCrawler::CleanUpCTTrack(int flag){
   //Sort the track first
   MergeClusterTrackSet MCT_set;
@@ -402,6 +430,10 @@ void WCP2dToy::ToyCrawler::CleanUpCTTrack(int flag){
 
 }
 
+/**
+ * Updates the mapping of merge space cells to their corresponding merge cluster tracks.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyCrawler::UpdateMap(){
   // Update map again ... 
   mcells_mct_map.clear();
@@ -422,6 +454,10 @@ void WCP2dToy::ToyCrawler::UpdateMap(){
 }
 
 
+/**
+ * Removes merged clusters where all merge space cells are accounted for.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyCrawler::PurgeMergeCTrack(){
   
   //remove merged cluster in which all the merge space cell are accounted for ... s
@@ -472,6 +508,16 @@ void WCP2dToy::ToyCrawler::PurgeMergeCTrack(){
 
 
 
+/**
+ * @brief Extends the CT rack further based on certain conditions.
+ *
+ * This function iterates over all merge cluster tracks, checks their directions,
+ * and extends them accordingly. It also updates the map of merge space cells
+ * to merge cluster tracks.
+ *
+ * @param flag_qx Flag indicating the extension direction.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyCrawler::FurtherExtendCTrack(int flag_qx){
   
   
@@ -737,6 +783,15 @@ void WCP2dToy::ToyCrawler::FurtherExtendCTrack(int flag_qx){
 }
 
 
+/**
+ * @brief Merges cluster tracks into merge cluster tracks.
+ *
+ * This function takes an integer flag as input and merges cluster tracks
+ * into merge cluster tracks based on certain conditions.
+ *
+ * @param flag1 Integer flag to determine the merging process.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyCrawler::MergeCTrack(int flag1){
   WCP::ClusterTrackSelection used_clustertrack; // hold the used tracks
 
@@ -951,6 +1006,12 @@ void WCP2dToy::ToyCrawler::MergeCTrack(int flag1){
 }
 
 
+/**
+ * Creates a cluster track from a selection of merge space cells.
+ *
+ * @param mcells A selection of merge space cells.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyCrawler::CreateClusterTrack(MergeSpaceCellSelection& mcells){
 
   for (int i = 0; i!=mcells.size();i++){
@@ -1246,6 +1307,10 @@ void WCP2dToy::ToyCrawler::CreateClusterTrack(MergeSpaceCellSelection& mcells){
   } // while loop
 }
 
+/**
+ * Forms a graph data structure by mapping cluster tracks to their corresponding merge space cells and vice versa.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyCrawler::FormGraph(){
   ct_ms_map.clear();
   ms_ct_map.clear();
@@ -1283,6 +1348,10 @@ void WCP2dToy::ToyCrawler::FormGraph(){
 }
 
 
+/**
+ * Destructor to free allocated memory for cluster tracks and merged cluster tracks
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyCrawler::~ToyCrawler(){
   for (int i=0;i!=all_clustertrack.size();i++){
     delete all_clustertrack.at(i);

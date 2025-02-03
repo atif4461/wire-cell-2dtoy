@@ -8,6 +8,20 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for DataSignalWienFDS class
+ * @param fds Frame data source
+ * @param gds Geometry data source
+ * @param umap U Chirp map
+ * @param vmap V Chirp map
+ * @param wmap W Chirp map
+ * @param bins_per_frame1 Bins per frame
+ * @param nframes_total Total number of frames
+ * @param time_offset_uv Time offset for UV
+ * @param time_offset_uw Time offset for UW
+ * @param overall_time_offset Overall time offset
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::DataSignalWienFDS::DataSignalWienFDS(WCP::FrameDataSource& fds, const WCP::GeomDataSource& gds,WCP::ChirpMap& umap, WCP::ChirpMap& vmap, WCP::ChirpMap& wmap, int bins_per_frame1, int nframes_total, float time_offset_uv, float time_offset_uw, float overall_time_offset)
   : fds(fds)
   , gds(gds)
@@ -126,6 +140,10 @@ int WCP2dToy::DataSignalWienFDS::size() const{
   return max_frames;
 }
 
+/**
+ * Saves data signals to a ROOT file named temp_wienroot 
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::DataSignalWienFDS::Save(){
   TFile *file = new TFile("temp_wien.root","RECREATE");
   // for (int i=0;i!=nwire_u;i++){
@@ -141,6 +159,13 @@ void WCP2dToy::DataSignalWienFDS::Save(){
   file->Close();
 }
 
+/**
+ * @brief Jumps to a specific frame number in the data signal processing.
+ *
+ * @param frame_number The target frame number to jump to.
+ * @return The index of the jumped frame.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::DataSignalWienFDS::jump(int frame_number){
   // fill the frame data ... 
   if (frame.index == frame_number) {
@@ -436,6 +461,10 @@ int WCP2dToy::DataSignalWienFDS::jump(int frame_number){
   return frame.index;
 }
 
+/**
+ * Destructor to free allocated memory resources 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::DataSignalWienFDS::~DataSignalWienFDS(){
   // for (int i=0;i!=nwire_u;i++){
   //   delete hu[i] ;

@@ -7,6 +7,12 @@
 using namespace std;
 using namespace WCP;
 
+/**
+ * Calculates the resident memory usage of the current process in megabytes.
+ *
+ * @return The resident set size of the process in megabytes.
+ */
+// The above comment was written by an LLM. 
 static double memusage_linux_resident() {
     int tSize = 0, resident = 0, share = 0;
     ifstream buffer("/proc/self/statm");
@@ -18,6 +24,12 @@ static double memusage_linux_resident() {
     return rss;
 }
 
+/**
+ * Calculates the shared memory usage of the current process on Linux systems.
+ *
+ * @return The amount of shared memory used by the process in kilobytes.
+ */
+// The above comment was written by an LLM. 
 static double memusage_linux_shared() {
     int tSize = 0, resident = 0, share = 0;
     ifstream buffer("/proc/self/statm");
@@ -29,6 +41,12 @@ static double memusage_linux_shared() {
     return shm;
 }
 
+/**
+ * Returns the total memory usage of the process in megabytes.
+ *
+ * @return The total memory used by the process in MB.
+ */
+// The above comment was written by an LLM. 
 static double memusage_linux_size() {
     int tSize = 0, resident = 0, share = 0;
     ifstream buffer("/proc/self/statm");
@@ -41,6 +59,10 @@ static double memusage_linux_size() {
 }
 
 
+/**
+ * Returns the resident memory usage of the process on Linux systems
+ */
+// The above comment was written by an LLM. 
 double WCP::memusage_resident() {
 #ifdef __linux__
     return memusage_linux_resident();
@@ -48,6 +70,10 @@ double WCP::memusage_resident() {
     return -1;
 }
 
+/**
+ * Returns the memory usage of shared resources in bytes 
+ */
+// The above comment was written by an LLM. 
 double WCP::memusage_shared()
 {
 #ifdef __linux__
@@ -55,6 +81,11 @@ double WCP::memusage_shared()
 #endif
     return -1;
 }
+/**
+ * Returns the memory usage size of the system
+ * @return The memory usage size or negative value if unsupported
+ */
+// The above comment was written by an LLM. 
 double WCP::memusage_size()
 {
 #ifdef __linux__
@@ -64,6 +95,10 @@ double WCP::memusage_size()
 }
 
 
+/**
+ * Constructor initializing memory usage tracking with message
+ */
+// The above comment was written by an LLM. 
 MemUsage::MemUsage(const std::string& msg)
 {
     push(msg);
@@ -73,10 +108,22 @@ MemUsage::~MemUsage()
 {
 }
 
+/**
+ * Returns the current memory usage of the system
+ *
+ * @return The current memory usage
+ */
+// The above comment was written by an LLM. 
 MemUsage::memusage MemUsage::current() const
 {
     return memusage(memusage_size(), memusage_resident());
 }
+/**
+ * Adds a new memory usage event with the specified message and memory usage data
+ * @param msg descriptive message associated with the event
+ * @param mu memory usage data including resident and virtual memory sizes
+ */
+// The above comment was written by an LLM. 
 void MemUsage::push(const std::string& msg, MemUsage::memusage mu)
 {
     if (mu.first < 0 && mu.second < 0) {
@@ -85,6 +132,13 @@ void MemUsage::push(const std::string& msg, MemUsage::memusage mu)
     m_events.push_back(event(mu,msg));
 }
 
+/**
+ * @brief Generates a message with memory usage information
+ * @param msg custom message to be included in output
+ * @param mu memory usage data to be reported
+ * @return formatted string containing memory usage details
+ */
+// The above comment was written by an LLM. 
 std::string MemUsage::operator()(std::string msg, MemUsage::memusage mu)
 {
     push(msg, mu);
@@ -99,6 +153,10 @@ MemUsage::event MemUsage::operator[](int ind) const
     return m_events[ind];
 }
 
+/**
+ * Returns a string summary of memory usage events
+ */
+// The above comment was written by an LLM. 
 std::string MemUsage::summary() const
 {
     stringstream ss;
@@ -108,6 +166,12 @@ std::string MemUsage::summary() const
     return ss.str();
 }
 
+/**
+ * Returns a formatted string describing memory usage at a specific index.
+ * @param ind The index of the memory event to emit.
+ * @return A string containing memory usage details in a human-readable format.
+ */
+// The above comment was written by an LLM. 
 std::string MemUsage::emit(int ind) const
 {
     while (ind < 0) { ind += m_events.size();}

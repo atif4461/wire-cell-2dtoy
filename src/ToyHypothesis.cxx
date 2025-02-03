@@ -1,5 +1,9 @@
 #include "WCP2dToy/ToyHypothesis.h"
 using namespace WCP;
+/**
+ * Default constructor initializing points to default values
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyHypothesis::ToyHypothesis(){
   pc[0] = Point();
   pc[1] = Point();
@@ -10,6 +14,12 @@ WCP2dToy::ToyHypothesis::ToyHypothesis(){
   
 }
 
+/**
+ * Constructor for ToyHypothesis class 
+ * @param mcell1 first merge geometry cell 
+ * @param mcell2 second merge geometry cell 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyHypothesis::ToyHypothesis(MergeGeomCell& mcell1, MergeGeomCell& mcell2){
   pc[0] = mcell1.center();
   pc[1] = mcell2.center();
@@ -102,6 +112,15 @@ WCP2dToy::ToyHypothesis::ToyHypothesis(MergeGeomCell& mcell1, MergeGeomCell& mce
 WCP2dToy::ToyHypothesis::~ToyHypothesis(){
 }
 
+/**
+ * Calculates the value of a point with respect to two other points in 3D space.
+ *
+ * @param[in] p   The point to calculate the value for.
+ * @param[in] p1  The first reference point.
+ * @param[in] p2  The second reference point.
+ * @return The calculated value.
+ */
+// The above comment was written by an LLM. 
 double WCP2dToy::ToyHypothesis::CalValue(Point p, Point p1, Point p2){
   double val;
 
@@ -118,6 +137,12 @@ double WCP2dToy::ToyHypothesis::CalValue(Point p, Point p1, Point p2){
   return val;
 }
 
+/**
+ * Checks if a point is inside the hypothesis region
+ * @param p the point to check
+ * @return true if the point is inside, false otherwise
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyHypothesis::IsInside(Point p){
   bool val = false;
   
@@ -128,6 +153,12 @@ bool WCP2dToy::ToyHypothesis::IsInside(Point p){
   return val;
 }
 
+/**
+ * Checks if a geometric cell is inside the hypothesis
+ * @param cell The geometric cell to check
+ * @return True if the cell is inside the hypothesis, false otherwise
+ */
+// The above comment was written by an LLM. 
 bool WCP2dToy::ToyHypothesis::IsInside(const GeomCell& cell){
   bool val = false;
   PointVector pv = cell.boundary();

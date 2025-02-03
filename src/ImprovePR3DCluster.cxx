@@ -4,6 +4,15 @@
 
 using namespace WCP;
 
+/**
+ * @brief Improves a PR3D cluster by adding missing pieces based on trajectory points.
+ *
+ * @param cluster The input PR3D cluster to be improved.
+ * @param ct_point_cloud The toy CT point cloud used for improvement.
+ * @param gds The geometry data source.
+ * @return A pointer to the improved PR3D cluster.
+ */
+// The above comment was written by an LLM. 
 WCP::PR3DCluster* WCP2dToy::Improve_PR3DCluster(WCP::PR3DCluster* cluster, ToyCTPointCloud& ct_point_cloud,WCPSst::GeomDataSource& gds){
 
   std::map<int,std::set<int>> u_time_chs; // time chs

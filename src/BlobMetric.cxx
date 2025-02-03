@@ -2,6 +2,10 @@
 
 using namespace WCP;
 
+/**
+ * Default constructor initializing all cell counters to zero 
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::BlobMetric::BlobMetric(){
   rm_cell_true = 0;
   rm_cell_false = 0;
@@ -15,6 +19,9 @@ WCP2dToy::BlobMetric::BlobMetric(){
 }
 
 
+/**
+ * Prints summary of simple deblob metrics including remaining and eliminated cells with their respective charges. */
+// The above comment was written by an LLM. 
 void WCP2dToy::BlobMetric::Print(){
   std::cout << "Summary of Simple DeBlob " << std::endl;
   std::cout << "Remaining Cells Containing Truth     : " << rm_cell_true << "  charge:" << charge_rm_cell_true << " true charge:" << Tcharge_rm_cell_true << std::endl;
@@ -29,6 +36,14 @@ WCP2dToy::BlobMetric::~BlobMetric(){
 }
 
 
+/**
+ * Adds a SimpleBlobToyTiling object to the BlobMetric calculation,
+ * updating various counters and charge accumulators based on cell properties.
+ *
+ * @param[in] blobtiling The SimpleBlobToyTiling object to add.
+ * @param[in] ccmap The CellChargeMap containing truth information.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::BlobMetric::Add(WCP2dToy::SimpleBlobToyTiling &blobtiling, WCP::CellChargeMap& ccmap){
   GeomCellSelection sbcells = blobtiling.Get_SB_Cells();
   GeomCellSelection cells = blobtiling.Get_Cells();

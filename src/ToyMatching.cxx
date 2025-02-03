@@ -17,6 +17,13 @@
 using namespace Eigen;
 using namespace WCP;
 
+/**
+ * Converts a 3D point in space to a unique voxel identifier.
+ *
+ * @param p The input 3D point.
+ * @return A unique integer identifier corresponding to the voxel containing the point.
+ */
+// The above comment was written by an LLM. 
 int WCP2dToy::convert_xyz_voxel_id(WCP::Point &p){
   // int voxel_x_id = std::round((p.x/units::cm+64.825-5.14667/2.)/5.14667);
   // int voxel_y_id = std::round((p.y/units::cm+193-5.14667/2.)/5.14667);
@@ -365,6 +372,23 @@ void WCP2dToy::calculate_pred_pe(int run_no, double eventTime, int time_offset, 
   	}
 }
 
+/**
+ * @brief Function to perform light matching between optical and TPC clusters.
+ *
+ * @param eventTime Event time in seconds.
+ * @param time_offset Time offset in units of 320 ns.
+ * @param nrebin Rebin number.
+ * @param pl Photon library object pointer.
+ * @param group_clusters Map of grouped clusters.
+ * @param flashes List of opflashes.
+ * @param run_no Run number.
+ * @param flag_data Flag indicating whether this is real data or simulation.
+ * @param flag_add_light_yield_err Flag to add light yield error.
+ * @param flag_timestamp Flag to include timestamp in calculation.
+ * @return Selected FlashTPCBundle objects after light matching.
+ 
+*/
+// The above comment was written by an LLM. 
 FlashTPCBundleSelection WCP2dToy::tpc_light_match(double eventTime, int time_offset, int nrebin, WCP::Photon_Library *pl, WCP::map_cluster_cluster_vec& group_clusters, WCP::OpflashSelection& flashes, Int_t run_no,  bool flag_data, bool flag_add_light_yield_err, bool flag_timestamp){
 
   double rel_light_yield_err = pl->rel_light_yield_err;
@@ -1741,6 +1765,20 @@ FlashTPCBundleSelection WCP2dToy::tpc_light_match(double eventTime, int time_off
 }
 
 
+/**
+ * @brief Organizes matched bundles of TPC and flash data.
+ *
+ * This function takes in a selection of flash-TPC bundles and organizes them into a coherent set.
+ * It uses various metrics such as distance, chi-squared, and flags to determine the best bundle associations.
+ *
+ * The function also performs multiple rounds of bundle association and merging to ensure optimal results.
+ *
+ * @param results_bundles The input selection of flash-TPC bundles to be organized.
+ * @param cos_pe_low Lower bound for cosine of angle between PMT and track.
+ * @param cos_pe_mid Midpoint for cosine of angle between PMT and track.
+ * @param fc_bundles_map Map of flash-cluster to corresponding flash-TPC bundle.
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::organize_matched_bundles(WCP::FlashTPCBundleSelection& results_bundles,  Double_t *cos_pe_low, Double_t *cos_pe_mid, std::map<std::pair<Opflash*,PR3DCluster*>,FlashTPCBundle*>& fc_bundles_map){
   std::map<Opflash*, FlashTPCBundleSelection> flash_bundles_map;
 

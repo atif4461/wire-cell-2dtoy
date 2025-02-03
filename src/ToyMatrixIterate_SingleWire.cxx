@@ -2,6 +2,20 @@
 
 using namespace WCP;
 
+/**
+ * @brief Constructor for ToyMatrixIterate_SingleWire class
+ * @param toybefore Pointer to previous ToyMatrix object
+ * @param toycur Pointer to current ToyMatrix object
+ * @param toyafter Pointer to next ToyMatrix object
+ * @param mergebefore Pointer to previous MergeToyTiling object
+ * @param mergecur Pointer to current MergeToyTiling object
+ * @param mergeafter Pointer to next MergeToyTiling object
+ * @param recon_t Reconstruction threshold value
+ * @param limit Limit value
+ * @param penalty Penalty value
+ * @param penalty_ncpt Non-compatible point penalty value
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixIterate_SingleWire::ToyMatrixIterate_SingleWire(WCP2dToy::ToyMatrix *toybefore, WCP2dToy::ToyMatrix *toycur, WCP2dToy::ToyMatrix *toyafter, WCP2dToy::MergeToyTiling *mergebefore, WCP2dToy::MergeToyTiling *mergecur, WCP2dToy::MergeToyTiling *mergeafter, int recon_t, float limit, double penalty, double penalty_ncpt)
   : toymatrix(*toycur)
   , mergetiling(mergecur)
@@ -148,6 +162,12 @@ WCP2dToy::ToyMatrixIterate_SingleWire::ToyMatrixIterate_SingleWire(WCP2dToy::Toy
 }
 
 
+/**
+ * Constructor for ToyMatrixIterate_SingleWire class
+ * @param[in] toymatrix reference to ToyMatrix object
+ * @param[in] mergetiling pointer to MergeToyTiling object
+ */
+// The above comment was written by an LLM. 
 WCP2dToy::ToyMatrixIterate_SingleWire::ToyMatrixIterate_SingleWire(WCP2dToy::ToyMatrix &toymatrix, WCP2dToy::MergeToyTiling* mergetiling)
   : toymatrix(toymatrix)
   , mergetiling(mergetiling)
@@ -197,6 +217,15 @@ WCP2dToy::ToyMatrixIterate_SingleWire::ToyMatrixIterate_SingleWire(WCP2dToy::Toy
   
 }
 
+/**
+ * @brief Iterate through the cells in the ToyMatrix
+ * @param cells The selection of geometric cells to iterate over
+ * @param single_cells The selection of single wire cells
+ * @param tried_cell The cell that has been tried
+ * @param cellmap A mapping of cells to their corresponding wires
+ * @param wiremap A mapping of wires to their corresponding cells
+ */
+// The above comment was written by an LLM. 
 void WCP2dToy::ToyMatrixIterate_SingleWire::Iterate(WCP::GeomCellSelection cells, WCP::GeomCellSelection single_cells, WCP::GeomCellSelection tried_cell, WCP::GeomCellMap cellmap, WCP::GeomWireMap wiremap){
   if (ncount > limit) return;
 
