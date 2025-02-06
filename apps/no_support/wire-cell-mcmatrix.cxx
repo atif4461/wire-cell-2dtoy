@@ -44,6 +44,393 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits if insufficient arguments are provided.
+ 
+if (argc < 3) {
+    cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl;
+    return 1;
+}
+ * @brief Creates a geometry data source object.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves the extent of the geometry data source.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints the extent of the geometry data source.
+ 
+cerr << "Extent: "
+       << " x:" << ex[0]/units::mm << " mm"
+       << " y:" << ex[1]/units::m << " m"
+       << " z:" << ex[2]/units::m << " m"
+       << endl;
+ * @brief Sets the path to the root file.
+ 
+const char* root_file = argv[2];
+ * @brief Sets the tree path.
+ 
+const char* tpath = "/Event/Sim";
+ * @brief Creates a frame data source object.
+ 
+WCP::FrameDataSource* fds = 0;
+fds = WCPSst::make_fds(root_file);
+ * @brief Checks if the frame data source was successfully created.
+ 
+if (!fds) {
+    cerr << "ERROR: failed to get FDS from " << root_file << endl;
+    return 1;
+}
+ * @brief Sets the reconstruction threshold.
+ 
+int recon_threshold = 2000;
+ * @brief Creates a toy depositor object.
+ 
+WCP::ToyDepositor toydep(fds);
+ * @brief Deposits charges.
+ 
+const PointValueVector pvv = toydep.depositions(1);
+ * @brief Creates a generative frame data source object.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,2400,5,2.0*1.6*units::millimeter);
+ * @brief Jumps to the specified event.
+ 
+gfds.jump(1);
+ * @brief Creates a slice data source object.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(gfds,1500);
+ * @brief Initializes variables for tracking progress.
+ 
+int ncount = 0;
+int ncount1 = 0;
+int ncount_t = 0;
+ * @brief Allocates memory for tiling objects.
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[2400];
+WCP2dToy::MergeToyTiling **mergetiling = new WCP2dToy::MergeToyTiling*[2400];
+WCP2dToy::TruthToyTiling **truthtiling = new WCP2dToy::TruthToyTiling*[2400];
+WCP2dToy::ToyMatrix **toymatrix = new WCP2dToy::ToyMatrix*[2400];
+WCP2dToy::ToyMatrixIterate **toymatrix_it = new WCP2dToy::ToyMatrixIterate*[2400];
+WCP2dToy::ToyMatrixMarkov **toymatrix_markov = new WCP2dToy::ToyMatrixMarkov*[2400];
+ * @brief Creates a metric object.
+ 
+WCP2dToy::ToyMetric toymetric;
+ * @brief Processes slices.
+ 
+for (int i=start_num;i!=end_num+1;i++){
+         * @brief Jumps to the current slice.
+     
+    sds.jump(i);
+
+         * @brief Retrieves the current slice.
+     
+    WCP::Slice slice = sds.get();
+
+         * @brief Creates tiling objects for the current slice.
+     
+    toytiling[i] = new WCP2dToy::ToyTiling(slice,gds);
+    mergetiling[i] = new WCP2dToy::MergeToyTiling(*toytiling[i],i);
+
+         * @brief Retrieves selections of cells and wires.
+     
+    GeomCellSelection allcell = toytiling[i]->get_allcell();
+    GeomWireSelection allwire = toytiling[i]->get_allwire();
+    GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+    GeomWireSelection allmwire = mergetiling[i]->get_allwire();
+
+         * @brief Prints the size of the selections.
+     
+    cout << i << " " << allmcell.size() << " " << allmwire.size() << endl;
+
+         * @brief Creates a truth tiling object.
+     
+    truthtiling[i] = new WCP2dToy::TruthToyTiling(*toytiling[i],pvv,i,gds);
+
+         * @brief Creates matrix objects.
+     
+    toymatrix[i] = new WCP2dToy::ToyMatrix(*toytiling[i],*mergetiling[i]);
+
+         * @brief Checks if iteration is needed.
+     
+    if (toymatrix[i]->Get_Solve_Flag()==0)
+        toymatrix_it[i] = new WCP2dToy::ToyMatrixIterate(*toymatrix[i]);
+
+         * @brief Prints chi-squared and degrees of freedom.
+     
+    cout << "chi2: " << toymatrix[i]->Get_Chi2() << endl;
+    cout << "NDF: " << toymatrix[i]->Get_ndf() << endl;
+
+         * @brief Adds to the metric.
+     
+    CellChargeMap ccmap = truthtiling[i]->ccmap();
+    if (toymatrix[i]->Get_Solve_Flag()!=0)
+        toymetric.Add(allmcell,*toymatrix[i],ccmap);
+    toymetric.AddSolve(toymatrix[i]->Get_Solve_Flag());
+}
+ * @brief Finds the first solve flag.
+ 
+int first_solve;
+for (int i=start_num; i!=end_num+1;i++){
+    if (toymatrix[i]->Get_Solve_Flag()!=0){
+        first_solve = i;
+        break;
+    }
+}
+ * @brief Processes remaining slices.
+ 
+for (int i=first_solve+1;i<=end_num-1;i++){
+    if (toymatrix[i]->Get_Solve_Flag()==0){
+        GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+        toymatrix_markov[i] = new WCP2dToy::ToyMatrixMarkov(toymatrix[i-1],toymatrix[i],toymatrix[i+1],mergetiling[i-1],mergetiling[i],mergetiling[i+1],&allmcell);
+
+        CellChargeMap ccmap = truthtiling[i]->ccmap();
+        if (toymatrix[i]->Get_Solve_Flag()!=0)
+            toymetric.Add(allmcell,*toymatrix[i],ccmap);
+        toymetric.AddSolve(toymatrix[i]->Get_Solve_Flag());
+
+        cout << "chi2: " << i << " " << toymatrix[i]->Get_Chi2() << endl;
+        cout << "NDF: " << toymatrix[i]->Get_ndf() << endl;
+    }
+}
+ * @brief Processes the last slice.
+ 
+if (toymatrix[end_num]->Get_Solve_Flag()==0){
+    GeomCellSelection allmcell = mergetiling[end_num]->get_allcell();
+    toymatrix_markov[end_num] = new WCP2dToy::ToyMatrixMarkov(toymatrix[end_num-1],toymatrix[end_num],0,mergetiling[end_num-1],mergetiling[end_num],0,&allmcell);
+
+    CellChargeMap ccmap = truthtiling[end_num]->ccmap();
+    if (toymatrix[end_num]->Get_Solve_Flag()!=0)
+        toymetric.Add(allmcell,*toymatrix[end_num],ccmap);
+    toymetric.AddSolve(toymatrix[end_num]->Get_Solve_Flag());
+
+    cout << "chi2: " << end_num << " " << toymatrix[end_num]->Get_Chi2() << endl;
+    cout << "NDF: " << toymatrix[end_num]->Get_ndf() << endl;
+}
+ * @brief Processes earlier slices.
+ 
+for (int i=first_solve-1;i>=start_num+1;i--){
+    if (toymatrix[i]->Get_Solve_Flag()==0){
+        GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+        toymatrix_markov[i] = new WCP2dToy::ToyMatrixMarkov(toymatrix[i-1],toymatrix[i],toymatrix[i+1],mergetiling[i-1],mergetiling[i],mergetiling[i+1],&allmcell);
+        
+        CellChargeMap ccmap = truthtiling[i]->ccmap();
+        if (toymatrix[i]->Get_Solve_FLAG()!=0)
+            toymetric.Add(allmcell,*toymatrix[i],ccmap);
+        toymetric.AddSolve(toymatrix[i]->Get_Solve_Flag());
+        
+        cout << "chi2: " << i << " " << toymatrix[i]->Get_Chi2() << endl;
+        cout << "NDF: " << toymatrix[i]->Get_ndf() << endl;
+    }
+}
+ * @brief Processes the first slice.
+ 
+if (toymatrix[start_num]->Get_Solve_Flag()==0){
+    GeomCellSelection allmcell = mergetiling[start_num]->get_allcell();
+    toymatrix_markov[start_num] = new WCP2dToy::ToyMatrixMarkov(0,toymatrix[start_num],toymatrix[start_num+1],0,mergetiling[start_num],mergetiling[start_num+1],&allmcell);
+
+    CellChargeMap ccmap = truthtiling[start_num]->ccmap();
+    if (toymatrix[start_num]->Get_Solve_Flag()!=0)
+        toymetric.Add(allmcell,*toymatrix[start_num],ccmap);
+    toymetric.AddSolve(toymatrix[start_num]->Get_Solve_Flag());
+
+    cout << "chi2: " << start_num << " " << toymatrix[start_num]->Get_Chi2() << endl;
+    cout << "NDF: " << toymatrix[start_num]->Get_ndf() << endl;
+}
+ * @brief Clusters cells.
+ 
+GeomClusterSet cluster_set, cluster_delset;
+int ncount_mcell = 0;
+
+for (int i=start_num;i!=end_num+1;i++){
+    GeomCellSelection pallmcell = mergetiling[i]->get_allcell();
+    GeomCellSelection allmcell;
+    for (int j=0;j!=pallmcell.size();j++){
+        const GeomCell* mcell = pallmcell[j];
+        if (toymatrix[i]->Get_Cell_Charge(mcell)>recon_threshold){
+            allmcell.push_back(mcell);
+        }
+    }
+
+    if (cluster_set.empty()){
+        for (int j=0;j!=allmcell.size();j++){
+            GeomCluster *cluster = new GeomCluster(*((MergeGeomCell*)allmcell[j]));
+            cluster_set.insert(cluster);
+        }
+    }else{
+        for (int j=0;j!=allmcell.size();j++){
+            int flag = 0;
+            int flag_save = 0;
+            GeomCluster *cluster_save = 0;
+            
+            cluster_delset.clear();
+            
+            for (auto it = cluster_set.begin();it!=cluster_set.end();it++){
+                flag += (*it)->AddCell(*((MergeGeomCell*)allmcell[j]));
+                if (flag==1 && flag!= flag_save){
+                    cluster_save = *it;
+                }else if (flag>1 && flag!= flag_save){
+                    cluster_save->MergeCluster(*(*it));
+                    cluster_delset.insert(*it);
+                }
+                flag_save = flag;
+            }
+            
+            for (auto it = cluster_delset.begin();it!=cluster_delset.end();it++){
+                cluster_set.erase(*it);
+                delete (*it);
+            }
+            
+            if (flag==0){
+                GeomCluster *cluster = new GeomCluster(*((MergeGeomCell*)allmcell[j]));
+                cluster_set.insert(cluster);
+            }
+        }
+    }
+
+    int ncount_mcell_cluster = 0;
+    for (auto it = cluster_set.begin();it!=cluster_set.end();it++){
+        ncount_mcell_cluster += (*it)->get_allcell().size();
+    }
+    ncount_mcell += allmcell.size();
+    cout << i << " " << allmcell.size()  << " " << cluster_set.size()  << endl;
+}
+
+int ncount_mcell_cluster = 0;
+for (auto it = cluster_set.begin();it!=cluster_set.end();it++){
+    ncount_mcell_cluster += (*it)->get_allcell().size();
+}
+cout << "Summary: " << ncount << " " << ncount_mcell << " " << ncount_mcell_cluster << endl;
+ * @brief Saves results to a file.
+ 
+TFile *file = new TFile("shower3D.root","RECREATE");
+TTree *t_true = new TTree("T_true","T_true");
+TTree *t_rec = new TTree("T_rec","T_rec");
+TTree *t_rec_charge = new TTree("T_rec_charge","T_rec_charge");
+Double_t x_save, y_save, z_save;
+Double_t charge_save;
+Double_t ncharge_save;
+Double_t chi2_save;
+Double_t ndf_save;
+Double_t ncell_save;
+
+t_true->SetDirectory(file);
+t_true->Branch("x",&x_save,"x/D");
+t_true->Branch("y",&y_save,"y/D");
+t_true->Branch("z",&z_save,"z/D");
+t_true->Branch("q",&charge_save,"q/D");
+  
+t_rec->SetDirectory(file);
+t_rec->Branch("x",&x_save,"x/D");
+t_rec->Branch("y",&y_save,"y/D");
+t_rec->Branch("z",&z_save,"z/D");
+  
+t_rec_charge->SetDirectory(file);
+t_rec_charge->Branch("x",&x_save,"x/D");
+t_rec_charge->Branch("y",&y_save,"y/D");
+t_rec_charge->Branch("z",&z_save,"z/D");
+t_rec_charge->Branch("q",&charge_save,"q/D");
+t_rec_charge->Branch("nq",&ncharge_save,"nq/D");
+t_rec_charge->Branch("ncell",&ncell_save,"ncell/D");
+t_rec_charge->Branch("chi2",&chi2_save,"chi2/D");
+t_rec_charge->Branch("ndf",&ndf_save,"ndf/D");
+
+TGraph2D *g = new TGraph2D();
+TGraph2D *gt = new TGraph2D();
+TGraph2D *g_rec = new TGraph2D();
+
+for (int i=start_num;i!=end_num+1;i++){
+    CellChargeMap ccmap = truthtiling[i]->ccmap();
+    for (auto it = ccmap.begin();it!=ccmap.end(); it++){
+        Point p = it->first->center();
+        x_save = i*0.32;
+        y_save = p.y/units::cm;
+        z_save = p.z/units::cm;
+        charge_save = it->second;
+        
+        gt->SetPoint(ncount_t,x_save,y_save,z_save);
+        t_true->Fill();
+            
+        ncount_t ++;
+    }
+    
+    GeomCellSelection allcell = toytiling[i]->get_allcell();
+    for (int j=0;j!=allcell.size();j++){
+        Point p = allcell[j]->center();
+        x_save = i*0.32;
+        y_save = p.y/units::cm;
+        z_save = p.z/units::cm;
+        
+
+        g->SetPoint(ncount,x_save,y_save,z_save);
+        t_rec->Fill();
+
+        ncount ++;
+    }
+
+    GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+    for (int j=0;j!=allmcell.size();j++){
+        MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j];
+        double charge = toymatrix[i]->Get_Cell_Charge(mcell,1);
+        if (charge>recon_threshold){
+            for (int k=0;k!=mcell->get_allcell().size();k++){
+                Point p = mcell->get_allcell().at(k)->center();
+                x_save = i*0.32;
+                y_save = p.y/units::cm;
+                z_save = p.z/units::cm;
+                charge_save = charge/mcell->get_allcell().size();
+                ncharge_save = mcell->get_allcell().size();
+                ncell_save = mcell->get_allcell().size();
+                chi2_save = toymatrix[i]->Get_Chi2();
+                ndf_save = toymatrix[i]->Get_ndf();
+
+                g_rec->SetPoint(ncount1,x_save,y_save,z_save);
+                t_rec_charge->Fill();
+                
+                ncount1 ++;
+            }
+        }
+    }
+}
+
+g->Write("shower3D");
+gt->Write("shower3D_truth");
+g_rec->Write("shower3D_charge");
+
+const int N = 100000;
+Double_t x[N],y[N],z[N];
+
+int ncluster = 0;
+for (auto it = cluster_set.begin();it!=cluster_set.end();it++){
+    ncount = 0;
+    for (int i=0; i!=(*it)->get_allcell().size();i++){
+        const MergeGeomCell *mcell = (const MergeGeomCell*)((*it)->get_allcell().at(i));
+        for (int j=0; j!=mcell->get_allcell().size();j++){
+            Point p = mcell->get_allcell().at(j)->center();
+            x[ncount] = mcell->GetTimeSlice()*0.32;
+            y[ncount] = p.y/units::cm;
+            z[ncount] = p.z/units::cm;
+            ncount ++;
+        }
+    }
+    TGraph2D *g1 = new TGraph2D(ncount,x,y,z);
+    g1->Write(Form("cluster_%d",ncluster));
+    ncluster ++;
+}
+
+file->Write();
+file->Close();
+
+toymetric.Print();
+
+return 0;
+}* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 3) {

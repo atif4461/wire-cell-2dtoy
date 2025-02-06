@@ -47,6 +47,534 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Initialize geometry data source.
+ *
+ * @param filename Path to ChannelWireGeometry.txt file.
+ * @return Geometry data source object.
+ 
+WCPSst::GeomDataSource gds(argv[1])
+ * @brief Get extent of geometry data source.
+ *
+ * @return Vector of doubles representing extent.
+ 
+std::vector<double> ex = gds.extent()
+ * @brief Print usage message to standard error stream.
+ 
+cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl
+ * @brief Create frame data source from ROOT file.
+ *
+ * @param root_file Path to ROOT file.
+ * @return Frame data source pointer.
+ 
+WCP::FrameDataSource* fds = WCPSst::make_fds(root_file)
+ * @brief Check if frame data source creation was successful.
+ *
+ * @return True if successful, false otherwise.
+ 
+if (!fds) 
+ * @brief Set reconstruction threshold.
+ 
+int recon_threshold = 2000
+ * @brief Create ToyDepositor object.
+ *
+ * @param fds Frame data source pointer.
+ 
+WCP::ToyDepositor toydep(fds)
+ * @brief Get depositions from ToyDepositor.
+ *
+ * @param index Index of depositions to retrieve.
+ * @return Point value vector.
+ 
+const PointValueVector pvv = toydep.depositions(1)
+ * @brief Create GenerativeFDS object.
+ *
+ * @param toydep ToyDepositor object.
+ * @param gds Geometry data source object.
+ * @param num_time_slices Number of time slices.
+ * @param num_iterations Number of iterations.
+ * @param max_distance Maximum distance.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,2400,5,2.0*1.6*units::millimeter)
+ * @brief Jump to specified time slice.
+ *
+ * @param index Time slice index.
+ 
+gfds.jump(1)
+ * @brief Create ToyuBoNESliceDataSource object.
+ *
+ * @param gfds GenerativeFDS object.
+ * @param threshold Threshold value.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(gfds,1500)
+ * @brief Loop through time slices.
+ *
+ * @param start_num Starting time slice index.
+ * @param end_num Ending time slice index.
+ 
+for (int i=start_num;i!=end_num+1;i++)
+ * @brief Jump to current time slice.
+ 
+sds.jump(i)
+ * @brief Get slice object.
+ *
+ * @return Slice object.
+ 
+WCP::Slice slice = sds.get()
+ * @brief Create ToyTiling object.
+ *
+ * @param slice Slice object.
+ * @param gds Geometry data source object.
+ 
+WCP2dToy::ToyTiling* toytiling = new WCP2dToy::ToyTiling(slice,gds)
+ * @brief Create MergeToyTiling object.
+ *
+ * @param toytiling ToyTiling object.
+ * @param index Time slice index.
+ 
+WCP2dToy::MergeToyTiling* mergetiling = new WCP2dToy::MergeToyTiling(*toytiling,i)
+ * @brief Get all cells from ToyTiling object.
+ *
+ * @return GeomCellSelection object.
+ 
+GeomCellSelection allcell = toytiling->get_allcell()
+ * @brief Get all wires from ToyTiling object.
+ *
+ * @return GeomWireSelection object.
+ 
+GeomWireSelection allwire = toytiling->get_allwire()
+ * @brief Get all merged cells from MergeToyTiling object.
+ *
+ * @return GeomCellSelection object.
+ 
+GeomCellSelection allmcell = mergetiling->get_allcell()
+ * @brief Get all merged wires from MergeToyTiling object.
+ *
+ * @return GeomWireSelection object.
+ 
+GeomWireSelection allmwire = mergetiling->get_allwire()
+ * @brief Create TruthToyTiling object.
+ *
+ * @param toytiling ToyTiling object.
+ * @param pvv Point value vector.
+ * @param index Time slice index.
+ * @param gds Geometry data source object.
+ 
+WCP2dToy::TruthToyTiling* truthtiling = new WCP2dToy::TruthToyTiling(*toytiling,pvv,i,gds)
+ * @brief Create ToyMatrix object.
+ *
+ * @param toytiling ToyTiling object.
+ * @param mergetiling MergeToyTiling object.
+ 
+WCP2dToy::ToyMatrix* toymatrix = new WCP2dToy::ToyMatrix(*toytiling,*mergetiling)
+ * @brief Check solve flag of ToyMatrix object.
+ *
+ * @return Solve flag value.
+ 
+if (toymatrix->Get_Solve_Flag()==0)
+ * @brief Create ToyMatrixIterate object.
+ *
+ * @param toymatrix ToyMatrix object.
+ 
+WCP2dToy::ToyMatrixIterate* toymatrix_it = new WCP2dToy::ToyMatrixIterate(*toymatrix)
+ * @brief Add to metric.
+ *
+ * @param allmcell GeomCellSelection object.
+ * @param toymatrix ToyMatrix object.
+ * @param ccmap Cell charge map.
+ 
+toymetric.Add(allmcell,*toymatrix,ccmap)
+ * @brief Add solve to metric.
+ *
+ * @param solve_flag Solve flag value.
+ 
+toymetric.AddSolve(toymatrix->Get_Solve_Flag())
+ * @brief Print chi2 and NDF values.
+ 
+cout << "chi2: " << toymatrix->Get_Chi2() << endl
+cout << "NDF: " << toymatrix->Get_ndf() << endl
+ * @brief Perform Markov chain processing.
+ 
+if (start_num!= end_num)
+...
+ * @brief Find first solve flag.
+ *
+ * @param start_num Starting time slice index.
+ * @param end_num Ending time slice index.
+ 
+int first_solve
+for (int i=start_num; i!=end_num+1;i++)
+...
+if (toymatrix[i]->Get_Solve_Flag()!=0)
+first_solve = i
+break
+ * @brief Process middle slices.
+ *
+ * @param first_solve First solve flag index.
+ * @param end_num Ending time slice index.
+ 
+for (int i=first_solve+1;i<=end_num-1;i++)
+...
+ * @brief Create ToyMatrixMarkov object.
+ *
+ * @param toymatrix_prev Previous ToyMatrix object.
+ * @param toymatrix Current ToyMatrix object.
+ * @param toymatrix_next Next ToyMatrix object.
+ * @param mergetiling_prev Previous MergeToyTiling object.
+ * @param mergetiling Current MergeToyTiling object.
+ * @param mergetiling_next Next MergeToyTiling object.
+ * @param allmcell GeomCellSelection object.
+ 
+WCP2dToy::ToyMatrixMarkov* toymatrix_markov = new WCP2dToy::ToyMatrixMarkov(toymatrix[i-1],toymatrix[i],toymatrix[i+1],mergetiling[i-1],mergetiling[i],mergetiling[i+1],&allmcell)
+ * @brief Add to metric.
+ *
+ * @param allmcell GeomCellSelection object.
+ * @param toymatrix ToyMatrix object.
+ * @param ccmap Cell charge map.
+ 
+toymetric.Add(allmcell,*toymatrix,ccmap)
+ * @brief Add solve to metric.
+ *
+ * @param solve_flag Solve flag value.
+ 
+toymetric.AddSolve(toymatrix->Get_Solve_Flag())
+ * @brief Print chi2 and NDF values.
+ 
+cout << "chi2: " << i << " " << toymatrix[i]->Get_Chi2() << endl
+cout << "NDF: " << toymatrix[i]->Get_ndf() << endl
+ * @brief Process last slice.
+ *
+ * @param end_num Ending time slice index.
+ 
+if (toymatrix[end_num]->Get_Solve_Flag()==0)
+...
+ * @brief Create ToyMatrixMarkov object.
+ *
+ * @param toymatrix_prev Previous ToyMatrix object.
+ * @param toymatrix Current ToyMatrix object.
+ * @param mergetiling_prev Previous MergeToyTiling object.
+ * @param mergetiling Current MergeToyTiling object.
+ * @param allmcell GeomCellSelection object.
+ 
+WCP2dToy::ToyMatrixMarkov* toymatrix_markov = new WCP2dToy::ToyMatrixMarkov(toymatrix[end_num-1],toymatrix[end_num],0,mergetiling[end_num-1],mergetiling[end_num],0,&allmcell)
+ * @brief Add to metric.
+ *
+ * @param allmcell GeomCellSelection object.
+ * @param toymatrix ToyMatrix object.
+ * @param ccmap Cell charge map.
+ 
+toymetric.Add(allmcell,*toymatrix,ccmap)
+ * @brief Add solve to metric.
+ *
+ * @param solve_flag Solve flag value.
+ 
+toymetric.AddSolve(toymatrix->Get_Solve_Flag())
+ * @brief Print chi2 and NDF values.
+ 
+cout << "chi2: " << end_num << " " << toymatrix[end_num]->Get_Chi2() << endl
+cout << "NDF: " << toymatrix[end_num]->Get_ndf() << endl
+ * @brief Process earlier slices.
+ *
+ * @param first_solve First solve flag index.
+ * @param start_num Starting time slice index.
+ 
+for (int i=first_solve-1;i>=start_num+1;i--)
+...
+ * @brief Create ToyMatrixMarkov object.
+ *
+ * @param toymatrix_prev Previous ToyMatrix object.
+ * @param toymatrix Current ToyMatrix object.
+ * @param toymatrix_next Next ToyMatrix object.
+ * @param mergetiling_prev Previous MergeToyTiling object.
+ * @param mergetiling Current MergeToyTiling object.
+ * @param mergetiling_next Next MergeToyTiling object.
+ * @param allmcell GeomCellSelection object.
+ 
+WCP2dToy::ToyMatrixMarkov* toymatrix_markov = new WCP2dToy::ToyMatrixMarkov(toymatrix[i-1],toymatrix[i],toymatrix[i+1],mergetiling[i-1],mergetiling[i],mergetiling[i+1],&allmcell)
+ * @brief Add to metric.
+ *
+ * @param allmcell GeomCellSelection object.
+ * @param toymatrix ToyMatrix object.
+ * @param ccmap Cell charge map.
+ 
+toymetric.Add(allmcell,*toymatrix,ccmap)
+ * @brief Add solve to metric.
+ *
+ * @param solve_flag Solve flag value.
+ 
+toymetric.AddSolve(toymatrix->Get_Solve_Flag())
+ * @brief Print chi2 and NDF values.
+ 
+cout << "chi2: " << i << " " << toymatrix[i]->Get_Chi2() << endl
+cout << "NDF: " << toymatrix[i]->Get_ndf() << endl
+ * @brief Process first slice.
+ *
+ * @param start_num Starting time slice index.
+ 
+if (toymatrix[start_num]->Get_Solve_Flag()==0)
+...
+ * @brief Create ToyMatrixMarkov object.
+ *
+ * @param toymatrix_prev Previous ToyMatrix object.
+ * @param toymatrix Current ToyMatrix object.
+ * @param mergetiling_prev Previous MergeToyTiling object.
+ * @param mergetiling Current MergeToyTiling object.
+ * @param allmcell GeomCellSelection object.
+ 
+WCP2dToy::ToyMatrixMarkov* toymatrix_markov = new WCP2dToy::ToyMatrixMarkov(0,toymatrix[start_num],toymatrix[start_num+1],0,mergetiling[start_num],mergetiling[start_num+1],&allmcell)
+ * @brief Add to metric.
+ *
+ * @param allmcell GeomCellSelection object.
+ * @param toymatrix ToyMatrix object.
+ * @param ccmap Cell charge map.
+ 
+toymetric.Add(allmcell,*toymatrix,ccmap)
+ * @brief Add solve to metric.
+ *
+ * @param solve_flag Solve flag value.
+ 
+toymetric.AddSolve(toymatrix->Get_Solve_Flag())
+ * @brief Print chi2 and NDF values.
+ 
+cout << "chi2: " << start_num << " " << toymatrix[start_num]->Get_Chi2() << endl
+cout << "NDF: " << toymatrix[start_num]->Get_ndf() << endl
+ * @brief Reduce blobs.
+ 
+for (int i=start_num;i!=end_num+1;i++)
+...
+ * @brief Judge simple blob reduction.
+ *
+ * @param toytiling ToyTiling object.
+ * @param mergetiling MergeToyTiling object.
+ * @param toymatrix ToyMatrix object.
+ 
+toymatrix[i]->JudgeSimpleBlob(*toytiling[i],*mergetiling[i])
+ * @brief Check if simple blob reduction is enabled.
+ *
+ * @return True if enabled, false otherwise.
+ 
+if (toymatrix[i]->GetSimpleBlobReduction())
+...
+ * @brief Create SimpleBlobToyTiling object.
+ *
+ * @param toytiling ToyTiling object.
+ * @param mergetiling MergeToyTiling object.
+ * @param toymatrix ToyMatrix object.
+ * @param mergetiling_next Next MergeToyTiling object.
+ * @param toymatrix_next Next ToyMatrix object.
+ * @param mergetiling_prev Previous MergeToyTiling object.
+ * @param toymatrix_prev Previous ToyMatrix object.
+ 
+WCP2dToy::SimpleBlobToyTiling* blobtiling = new WCP2dToy::SimpleBlobToyTiling(*toytiling[i],*mergetiling[i],*toymatrix[i],*mergetiling[i+1],*toymatrix[i+1],*mergetiling[i+1],*toymatrix[i+1])
+ * @brief Add to blob metric.
+ *
+ * @param blobtiling SimpleBlobToyTiling object.
+ * @param ccmap Cell charge map.
+ 
+blobmetric.Add(*blobtiling,ccmap)
+ * @brief Print blob metric.
+ 
+WCP2dToy::BlobMetric tempblob
+tempblob.Add(*blobtiling,ccmap)
+tempblob.Print()
+ * @brief Cluster cells.
+ 
+GeomClusterSet cluster_set, cluster_delset
+int ncount_mcell = 0
+ * @brief Loop through time slices.
+ *
+ * @param start_num Starting time slice index.
+ * @param end_num Ending time slice index.
+ 
+for (int i=start_num;i!=end_num+1;i++)
+...
+ * @brief Get all merged cells from MergeToyTiling object.
+ *
+ * @return GeomCellSelection object.
+ 
+GeomCellSelection pallmcell = mergetiling[i]->get_allcell()
+ * @brief Filter cells based on charge threshold.
+ *
+ * @param pallmcell GeomCellSelection object.
+ * @param recon_threshold Charge threshold value.
+ 
+GeomCellSelection allmcell
+for (int j=0;j!=pallmcell.size();j++)
+...
+const GeomCell* mcell = pallmcell[j]
+if (toymatrix[i]->Get_Cell_Charge(mcell)> recon_threshold)
+allmcell.push_back(mcell)
+ * @brief Update cluster set.
+ *
+ * @param allmcell GeomCellSelection object.
+ 
+if (cluster_set.empty())
+...
+for (int j=0;j!=allmcell.size();j++)
+...
+GeomCluster *cluster = new GeomCluster(*((MergeGeomCell*)allmcell[j]))
+cluster_set.insert(cluster)
+ * @brief Update existing clusters.
+ *
+ * @param allmcell GeomCellSelection object.
+ 
+else
+...
+for (int j=0;j!=allmcell.size();j++)
+...
+int flag = 0
+int flag_save = 0
+GeomCluster *cluster_save = 0
+ 
+cluster_delset.clear()
+ 
+for (auto it = cluster_set.begin();it!=cluster_set.end();it++)
+...
+flag += (*it)->AddCell(*((MergeGeomCell*)allmcell[j]))
+if (flag==1 && flag!= flag_save)
+cluster_save = *it
+else if (flag>1 && flag!= flag_save)
+cluster_save->MergeCluster(*(*it))
+cluster_delset.insert(*it)
+flag_save = flag
+   
+for (auto it = cluster_delset.begin();it!=cluster_delset.end();it++)
+...
+cluster_set.erase(*it)
+delete (*it)
+ 
+if (flag==0)
+GeomCluster *cluster = new GeomCluster(*((MergeGeomCell*)allmcell[j]))
+cluster_set.insert(cluster)
+ 
+int ncount_mcell_cluster = 0
+for (auto it = cluster_set.begin();it!=cluster_set.end();it++)
+ncount_mcell_cluster += (*it)->get_allcell().size()
+ncount_mcell += allmcell.size()
+cout << i << " " << allmcell.size()  << " " << cluster_set.size()  << endl
+ * @brief Save results to ROOT file.
+ 
+TFile *file = new TFile("shower3D.root","RECREATE")
+ * @brief Create trees for saving results.
+ 
+TTree *t_true = new TTree("T_true","T_true")
+TTree *t_rec = new TTree("T_rec","T_rec")
+TTree *t_rec_charge = new TTree("T_rec_charge","T_rec_charge")
+TTree *t_rec_charge_blob = new TTree("T_rec_charge_blob","T_rec_charge_blob")
+ * @brief Define branches for trees.
+ 
+Double_t x_save, y_save, z_save
+Double_t charge_save
+Double_t ncharge_save
+Double_t chi2_save
+Double_t ndf_save
+ * @brief Fill trees with data.
+ *
+ * @param start_num Starting time slice index.
+ * @param end_num Ending time slice index.
+ 
+for (int i=start_num;i!=end_num+1;i++)
+...
+ * @brief Get cell charge map.
+ *
+ * @param truthtiling TruthToyTiling object.
+ 
+CellChargeMap ccmap = truthtiling[i]->ccmap()
+ * @brief Fill true tree.
+ 
+for (auto it = ccmap.begin();it!=ccmap.end(); it++)
+...
+Point p = it->first->center()
+x_save = i*0.32
+y_save = p.y/units::cm
+z_save = p.z/units::cm
+charge_save = it->second
+      
+t_true->Fill()
+ * @brief Fill rec tree.
+ 
+GeomCellSelection allcell = toytiling[i]->get_allcell()
+for (int j=0;j!=allcell.size();j++)
+...
+Point p = allcell[j]->center()
+x_save = i*0.32
+y_save = p.y/units::cm
+z_save = p.z/units::cm
+      
+t_rec->Fill()
+ * @brief Fill rec charge tree.
+ 
+GeomCellSelection allmcell = mergetiling[i]->get_allcell()
+for (int j=0;j!=allmcell.size();j++)
+...
+MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j]
+double charge = toymatrix[i]->Get_Cell_Charge(mcell,1)
+if (charge> recon_threshold)
+...
+for (int k=0;k!=mcell->get_allcell().size();k++)
+...
+Point p = mcell->get_allcell().at(k)->center()
+x_save = i*0.32
+y_save = p.y/units::cm
+z_save = p.z/units::cm
+charge_save = charge/mcell->get_allcell().size()
+ncharge_save = mcell->get_allcell().size()
+chi2_save = toymatrix[i]->Get_Chi2()
+ndf_save = toymatrix[i]->Get_ndf()
+      
+t_rec_charge->Fill()
+ * @brief Fill rec charge blob tree.
+ 
+for (int j=0;j!=allmcell.size();j++)
+...
+MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j]
+double charge = toymatrix[i]->Get_Cell_Charge(mcell,1)
+if (charge> recon_threshold &&!(mcell->IsSimpleBlob() && mcell->IsBlob()))
+...
+for (int k=0;k!=mcell->get_allcell().size();k++)
+...
+Point p = mcell->get_allcell().at(k)->center()
+x_save = i*0.32
+y_save = p.y/units::cm
+z_save = p.z/units::cm
+charge_save = charge/mcell->get_allcell().size()
+ncharge_save = mcell->get_allcell().size()
+      
+t_rec_charge_blob->Fill()
+ * @brief Fill rec charge blob tree for simple blobs.
+ 
+if (toymatrix[i]->GetSimpleBlobReduction())
+...
+for (int j=0;j!=blobtiling[i]->Get_Cells().size();j++)
+...
+const GeomCell *cell = blobtiling[i]->Get_Cells().at(j)
+Point p = cell->center()
+x_save = i*0.32
+y_save = p.y/units::cm
+z_save = p.z/units::cm
+charge_save = blobtiling[i]->Get_Cell_Charge(cell,1)
+ncharge_save = 1
+      
+t_rec_charge_blob->Fill()
+ * @brief Write trees to file.
+ 
+file->Write()
+file->Close()
+ * @brief Print metrics.
+ 
+toymetric.Print()
+blobmetric.Print()
+ * @brief Return program exit status.
+ 
+return 0* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 3) {

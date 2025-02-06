@@ -57,6 +57,156 @@ using namespace WCP;
 using namespace std;
 
 
+/**
+ * @brief Main program entry point
+ *
+ * This function serves as the primary entry point for the application.
+ * It initializes the geometry data source, reads command line arguments,
+ * and performs deconvolution using a Wiener filter.
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line argument strings
+ * @return Program exit status
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits the program
+ *
+ * If the number of command line arguments is less than 3, this function
+ * prints the correct usage message and returns an error code.
+ *
+ * @return Error code
+ 
+if (argc < 3) {
+ * @brief Initializes geometry data source object
+ *
+ * Creates a GeomDataSource object using the first command line argument.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves extent of geometry data source
+ *
+ * Gets the extent of the geometry data source and stores it in a vector.
+ *
+ * @return Vector containing extent values
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints pitch values for each wire plane type
+ *
+ * Retrieves and displays the pitch values for each wire plane type.
+ 
+cout << "Pitch: " << gds.pitch(WirePlaneType_t(0)) 
+       << " " << gds.pitch(WirePlaneType_t(1)) 
+       << " " << gds.pitch(WirePlaneType_t(2))
+       << endl;
+ * @brief Prints angle values for each wire plane type
+ *
+ * Retrieves and displays the angle values for each wire plane type.
+ 
+cout << "Angle: " << gds.angle(WirePlaneType_t(0)) 
+       << " " << gds.angle(WirePlaneType_t(1)) 
+       << " " << gds.angle(WirePlaneType_t(2))
+       << endl;
+ * @brief Opens root file and retrieves trees
+ *
+ * Opens a root file specified by the second command line argument and
+ * retrieves three trees: Trun, T_bad, and T_lf.
+ 
+TString filename = argv[2];
+TFile *file = new TFile(filename);
+TTree *Trun = (TTree*)file->Get("Trun");
+TTree *T_bad = (TTree*)file->Get("T_bad");
+TTree *T_lf = (TTree*)file->Get("T_lf");
+ * @brief Clones trees
+ *
+ * Clones the retrieved trees and assigns them to new pointers.
+ 
+TTree *Trun1 = Trun->CloneTree();
+TTree *T_bad1 = T_bad->CloneTree();
+TTree *T_lf1 = T_lf->CloneTree();
+ * @brief Retrieves 2D histograms from file
+ *
+ * Retrieves three 2D histograms: hu_raw, hv_raw, and hw_raw.
+ 
+TH2F *hu_raw = (TH2F*)file->Get("hu_raw");
+TH2F *hv_raw = (TH2F*)file->Get("hv_raw");
+TH2F *hw_raw = (TH2F*)file->Get("hw_raw");
+ * @brief Defines time offsets
+ *
+ * Defines three time offset variables: toffset_1, toffset_2, and toffset_3.
+ 
+float toffset_1=0.0;
+float toffset_2=0.0;
+float toffset_3=0.0;
+ * @brief Creates uBooNE frame data source object
+ *
+ * Creates a DatauBooNEFrameDataSource object using the retrieved histograms
+ * and trees.
+ 
+WCPSst::DatauBooNEFrameDataSource data_fds(hu_raw,hv_raw,hw_raw,T_bad,T_lf,Trun,gds);
+ * @brief Retrieves run, subrun, and event numbers
+ *
+ * Retrieves the run, subrun, and event numbers from the data source.
+ *
+ * @return Run, subrun, and event numbers
+ 
+int run_no = data_fds.get_run_no();
+int subrun_no = data_fds.get_subrun_no();
+int event_no = data_fds.get_event_no();
+ * @brief Displays bad channel maps
+ *
+ * Retrieves and displays the sizes of the bad channel maps for each plane.
+ 
+ChirpMap& uplane_map = data_fds.get_u_cmap();
+ChirpMap& vplane_map = data_fds.get_v_cmap();
+ChirpMap& wplane_map = data_fds.get_w_cmap();
+ * @brief Performs deconvolution using Wiener filter
+ *
+ * Creates a uBooNEData2DDeconvolutionFDS object and performs deconvolution.
+ 
+WCP2dToy::uBooNEData2DDeconvolutionFDS wien_fds(data_fds,gds,uplane_map, vplane_map, wplane_map,100,toffset_1,toffset_2,toffset_3);
+ * @brief Writes trees to new file
+ *
+ * Writes the cloned trees to a new root file.
+ 
+TFile *file1 = new TFile(Form("nsp2_%d_%d_%d.root",run_no,subrun_no,event_no),"RECREATE");
+Trun1->SetDirectory(file1);
+T_bad1->SetDirectory(file1);
+T_lf1->SetDirectory(file1);
+Trun1->Write();
+T_bad1->Write();
+T_lf1->Write();
+ * @brief Fills histograms with deconvolved data
+ *
+ * Fills the histograms with the deconvolved data.
+ 
+const Frame& frame1 = wien_fds.get();
+int ntraces = frame1.traces.size();
+for (size_t ind=0; ind<ntraces; ++ind) {
+  const Trace& trace = frame1.traces[ind];
+  int tbin = trace.tbin;
+  int chid = trace.chid;
+  int nbins = trace.charge.size();
+  WirePlaneType_t plane = gds.by_channel(chid).at(0)->plane();
+  if (plane == WirePlaneType_t(0)){
+    htemp1 = hu_decon;
+  }else if (plane == WirePlaneType_t(1)){
+    htemp1 = hv_decon;
+    chid -= nwire_u;
+  }else if (plane == WirePlaneType_t(2)){
+    htemp1 = hw_decon;
+    chid -= nwire_u + nwire_v;
+  }
+  for (int i = tbin;i!=tbin+nbins;i++){
+    int tt = i+1;
+    htemp1->SetBinContent(chid+1,tt,trace.charge.at(i));
+  }
+}
+ * @brief Closes files
+ *
+ * Closes the opened files.
+ 
+file1->Write();
+file1->Close();* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 3) {

@@ -37,6 +37,202 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits if insufficient arguments are provided.
+ 
+if (argc < 3) {
+     * @brief Prints usage message to standard error stream.
+   
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl;
+  return 1;
+}
+ * @brief Creates geometry data source object from first command line argument.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves extent of geometry data source.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints extent of geometry data source to standard error stream.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Sets second command line argument as root file path.
+ 
+const char* root_file = argv[2];
+ * @brief Sets tree path.
+ 
+const char* tpath = "/Event/Sim";
+ * @brief Creates frame data source object from root file.
+ 
+WCP::FrameDataSource* fds = 0;
+fds = WCPSst::make_fds(root_file);
+ * @brief Checks if frame data source creation was successful.
+ 
+if (!fds) {
+     * @brief Prints error message to standard error stream if creation fails.
+   
+  cerr << "ERROR: failed to get FDS from " << root_file << endl;
+  return 1;
+}
+ * @brief Creates toy depositor object from frame data source.
+ 
+WCP::ToyDepositor toydep(fds);
+ * @brief Retrieves depositions from toy depositor.
+ 
+const PointValueVector pvv = toydep.depositions(1);
+ * @brief Creates generative frame data source object.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,2400,5,2.0*1.6*units::millimeter);
+ * @brief Jumps to specified event in generative frame data source.
+ 
+gfds.jump(1);
+ * @brief Creates ToyuBoNE slice data source object.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(gfds,1500);
+ * @brief Defines number of points for graphs.
+ 
+const int N = 100000;
+ * @brief Allocates arrays for graph points.
+ 
+Double_t x[N],y[N],z[N];
+Double_t xt[N],yt[N],zt[N];
+ * @brief Initializes counters.
+ 
+int ncount = 0;
+int ncount_t = 0;
+ * @brief Allocates memory for tiling objects.
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[2400];
+WCP2dToy::MergeToyTiling **mergetiling = new WCP2dToy::MergeToyTiling*[2400];
+WCP2dToy::TruthToyTiling **truthtiling = new WCP2dToy::TruthToyTiling*[2400];
+ * @brief Loop variable.
+ 
+int i=352;
+ * @brief Jumps to specified event in slice data source and processes data.
+ 
+sds.jump(i);
+WCP::Slice slice = sds.get();
+ * @brief Processes slice data.
+ 
+if (slice.group().size() > 0) {
+     * @brief Creates tiling objects.
+   
+  toytiling[i] = new WCP2dToy::ToyTiling(slice,gds);
+  mergetiling[i] = new WCP2dToy::MergeToyTiling(*toytiling[i],i);
+  truthtiling[i] = new WCP2dToy::TruthToyTiling(*toytiling[i],pvv,i,gds);
+
+     * @brief Retrieves cell and wire selections.
+   
+  GeomCellSelection allcell = toytiling[i]->get_allcell();
+  GeomWireSelection allwire = toytiling[i]->get_allwire();
+  GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+  GeomWireSelection allmwire = mergetiling[i]->get_allwire();
+
+     * @brief Loops through cells and populates graph point arrays.
+   
+  for (int j=0;j!=allcell.size();j++){
+    Point p = allcell[j]->center();
+    x[ncount] = i*0.32;
+    y[ncount] = p.y/units::cm;
+    z[ncount] = p.z/units::cm;
+    ncount ++;
+  }
+
+     * @brief Retrieves charge maps.
+   
+  CellChargeMap ccmap = truthtiling[i]->ccmap();
+  Double_t charge_min = 10000;
+  Double_t charge_max = 0;
+
+     * @brief Loops through charge map and populates graph point arrays.
+   
+  for (auto it = ccmap.begin();it!=ccmap.end(); it++){
+    Point p = it->first->center();
+    xt[ncount_t] = i*0.32;
+    yt[ncount_t] = p.y/units::cm;
+    zt[ncount_t] = p.z/units::cm;
+    ncount_t ++;
+    double charge = it->second;
+    if (charge > charge_max) charge_max = charge;
+    if (charge < charge_min) charge_min = charge;
+  }
+
+     * @brief Performs checks and calculations.
+   
+  //... (rest of the code remains the same)
+ * @brief Creates application object.
+ 
+TApplication theApp("theApp",&argc,argv);
+ * @brief Configures application.
+ 
+theApp.SetReturnFromRun(true);
+ * @brief Creates canvas object.
+ 
+TCanvas c1("ToyMC","ToyMC",800,600);
+ * @brief Draws canvas.
+ 
+c1.Draw();
+ * @brief Creates event display object.
+ 
+WCP2dToy::ToyEventDisplay display(c1, gds);
+ * @brief Configures event display.
+ 
+display.charge_min = charge_min;
+display.charge_max = charge_max;
+ * @brief Configures graphics style.
+ 
+gStyle->SetOptStat(0);
+ * @brief Creates color palette.
+ 
+const Int_t NRGBs = 5;
+const Int_t NCont = 255;
+Int_t MyPalette[NCont];
+Double_t stops[NRGBs] = {0.0, 0.34, 0.61, 0.84, 1.0};
+Double_t red[NRGBs] = {0.0, 0.0, 0.87,1.0, 0.51};
+Double_t green[NRGBs] = {0.0, 0.81, 1.0, 0.2,0.0};
+Double_t blue[NRGBs] = {0.51, 1.0, 0.12, 0.0, 0.0};
+Int_t FI = TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+gStyle->SetNumberContours(NCont);
+for (int kk=0;kk!=NCont;kk++) MyPalette[kk] = FI+kk;
+gStyle->SetPalette(NCont,MyPalette);
+ * @brief Initializes event display.
+ 
+display.init(0,10.3698,-2.33/2.,2.33/2.);
+ * @brief Draws event display.
+ 
+display.draw_mc(1,WCP::PointValueVector(),"colz");
+ * @brief Draws slice.
+ 
+display.draw_slice(slice,"");
+ * @brief Draws cells.
+ 
+display.draw_cells(toytiling[i]->get_allcell(),"*same");
+ * @brief Draws merge cells.
+ 
+display.draw_mergecells(mergetiling[i]->get_allcell(),"*same",1);
+ * @brief Draws truth cells.
+ 
+display.draw_truthcells(ccmap,"*same");
+ * @brief Runs application.
+ 
+theApp.Run();
+ * @brief Summary output.
+ 
+cout << "Summary: " << ncount << " " << ncount_mcell << " " << ncount_mcell_cluster << endl;
+ * @brief Returns program exit status.
+ 
+return 0;* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 3) {

@@ -29,6 +29,555 @@
 using namespace WCP;
 using namespace std;
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits if insufficient arguments are provided.
+ 
+if (argc < 4) {
+     * @brief Prints usage message to standard error stream.
+   
+  cerr << "usage: wire-cell-allcluster /path/to/ChannelWireGeometry.txt /path/to/shower_3D.root eve_num" << endl;
+  return 1;
+}
+ * @brief Creates GeomDataSource object from first command line argument.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves extent of geometry data source.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints extent of geometry data source to standard error stream.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Prints pitch values for each wire plane type to standard output stream.
+ 
+cout << "Pitch: " << gds.pitch(WirePlaneType_t(0)) 
+     << " " << gds.pitch(WirePlaneType_t(1)) 
+     << " " << gds.pitch(WirePlaneType_t(2))
+     << endl;
+ * @brief Prints angle values for each wire plane type to standard output stream.
+ 
+cout << "Angle: " << gds.angle(WirePlaneType_t(0)) 
+     << " " << gds.angle(WirePlaneType_t(1)) 
+     << " " << gds.angle(WirePlaneType_t(2))
+     << endl;
+ * @brief Retrieves second command line argument as string.
+ 
+TString filename = argv[2];
+ * @brief Converts third command line argument to integer.
+ 
+int eve_no = atoi(argv[3]);
+ * @brief Opens ROOT file specified by second command line argument.
+ 
+TFile *file = new TFile(filename);
+ * @brief Retrieves TTree objects from opened ROOT file.
+ 
+TTree *TC = (TTree*)file->Get("TC");
+TTree *Trun = (TTree*)file->Get("Trun");
+ * @brief Declares variables to store branch values.
+ 
+float unit_dis;
+int nrebin;
+int total_time_bin;
+ * @brief Sets addresses of variables to store branch values.
+ 
+Trun->SetBranchAddress("nrebin",&nrebin);
+Trun->SetBranchAddress("unit_dis",&unit_dis);
+Trun->SetBranchAddress("total_time_bin",&total_time_bin);
+ * @brief Retrieves initial entry from Trun tree.
+ 
+Trun->GetEntry(0);
+ * @brief Declares variables to store singleton instance values.
+ 
+TPCParams& mp = Singleton<TPCParams>::Instance();
+ * @brief Retrieves pitch values for each wire plane type.
+ 
+double pitch_u = gds.pitch(WirePlaneType_t(0));
+double pitch_v = gds.pitch(WirePlaneType_t(1));
+double pitch_w = gds.pitch(WirePlaneType_t(2));
+ * @brief Calculates time slice width.
+ 
+double time_slice_width = nrebin * unit_dis * 0.5 * units::mm;
+ * @brief Sets singleton instance values.
+ 
+mp.set_pitch_u(pitch_u);
+mp.set_pitch_v(pitch_v);
+mp.set_pitch_w(pitch_w);
+mp.set_ts_width(time_slice_width);
+ * @brief Prints singleton instance values to standard output stream.
+ 
+std::cout << "Singleton: " << mp.get_pitch_u() << " " << mp.get_pitch_v() << " " << mp.get_pitch_w() << " " << mp.get_ts_width() << std::endl;
+ * @brief Allocates array of ToyTiling pointers.
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[ntime];
+ * @brief Initializes ToyTiling objects.
+ 
+for (int i=0;i!=ntime;i++){
+  toytiling[i] = new WCP2dToy::ToyTiling();
+}
+ * @brief Declares variable to store time slice value.
+ 
+int time_slice;
+ * @brief Sets address of variable to store time slice value.
+ 
+TC->SetBranchAddress("time_slice",&time_slice);
+ * @brief Declares variables to store additional branch values.
+ 
+int cluster_num;
+int mcell_id;
+double charge, x,y,z;
+TC->SetBranchAddress("ncluster",&cluster_num);
+TC->SetBranchAddress("mcell_id",&mcell_id);
+TC->SetBranchAddress("cell",&cell);
+TC->SetBranchAddress("charge",&charge);
+TC->SetBranchAddress("xx",&x);
+TC->SetBranchAddress("yy",&y);
+TC->SetBranchAddress("zz",&z);
+ * @brief Declares variables to store index and charge values.
+ 
+int u_index, v_index, w_index;
+double u_charge, v_charge, w_charge;
+double u_charge_err, v_charge_err, w_charge_err;
+TC->SetBranchAddress("u_index",&u_index);
+TC->SetBranchAddress("v_index",&v_index);
+TC->SetBranchAddress("w_index",&w_index);
+TC->SetBranchAddress("u_charge",&u_charge);
+TC->SetBranchAddress("v_charge",&v_charge);
+TC->SetBranchAddress("w_charge",&w_charge);
+TC->SetBranchAddress("u_charge_err",&u_charge_err);
+TC->SetBranchAddress("v_charge_err",&v_charge_err);
+TC->SetBranchAddress("w_charge_err",&w_charge_err);
+ * @brief Declares vectors to store crawler and tracking objects.
+ 
+std::vector<WCP2dToy::ToyCrawler*> crawlers;
+std::vector<WCP2dToy::ToyTracking*> trackings;
+ * @brief Declares variables to store previous values.
+ 
+int prev_mcell_id = -1;
+int prev_cluster_num = -1;
+ * @brief Declares MergeSpaceCellSelection object.
+ 
+MergeSpaceCellSelection mcells;
+ * @brief Declares flags and MergeSpaceCell pointer.
+ 
+int flag = 0;
+MergeSpaceCell *mcell;
+ * @brief Iterates through entries in TC tree.
+ 
+for (int i=0;i!=TC->GetEntries();i++){
+  TC->GetEntry(i);
+
+     * @brief Checks if cluster number has changed.
+   
+  if (cluster_num!= prev_cluster_num){
+         * @brief Pushes current MergeSpaceCell object to selection if previous cluster number is valid.
+     
+    if (prev_cluster_num!=-1){
+      mcells.push_back(mcell);  
+      WCP2dToy::ToyCrawler* toycrawler = new WCP2dToy::ToyCrawler(mcells,1,2); 
+      crawlers.push_back(toycrawler);
+      mcells.clear();
+      cells.clear();
+      flag = 0;
+    }
+  }
+
+     * @brief Adds space cell to current MergeSpaceCell object.
+   
+  if (flag == 0){
+    mcell = new MergeSpaceCell();
+    mcell->set_id(mcell_id);
+    flag = 1;
+  }else if (flag==1 && (mcell_id!=prev_mcell_id)){
+    mcells.push_back(mcell);
+    mcell = new MergeSpaceCell();
+    mcell->set_id(mcell_id);
+  }
+
+     * @brief Creates GeomCell object from retrieved cell.
+   
+  GeomCell *cell1 = new GeomCell(cell);
+
+     * @brief Adds cell to ToyTiling object at current time slice.
+   
+  toytiling[time_slice]->AddCell(gds,cell1,u_index,v_index,w_index,u_charge,v_charge,w_charge,u_charge_err,v_charge_err,w_charge_err);
+  
+  SpaceCell *space_cell = new SpaceCell(cluster_num,*cell1,x*units::cm,charge,unit_dis*0.5*nrebin/10.*units::cm);
+  mcell->AddSpaceCell(space_cell);
+  cells.push_back(space_cell);
+  
+  prev_cluster_num = cluster_num;
+  prev_mcell_id = mcell_id;
+}
+ * @brief Pushes last MergeSpaceCell object to selection.
+ 
+mcells.push_back(mcell);  
+WCP2dToy::ToyCrawler* toycrawler = new WCP2dToy::ToyCrawler(mcells);
+toycrawler->FormGraph();
+crawlers.push_back(toycrawler);
+ * @brief Iterates through tracking objects and prints statistics.
+ 
+int sum = 0 ;
+for (int i=0;i!=crawlers.size();i++){
+  WCP2dToy::ToyTracking* toytracking = new WCP2dToy::ToyTracking(*crawlers.at(i),1); 
+  trackings.push_back(toytracking);
+
+  std::cout << "Cluster          " << i << std::endl;
+  std::cout << "Good Tracks:     " << toytracking->get_good_tracks().size() <<std::endl;
+  std::cout << "Vertices:        " << toytracking->get_vertices().size() << std::endl;
+  std::cout << "Bad Tracks:      " << toytracking->get_bad_tracks().size() << std::endl;
+  std::cout << "Parallel Tracks: " << toytracking->get_parallel_tracks().size() << std::endl;
+  std::cout << "Showers:         " << toytracking->get_showers().size() << std::endl;
+
+  for (auto it = crawlers.at(i)->Get_mcells_map().begin(); it!= crawlers.at(i)->Get_mcells_map().end();it++){
+    MergeSpaceCell *mcell1 = it->first;
+    sum += mcell1->Get_all_spacecell().size();
+  }
+}
+std::cout << "Check: " << crawlers.size() << " " << TC->GetEntries() << " " << sum << std::endl;
+ * @brief Creates ToyCosmic object from tracking objects.
+ 
+WCP2dToy::ToyCosmic toycosmic(trackings,20,3);
+ * @brief Opens new ROOT file for writing.
+ 
+TFile *file1 = new TFile(Form("cluster_%d_%d.root",run_no,event_no),"RECREATE");
+ * @brief Creates TTree objects in new ROOT file.
+ 
+TTree *T1 = new TTree("T_goodtrack","T_goodtrack");
+TTree *T2 = new TTree("T_vertex","T_vertex");
+TTree *T3 = new TTree("T_badtrack","T_badtrack");
+TTree *T4 = new TTree("T_shorttrack","T_shortrack");
+TTree *T5 = new TTree("T_paratrack","T_paratrack");
+TTree *T6 = new TTree("T_shower","T_shower");
+TTree *T7 = new TTree("T_cosmic","T_cosmic");
+TTree *T8 = new TTree("T_neutrino","T_neutrino");
+ * @brief Sets directory for TTree objects.
+ 
+T1->SetDirectory(file1);
+T2->SetDirectory(file1);
+T3->SetDirectory(file1);
+T4->SetDirectory(file1);
+T5->SetDirectory(file1);
+T6->SetDirectory(file1);
+T7->SetDirectory(file1);
+T8->SetDirectory(file1);
+ * @brief Declares variables to store branch values.
+ 
+Int_t ntracks;
+Int_t nshowers;
+Int_t npoints;
+Double_t xx[10000],yy[10000],zz[10000];
+Double_t theta[10000],phi[10000];
+Double_t energy[10000],dedx[10000];
+Int_t msc_id[10000];
+Int_t trackid;
+Int_t vtrack_id[100];
+Int_t showerid;
+Int_t vshower_id[100];
+ * @brief Sets branches for TTree objects.
+ 
+T1->Branch("npoints",&npoints,"npoints/I");
+T1->Branch("trackid",&trackid,"trackid/I");
+T1->Branch("x",xx,"x[npoints]/D");
+T1->Branch("y",yy,"y[npoints]/D");
+T1->Branch("z",zz,"z[npoints]/D");
+T1->Branch("theta",theta,"theta[npoints]/D");
+T1->Branch("phi",phi,"phi[npoints]/D");
+T1->Branch("energy",energy,"energy[npoints]/D");
+T1->Branch("dedx",dedx,"dedx[npoints]/D");
+T1->Branch("msc_id",msc_id,"msc_id[npoints]/I");
+
+T2->Branch("x",xx,"x/D");
+T2->Branch("y",yy,"y/D");
+T2->Branch("z",zz,"z/D");
+T2->Branch("ntracks",&ntracks,"ntracks/I");
+T2->Branch("vtrack_id",vtrack_id,"vtrack_id[ntracks]/I");
+T2->Branch("nshowers",&nshowers,"nshowers/I");
+T2->Branch("vshower_id",vshower_id,"vshower_id[nshowers]/I");
+
+T3->Branch("npoints",&npoints,"npoints/I");
+T3->Branch("trackid",&trackid,"trackid/I");
+T3->Branch("x",xx,"x[npoints]/D");
+T3->Branch("y",yy,"y[npoints]/D");
+T3->Branch("z",zz,"z[npoints]/D");
+T3->Branch("theta",theta,"theta[npoints]/D");
+T3->Branch("phi",phi,"phi[npoints]/D");
+T3->Branch("energy",energy,"energy[npoints]/D");
+T3->Branch("dedx",dedx,"dedx[npoints]/D");
+T3->Branch("msc_id",msc_id,"msc_id[npoints]/I");
+
+T4->Branch("npoints",&npoints,"npoints/I");
+T4->Branch("trackid",&trackid,"trackid/I");
+T4->Branch("x",xx,"x[npoints]/D");
+T4->Branch("y",yy,"y[npoints]/D");
+T4->Branch("z",zz,"z[npoints]/D");
+T4->Branch("theta",theta,"theta[npoints]/D");
+T4->Branch("phi",phi,"phi[npoints]/D");
+T4->Branch("energy",energy,"energy[npoints]/D");
+T4->Branch("dedx",dedx,"dedx[npoints]/D");
+T4->Branch("msc_id",msc_id,"msc_id[npoints]/I");
+
+T5->Branch("npoints",&npoints,"npoints/I");
+T5->Branch("trackid",&trackid,"trackid/I");
+T5->Branch("x",xx,"x[npoints]/D");
+T5->Branch("y",yy,"y[npoints]/D");
+T5->Branch("z",zz,"z[npoints]/D");
+T5->Branch("theta",theta,"theta[npoints]/D");
+T5->Branch("phi",phi,"phi[npoints]/D");
+T5->Branch("energy",energy,"energy[npoints]/D");
+T5->Branch("dedx",dedx,"dedx[npoints]/D");
+T5->Branch("msc_id",msc_id,"msc_id[npoints]/I");
+
+T6->Branch("showerid",&showerid,"showerid/I");
+T6->Branch("npoints",&npoints,"npoints/I");
+T6->Branch("energy",energy,"energy[npoints]/D");
+T6->Branch("msc_id",msc_id,"msc_id[npoints]/I");
+T6->Branch("vertex_x",xx,"vertex_x/D");
+T6->Branch("vertex_y",yy,"vertex_y/D");
+T6->Branch("vertex_z",zz,"vertex_z/D");
+
+int cosmic_flag;
+T7->Branch("cosmic_flag",&cosmic_flag,"cosmic_flag/I");
+T7->Branch("trackid",&trackid,"trackid/I");
+T7->Branch("npoints",&npoints,"npoints/I");
+T7->Branch("x",xx,"x[npoints]/D");
+T7->Branch("y",yy,"y[npoints]/D");
+T7->Branch("z",zz,"z[npoints]/D");
+
+double length;
+T8->Branch("npoints",&npoints,"npoints/I");
+T8->Branch("trackid",&trackid,"trackid/I");
+T8->Branch("length",&length,"length/D");
+T8->Branch("x",xx,"x[npoints]/D");
+T8->Branch("y",yy,"y[npoints]/D");
+T8->Branch("z",zz,"z[npoints]/D");
+T8->Branch("theta",theta,"theta[npoints]/D");
+T8->Branch("phi",phi,"phi[npoints]/D");
+T8->Branch("energy",energy,"energy[npoints]/D");
+T8->Branch("dedx",dedx,"dedx[npoints]/D");
+T8->Branch("msc_id",msc_id,"msc_id[npoints]/I");
+ * @brief Creates selections of tracks, vertices, and showers.
+ 
+WCTrackSelection all_tracks;
+WCTrackSelection good_tracks;
+WCTrackSelection bad_tracks;
+WCTrackSelection short_tracks;
+WCTrackSelection parallel_tracks;
+WCVertexSelection vertices;
+WCShowerSelection showers;
+ * @brief Iterates through tracking objects and fills selections.
+ 
+for (int i=0;i!=trackings.size();i++){
+  for (int j=0;j!=trackings.at(i)->get_good_tracks().size();j++){
+    good_tracks.push_back(trackings.at(i)->get_good_tracks().at(j));
+    all_tracks.push_back(trackings.at(i)->get_good_tracks().at(j));
+  }
+  for (int j=0;j!=trackings.at(i)->get_bad_tracks().size();j++){
+    bad_tracks.push_back(trackings.at(i)->get_bad_tracks().at(j));
+    all_tracks.push_back(trackings.at(i)->get_bad_tracks().at(j));
+  }
+  for (int j=0;j!=trackings.at(i)->get_short_tracks().size();j++){
+    short_tracks.push_back(trackings.at(i)->get_short_tracks().at(j));
+    all_tracks.push_back(trackings.at(i)->get_short_tracks().at(j));
+  }
+  for (int j=0;j!=trackings.at(i)->get_parallel_tracks().size();j++){
+    parallel_tracks.push_back(trackings.at(i)->get_parallel_tracks().at(j));
+    all_tracks.push_back(trackings.at(i)->get_parallel_tracks().at(j));
+  }
+
+  for (int j=0;j!=trackings.at(i)->get_vertices().size();j++){
+    vertices.push_back(trackings.at(i)->get_vertices().at(j));
+  }
+  for (int j=0;j!=trackings.at(i)->get_showers().size();j++){
+    showers.push_back(trackings.at(i)->get_showers().at(j));
+  }
+}
+ * @brief Fills TTree objects.
+ 
+int ncount = 0;
+for (int i = 0; i!=good_tracks.size();i++){
+  WCTrack *track = good_tracks.at(i);
+  npoints = track->get_centerVP().size();
+  trackid = find(all_tracks.begin(),all_tracks.end(),track) - all_tracks.begin();
+  for (int j=0;j!=npoints;j++){
+    xx[j] = track->get_centerVP().at(j).x/units::cm;
+    yy[j] = track->get_centerVP().at(j).y/units::cm;
+    zz[j] = track->get_centerVP().at(j).z/units::cm;
+    theta[j] = track->get_centerVP_theta().at(j);
+    phi[j] = track->get_centerVP_phi().at(j);
+    energy[j] = track->get_centerVP_energy().at(j);
+    dedx[j] = track->get_centerVP_dedx().at(j);
+    msc_id[j] = track->get_centerVP_cells().at(j)->get_id();
+    g->SetPoint(ncount,xx[j],yy[j],zz[j]);
+    ncount ++;
+  }
+  T1->Fill();
+}
+
+for (int i=0;i!=vertices.size();i++){
+  ntracks = 0;
+  WCVertex *vertex = vertices.at(i);
+  xx[0] = vertex->Center().x/units::cm;
+  yy[0] = vertex->Center().y/units::cm;
+  zz[0] = vertex->Center().z/units::cm;
+  for (int j=0;j!=vertex->get_ntracks();j++){
+    WCTrack *track = vertex->get_tracks().at(j);
+    auto it = find(all_tracks.begin(),all_tracks.end(),track);
+    if (it!= all_tracks.end()){
+      vtrack_id[ntracks] = it-all_tracks.begin();
+      ntracks ++;
+    }
+  }
+  nshowers = 0;
+  for (int j=0;j!=showers.size();j++){
+    if (vertex == showers.at(j)->get_vertex()){
+      vshower_id[nshowers] = j;
+      nshowers++;
+    }
+  }
+
+  T2->Fill();
+}
+
+for (int i = 0; i!=bad_tracks.size();i++){
+  WCTrack *track = bad_tracks.at(i);
+  npoints = track->get_centerVP().size();
+  trackid = find(all_tracks.begin(),all_tracks.end(),track) - all_tracks.begin();
+  for (int j=0;j!=npoints;j++){
+    xx[j] = track->get_centerVP().at(j).x/units::cm;
+    yy[j] = track->get_centerVP().at(j).y/units::cm;
+    zz[j] = track->get_centerVP().at(j).z/units::cm;
+    theta[j] = track->get_centerVP_theta().at(j);
+    phi[j] = track->get_centerVP_phi().at(j);
+    energy[j] = track->get_centerVP_energy().at(j);
+    dedx[j] = track->get_centerVP_dedx().at(j);
+    msc_id[j] = track->get_centerVP_cells().at(j)->get_id();
+    g->SetPoint(ncount,xx[j],yy[j],zz[j]);
+    ncount ++;
+  }
+  T3->Fill();
+}
+
+for (int i = 0; i!=short_tracks.size();i++){
+  WCTrack *track = short_tracks.at(i);
+  npoints = track->get_all_cells().size();
+  trackid = find(all_tracks.begin(),all_tracks.end(),track) - all_tracks.begin();
+  for (int j=0;j!=npoints;j++){
+    xx[j] = track->get_all_cells().at(j)->Get_Center().x/units::cm;
+    yy[j] = track->get_all_cells().at(j)->Get_Center().y/units::cm;
+    zz[j] = track->get_all_cells().at(j)->Get_Center().z/units::cm;
+    theta[j] = 0;
+    phi[j] = 0;
+    energy[j] = track->get_all_cells().at(j)->Get_Charge();
+    dedx[j] = 0;
+    msc_id[j] = track->get_all_cells().at(j)->get_id();
+    g->SetPoint(ncount,xx[j],yy[j],zz[j]);
+    ncount ++;
+  }
+  T4->Fill();
+}
+
+for (int i = 0; i!=parallel_tracks.size();i++){
+  WCTrack *track = parallel_tracks.at(i);
+  npoints = track->get_centerVP().size();
+  trackid = find(all_tracks.begin(),all_tracks.end(),track) - all_tracks.begin();
+  for (int j=0;j!=npoints;j++){
+    xx[j] = track->get_centerVP().at(j).x/units::cm;
+    yy[j] = track->get_centerVP().at(j).y/units::cm;
+    zz[j] = track->get_centerVP().at(j).z/units::cm;
+    theta[j] = track->get_centerVP_theta().at(j);
+    phi[j] = track->get_centerVP_phi().at(j);
+    energy[j] = track->get_centerVP_energy().at(j);
+    dedx[j] = track->get_centerVP_dedx().at(j);
+    msc_id[j] = track->get_centerVP_cells().at(j)->get_id();
+    g->SetPoint(ncount,xx[j],yy[j],zz[j]);
+    ncount ++;
+  }
+  T5->Fill();
+}
+
+for (int i=0;i!=showers.size();i++){
+  WCShower *shower = showers.at(i);
+  npoints = shower->get_all_cells().size();
+  showerid = find(showers.begin(),showers.end(),shower) - showers.begin();
+  xx[0] = shower->get_vertex()->Center().x/units::cm;
+  yy[0] = shower->get_vertex()->Center().y/units::cm;
+  zz[0] = shower->get_vertex()->Center().z/units::cm;
+  for (int j=0;j!=npoints;j++){
+    g->SetPoint(ncount,
+      shower->get_all_cells().at(j)->Get_Center().x/units::cm,
+      shower->get_all_cells().at(j)->Get_Center().y/units::cm,
+      shower->get_all_cells().at(j)->Get_Center().z/units::cm);
+    ncount ++;
+    energy[j] = shower->get_all_cells().at(j)->Get_Charge();
+    msc_id[j] = shower->get_all_cells().at(j)->get_id();
+  }
+  T6->Fill();
+}
+
+WCP2dToy::WCCosmicSelection& cosmics = toycosmic.get_cosmics();
+for (int i=0;i!=cosmics.size();i++){
+  trackid = i;
+  npoints = 0;
+  WCP2dToy::WCCosmic *cosmic = cosmics.at(i);
+  if (cosmic->IsCosmic()){
+    cosmic_flag = 1;
+  }else{
+    cosmic_flag = 0;
+  }
+  for (int j=0;j!=cosmic->get_points().size();j++){
+    xx[npoints] = cosmic->get_points().at(j).x/units::cm;
+    yy[npoints] = cosmic->get_points().at(j).y/units::cm;
+    zz[npoints] = cosmic->get_points().at(j).z/units::cm;
+    npoints ++;
+  }
+  T7->Fill();
+}
+
+WCTrackSelection neutrino_tracks;
+for (int i=0;i!=toycosmic.get_neutrinos().size();i++){
+  for(int j=0;j!=toycosmic.get_neutrinos().at(i)->get_good_tracks().size();j++){
+    neutrino_tracks.push_back(toycosmic.get_neutrinos().at(i)->get_good_tracks().at(j));
+  }
+}
+
+for (int i = 0; i!=neutrino_tracks.size();i++){
+  WCTrack *track = neutrino_tracks.at(i);
+  npoints = track->get_centerVP().size();
+  trackid = find(all_tracks.begin(),all_tracks.end(),track) - all_tracks.begin();
+  length = track-> get_range()/units::cm;
+  for (int j=0;j!=npoints;j++){
+    xx[j] = track->get_centerVP().at(j).x/units::cm;
+    yy[j] = track->get_centerVP().at(j).y/units::cm;
+    zz[j] = track->get_centerVP().at(j).z/units::cm;
+    theta[j] = track->get_centerVP_theta().at(j);
+    phi[j] = track->get_centerVP_phi().at(j);
+    energy[j] = track->get_centerVP_energy().at(j);
+    dedx[j] = track->get_centerVP_dedx().at(j);
+    msc_id[j] = track->get_centerVP_cells().at(j)->get_id();
+    g->SetPoint(ncount,xx[j],yy[j],zz[j]);
+    ncount ++;
+  }
+  T8->Fill();
+}
+
+g->Write("shower3D");
+
+TC->CloneTree()->Write();
+Trun->CloneTree()->Write();
+
+file1->Write();
+file1->Close();* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
    if (argc < 4) {

@@ -53,6 +53,891 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Check command line arguments and print usage message if invalid.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Error code.
+ 
+if (argc < 4) {
+     * @brief Print usage message.
+   
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root eve_num" << endl;
+  return 1;
+}
+ * @brief Create geometry data source object.
+ *
+ * @param argv Array of command line argument strings.
+ * @return Geometry data source object.
+ 
+WCPSst::GeomDataSource gds(argv[1])
+ * @brief Get extent of geometry.
+ *
+ * @param gds Geometry data source object.
+ * @return Vector of doubles representing extent.
+ 
+std::vector<double> ex = gds.extent()
+ * @brief Print extent of geometry.
+ *
+ * @param ex Vector of doubles representing extent.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl
+ * @brief Get pitches of wire planes.
+ *
+ * @param gds Geometry data source object.
+ * @return Pitch values for each wire plane.
+ 
+cout << "Pitch: " << gds.pitch(WirePlaneType_t(0)) 
+     << " " << gds.pitch(WirePlaneType_t(1)) 
+     << " " << gds.pitch(WirePlaneType_t(2))
+     << endl
+ * @brief Get angles of wire planes.
+ *
+ * @param gds Geometry data source object.
+ * @return Angle values for each wire plane.
+ 
+cout << "Angle: " << gds.angle(WirePlaneType_t(0)) 
+     << " " << gds.angle(WirePlaneType_t(1)) 
+     << " " << gds.angle(WirePlaneType_t(2))
+     << endl
+ * @brief Set up input files and parameters.
+ *
+ * @param argv Array of command line argument strings.
+ * @return None.
+ 
+const char* root_file = argv[2]
+const char* tpath = "/Event/Sim"
+int recon_threshold = 2000
+int max_events = 100
+int eve_num = atoi(argv[3])
+float unit_dis = 1.6  
+float toffset_1=1.647
+float toffset_2=1.539+1.647
+float toffset_3=0
+ * @brief Define time binning parameters.
+ *
+ * @return None.
+ 
+int total_time_bin=3200
+int frame_length = 0
+int nrebin = 4
+ * @brief Initialize singleton instance of TPC parameters.
+ *
+ * @return Reference to TPC parameters object.
+ 
+TPCParams& mp = Singleton<TPCParams>::Instance()
+ * @brief Set TPC parameter values.
+ *
+ * @param gds Geometry data source object.
+ * @param pitch_u Pitch value for U plane.
+ * @param pitch_v Pitch value for V plane.
+ * @param pitch_w Pitch value for W plane.
+ * @param time_slice_width Time slice width.
+ * @return None.
+ 
+double pitch_u = gds.pitch(WirePlaneType_t(0))
+double pitch_v = gds.pitch(WirePlaneType_t(1))
+double pitch_w = gds.pitch(WirePlaneType_t(2))
+double time_slice_width = nrebin * unit_dis * 0.5 * units::mm
+mp.set_pitch_u(pitch_u)
+mp.set_pitch_v(pitch_v)
+mp.set_pitch_w(pitch_w)
+mp.set_ts_width(time_slice_width)
+ * @brief Print TPC parameter values.
+ *
+ * @param mp TPC parameters object.
+ * @return None.
+ 
+std::cout << "Singleton: " << mp.get_pitch_u() << " " << mp.get_pitch_v() << " " << mp.get_pitch_w() << " " << mp.get_ts_width() << std::endl
+ * @brief Define thresholds for each plane.
+ *
+ * @return None.
+ 
+float threshold_u = 5.87819e+02 * 4.0
+float threshold_v = 8.36644e+02 * 4.0
+float threshold_w = 5.67974e+02 * 4.0
+float threshold_ug = 755.96
+float threshold_vg = 822.81
+float threshold_wg = 510.84
+ * @brief Open ROOT file and retrieve tree.
+ *
+ * @param root_file File name string.
+ * @param tpath Tree path string.
+ * @return Pointer to ROOT file object.
+ 
+TFile *tfile = TFile::Open(root_file)
+TTree* sst = dynamic_cast<TTree*>(tfile->Get(tpath))
+ * @brief Set branch addresses for tree.
+ *
+ * @param sst Tree object pointer.
+ * @param event_no Event number variable.
+ * @param run_no Run number variable.
+ * @param subrun_no Sub-run number variable.
+ * @return None.
+ 
+int run_no, subrun_no, event_no
+sst->SetBranchAddress("eventNo",&event_no)
+sst->SetBranchAddress("runNo",&run_no)
+sst->SetBranchAddress("subRunNo",&subrun_no)
+sst->GetEntry(eve_num)
+ * @brief Print event information.
+ *
+ * @param run_no Run number.
+ * @param subrun_no Sub-run number.
+ * @param eve_num Event number.
+ * @return None.
+ 
+cout << "Run No: " << run_no << " " << subrun_no << " " << eve_num << endl
+ * @brief Create frame data source object.
+ *
+ * @param tfile ROOT file object pointer.
+ * @return Frame data source object pointer.
+ 
+WCP::FrameDataSource* fds = 0
+fds = WCPSst::make_fds(*tfile)
+ * @brief Check if frame data source creation was successful.
+ *
+ * @param fds Frame data source object pointer.
+ * @return Error code.
+ 
+if (!fds) {
+     * @brief Print error message and return.
+   
+  cerr << "ERROR: failed to get FDS from " << root_file << endl
+  return 1
+}
+ * @brief Create ToyDepositor object.
+ *
+ * @param fds Frame data source object pointer.
+ * @param unit_dis Unit distance value.
+ * @param frame_length Frame length value.
+ * @return ToyDepositor object.
+ 
+WCP::ToyDepositor toydep(fds,0,unit_dis,frame_length)
+ * @brief Get depositions vector.
+ *
+ * @param toydep ToyDepositor object.
+ * @param eve_num Event number.
+ * @return Depositions vector.
+ 
+const PointValueVector& pvv = toydep.depositions(eve_num)
+ * @brief Create GenerativeFDS object.
+ *
+ * @param toydep ToyDepositor object.
+ * @param gds Geometry data source object.
+ * @param total_time_bin Total time bins.
+ * @param max_events Maximum events.
+ * @param unit_dis Unit distance value.
+ * @return GenerativeFDS object.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,total_time_bin,max_events,0.5*unit_dis*units::millimeter)
+ * @brief Create ToySignalSimuTrueFDS object.
+ *
+ * @param gfds GenerativeFDS object.
+ * @param gds Geometry data source object.
+ * @param total_time_bin Total time bins.
+ * @param max_events Maximum events.
+ * @param nrebin Re-binning factor.
+ * @return ToySignalSimuTrueFDS object.
+ 
+WCP2dToy::ToySignalSimuTrueFDS st_fds(gfds,gds,total_time_bin/nrebin,max_events,0)
+ * @brief Jump to specified event.
+ *
+ * @param st_fds ToySignalSimuTrueFDS object.
+ * @param eve_num Event number.
+ * @return None.
+ 
+st_fds.jump(eve_num)
+ * @brief Create ToySignalSimuFDS object.
+ *
+ * @param gfds GenerativeFDS object.
+ * @param gds Geometry data source object.
+ * @param total_time_bin Total time bins.
+ * @param max_events Maximum events.
+ * @param toffset_1 Offset value 1.
+ * @param toffset_2 Offset value 2.
+ * @param toffset_3 Offset value 3.
+ * @return ToySignalSimuFDS object.
+ 
+WCP2dToy::ToySignalSimuFDS simu_fds(gfds,gds,total_time_bin,max_events,toffset_1,toffset_2,1)
+ * @brief Jump to specified event.
+ *
+ * @param simu_fds ToySignalSimuFDS object.
+ * @param eve_num Event number.
+ * @return None.
+ 
+simu_fds.jump(eve_num)
+ * @brief Create ToySignalGausFDS object.
+ *
+ * @param simu_fds ToySignalSimuFDS object.
+ * @param gds Geometry data source object.
+ * @param total_time_bin Total time bins.
+ * @param max_events Maximum events.
+ * @param toffset_1 Offset value 1.
+ * @param toffset_2 Offset value 2.
+ * @return ToySignalGausFDS object.
+ 
+WCP2dToy::ToySignalGausFDS gaus_fds(simu_fds,gds,total_time_bin/nrebin,max_events,toffset_1,toffset_2)
+ * @brief Jump to specified event.
+ *
+ * @param gaus_fds ToySignalGausFDS object.
+ * @param eve_num Event number.
+ * @return None.
+ 
+gaus_fds.jump(eve_num)
+ * @brief Create ToySignalWienFDS object.
+ *
+ * @param simu_fds ToySignalSimuFDS object.
+ * @param gds Geometry data source object.
+ * @param total_time_bin Total time bins.
+ * @param max_events Maximum events.
+ * @param toffset_1 Offset value 1.
+ * @param toffset_2 Offset value 2.
+ * @return ToySignalWienFDS object.
+ 
+WCP2dToy::ToySignalWienFDS wien_fds(simu_fds,gds,total_time_bin/nrebin,max_events,toffset_1,toffset_2)
+ * @brief Jump to specified event.
+ *
+ * @param wien_fds ToySignalWienFDS object.
+ * @param eve_num Event number.
+ * @return None.
+ 
+wien_fds.jump(eve_num)
+ * @brief Get wire selections for each plane.
+ *
+ * @param gds Geometry data source object.
+ * @return Wire selections for each plane.
+ 
+GeomWireSelection wires_u = gds.wires_in_plane(WirePlaneType_t(0))
+GeomWireSelection wires_v = gds.wires_in_plane(WirePlaneType_t(1))
+GeomWireSelection wires_w = gds.wires_in_plane(WirePlaneType_t(2))
+ * @brief Get sizes of wire selections.
+ *
+ * @param wires_u Wire selection for U plane.
+ * @param wires_v Wire selection for V plane.
+ * @param wires_w Wire selection for W plane.
+ * @return Sizes of wire selections.
+ 
+int nwire_u = wires_u.size()
+int nwire_v = wires_v.size()
+int nwire_w = wires_w.size()
+ * @brief Create ToyuBooNESliceDataSource objects.
+ *
+ * @param wien_fds ToySignalWienFDS object.
+ * @param gaus_fds ToySignalGausFDS object.
+ * @param threshold_u Threshold value for U plane.
+ * @param threshold_v Threshold value for V plane.
+ * @param threshold_w Threshold value for W plane.
+ * @param threshold_ug Threshold value for U plane (guard).
+ * @param threshold_vg Threshold value for V plane (guard).
+ * @param threshold_wg Threshold value for W plane (guard).
+ * @param nwire_u Size of U wire selection.
+ * @param nwire_v Size of V wire selection.
+ * @param nwire_w Size of W wire selection.
+ * @return ToyuBooNESliceDataSource objects.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(wien_fds,gaus_fds,threshold_u, 
+						threshold_v, threshold_w, 
+						threshold_ug, 
+						threshold_vg, threshold_wg, 
+						nwire_u, 
+						nwire_v, nwire_w)
+
+WCPSst::ToyuBooNESliceDataSource sds_th(st_fds,st_fds,500, 
+						500, 500, 
+						threshold_ug, 
+						threshold_vg, threshold_wg, 
+						nwire_u, 
+						nwire_v, nwire_w)
+ * @brief Initialize counters.
+ *
+ * @return None.
+ 
+int ncount = 0
+int ncount1 = 0  
+int ncount2 = 0
+int ncount_t = 0  
+ * @brief Allocate memory for ToyTiling pointers.
+ *
+ * @return None.
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[2400]
+WCP2dToy::MergeToyTiling **mergetiling = new WCP2dToy::MergeToyTiling*[2400]
+WCP2dToy::TruthToyTiling **truthtiling = new WCP2dToy::TruthToyTiling*[2400]
+WCP2dToy::SimpleBlobToyTiling **blobtiling = new WCP2dToy::SimpleBlobToyTiling*[2400]
+ * @brief Allocate memory for ToyMatrix pointers.
+ *
+ * @return None.
+ 
+WCP2dToy::ToyMatrix **toymatrix = new WCP2dToy::ToyMatrix*[2400]
+ * @brief Save truth information.
+ *
+ * @return None.
+ 
+WCP2dToy::ToyTiling **toytiling_th = new WCP2dToy::ToyTiling*[2400]
+WCP2dToy::TruthToyTiling **truthtiling_th = new WCP2dToy::TruthToyTiling*[2400]
+ * @brief Initialize metrics.
+ *
+ * @return None.
+ 
+WCP2dToy::ToyMetric toymetric
+WCP2dToy::BlobMetric blobmetric
+ * @brief Cluster set initialization.
+ *
+ * @return None.
+ 
+GeomClusterSet cluster_set, cluster_delset
+ * @brief Delete frame data source object.
+ *
+ * @param fds Frame data source object pointer.
+ * @return None.
+ 
+delete fds
+ * @brief Define start and end indices.
+ *
+ * @return None.
+ 
+int start_num = 0 
+int end_num = sds.size()-1
+ * @brief Start reconstruction process.
+ *
+ * @return None.
+ 
+for (int i=start_num;i!=end_num+1;i++){
+     * @brief Jump to specified event.
+   * @param sds ToyuBooNESliceDataSource object.
+   * @param i Index.
+   * @return None.
+   
+  sds.jump(i)
+  sds_th.jump(i)
+  WCP::Slice slice = sds.get()
+  WCP::Slice slice_th = sds_th.get()
+  cout << i << " " << slice.group().size() << " " << slice_th.group().size() << endl
+    
+     * @brief Create ToyTiling object.
+   * @param slice Slice object.
+   * @param gds Geometry data source object.
+   * @param threshold_ug Threshold value for U plane (guard).
+   * @param threshold_vg Threshold value for V plane (guard).
+   * @param threshold_wg Threshold value for W plane (guard).
+   * @return ToyTiling object.
+   
+  toytiling[i] = new WCP2dToy::ToyTiling(slice,gds,0,0,0,threshold_ug,threshold_vg, threshold_wg)
+  
+  GeomCellSelection allcell = toytiling[i]->get_allcell()
+  GeomWireSelection allwire = toytiling[i]->get_allwire()
+  GeomWireSelection u_wires = toytiling[i]->get_wire_u()
+  GeomWireSelection v_wires = toytiling[i]->get_wire_v()
+  GeomWireSelection w_wires = toytiling[i]->get_wire_w()
+
+     * @brief Print cell and wire counts.
+   * @param allcell Cell selection.
+   * @param allwire Wire selection.
+   * @param u_wires U wire selection.
+   * @param v_wires V wire selection.
+   * @param w_wires W wire selection.
+   * @return None.
+   
+  cout << "Single Cell: " << i << " "  << allcell.size() << " " << allwire.size() << " " << u_wires.size() << " " << v_wires.size() << " " << w_wires.size()<< endl
+    
+     * @brief Create MergeToyTiling object.
+   * @param toytiling ToyTiling object.
+   * @param i Index.
+   * @param nrebin Re-binning factor.
+   * @param threshold Threshold value.
+   * @return MergeToyTiling object.
+   
+  mergetiling[i] = new WCP2dToy::MergeToyTiling(*toytiling[i],i,3,1)
+  
+  GeomCellSelection allmcell = mergetiling[i]->get_allcell()
+  GeomWireSelection allmwire = mergetiling[i]->get_allwire()
+  
+     * @brief Print merged cell and wire counts.
+   * @param allmcell Merged cell selection.
+   * @param allmwire Merged wire selection.
+   * @return None.
+   
+  cout <<"Blob: " << i << " " << allmcell.size() << " " << allmwire.size() << endl
+  
+     * @brief Create TruthToyTiling object.
+   * @param toytiling ToyTiling object.
+   * @param pvv Point-value vector.
+   * @param i Index.
+   * @param gds Geometry data source object.
+   * @param frame_length Frame length.
+   * @param unit_dis Unit distance.
+   * @return TruthToyTiling object.
+   
+  truthtiling[i] = new WCP2dToy::TruthToyTiling(*toytiling[i],pvv,i,gds,frame_length/nrebin,unit_dis)
+  
+     * @brief Create ToyMatrix object.
+   * @param toytiling ToyTiling object.
+   * @param mergetiling MergeToyTiling object.
+   * @return ToyMatrix object.
+   
+  toymatrix[i] = new WCP2dToy::ToyMatrix(*toytiling[i],*mergetiling[i])
+  
+     * @brief Check solve flag and perform iteration.
+   * @param toymatrix ToyMatrix object.
+   * @return None.
+   
+  if (toymatrix[i]->Get_Solve_Flag()==0){
+    WCP2dToy::ToyMatrixIterate toymatrix_it(*toymatrix[i])
+  }
+  
+     * @brief Print Chi2 and NDF values.
+   * @param toymatrix ToyMatrix object.
+   * @return None.
+   
+  cout << "chi2: " << toymatrix[i]->Get_Chi2() << endl
+  cout << "NDF: " << toymatrix[i]->Get_ndf() << endl
+  
+     * @brief Create ToyTiling and TruthToyTiling objects for truth.
+   * @param slice_th Slice object for truth.
+   * @param gds Geometry data source object.
+   * @param threshold_ug Threshold value for U plane (guard).
+   * @param threshold_vg Threshold value for V plane (guard).
+   * @param threshold_wg Threshold value for W plane (guard).
+   * @return ToyTiling and TruthToyTiling objects.
+   
+  toytiling_th[i] = new WCP2dToy::ToyTiling(slice_th,gds,0,0,0,threshold_ug,threshold_vg, threshold_wg)
+  truthtiling_th[i] = new WCP2dToy::TruthToyTiling(*toytiling_th[i],pvv,i,gds,frame_length/nrebin,unit_dis)
+}
+ * @brief Perform Markov chain processing.
+ *
+ * @return None.
+ 
+if (start_num!= end_num){
+  int first_solve=-1
+  for (int i=start_num; i!=end_num+1;i++){
+    if (toymatrix[i]->Get_Solve_Flag()!=0){
+      first_solve = i
+      break
+    }
+  }
+  if (first_solve <0){
+    for (int i=start_num;i!=end_num+1;i++){
+      if (toymatrix[i]->Get_Solve_Flag()==0){
+        GeomCellSelection allmcell = mergetiling[i]->get_allcell()
+        WCP2dToy::ToyMatrixMarkov toymatrix_markov(toymatrix[i],&allmcell)
+        CellChargeMap ccmap = truthtiling[i]->ccmap()
+        if (toymatrix[i]->Get_Solve_Flag()!=0)
+          toymetric.Add(allmcell,*toymatrix[i],ccmap)
+        toymetric.AddSolve(toymatrix[i]->Get_Solve_Flag())
+        cout << "chi2: " << i << " " << toymatrix[i]->Get_Chi2() << endl
+        cout << "NDF: " << toymatrix[i]->Get_ndf() << endl
+      }
+    }
+  }else{
+    for (int i=first_solve+1;i<=end_num-1;i++){
+      if (toymatrix[i]->Get_Solve_Flag()==0){
+        GeomCellSelection allmcell = mergetiling[i]->get_allcell()
+        WCP2dToy::ToyMatrixMarkov toymatrix_markov(toymatrix[i-1],toymatrix[i],toymatrix[i+1],mergetiling[i-1],mergetiling[i],mergetiling[i+1],&allmcell)
+        CellChargeMap ccmap = truthtiling[i]->ccmap()
+        if (toymatrix[i]->Get_Solve_Flag()!=0)
+          toymetric.Add(allmcell,*toymatrix[i],ccmap)
+        toymetric.AddSolve(toymatrix[i]->Get_Solve_Flag())
+        
+        cout << "chi2: " << i << " " << toymatrix[i]->Get_Chi2() << endl
+        cout << "NDF: " << toymatrix[i]->Get_ndf() << endl
+        
+      }
+    }
+    
+    if (toymatrix[end_num]->Get_Solve_Flag()==0){
+      GeomCellSelection allmcell = mergetiling[end_num]->get_allcell()
+      WCP2dToy::ToyMatrixMarkov toymatrix_markov(toymatrix[end_num-1],toymatrix[end_num],0,mergetiling[end_num-1],mergetiling[end_num],0,&allmcell)
+      
+      CellChargeMap ccmap = truthtiling[end_num]->ccmap()
+      if (toymatrix[end_num]->Get_Solve_Flag()!=0)
+        toymetric.Add(allmcell,*toymatrix[end_num],ccmap)
+      toymetric.AddSolve(toymatrix[end_num]->Get_Solve_Flag())
+      
+      cout << "chi2: " << end_num << " " << toymatrix[end_num]->Get_Chi2() << endl
+      cout << "NDF: " << toymatrix[end_num]->Get_ndf() << endl
+    }
+    
+    // go to early ones 
+    for (int i=first_solve-1;i>=start_num+1;i--){
+      if (toymatrix[i]->Get_Solve_Flag()==0){
+        GeomCellSelection allmcell = mergetiling[i]->get_allcell()
+        WCP2dToy::ToyMatrixMarkov toymatrix_markov(toymatrix[i-1],toymatrix[i],toymatrix[i+1],mergetiling[i-1],mergetiling[i],mergetiling[i+1],&allmcell)
+        
+        CellChargeMap ccmap = truthtiling[i]->ccmap()
+        if (toymatrix[i]->Get_Solve_Flag()!=0)
+          toymetric.Add(allmcell,*toymatrix[i],ccmap)
+        toymetric.AddSolve(toymatrix[i]->Get_Solve_Flag())
+        
+        cout << "chi2: " << i << " " << toymatrix[i]->Get_Chi2() << endl
+        cout << "NDF: " << toymatrix[i]->Get_ndf() << endl
+      }
+    }
+  }
+}
+ * @brief Print summary statistics.
+ *
+ * @return None.
+ 
+int ncount_mcell = 0
+for (auto it = cluster_set.begin();it!=cluster_set.end();it++){
+  ncount_mcell += (*it)->get_allcell().size()
+}
+cout << "Summary: " << ncount << " " << ncount_mcell << " " << cluster_set.size()  << endl
+ * @brief Create output file and trees.
+ *
+ * @param eve_num Event number.
+ * @return Output file object.
+ 
+TFile *file = new TFile(Form("shower3D_signal_%d.root",eve_num),"RECREATE")
+TTree *t_true = new TTree("T_true","T_true")
+TTree *t_rec = new TTree("T_rec","T_rec")
+TTree *t_rec_charge = new TTree("T_rec_charge","T_rec_charge")
+TTree *t_rec_charge_blob = new TTree("T_rec_charge_blob","T_rec_charge_blob")
+ * @brief Define variables for tree branches.
+ *
+ * @return None.
+ 
+Double_t x_save, y_save, z_save
+Double_t charge_save
+Double_t ncharge_save
+Double_t chi2_save
+Double_t ndf_save
+ * @brief Set up tree branches.
+ *
+ * @param t_true Tree object.
+ * @param x_save X-coordinate variable.
+ * @param y_save Y-coordinate variable.
+ * @param z_save Z-coordinate variable.
+ * @param charge_save Charge variable.
+ * @return None.
+ 
+t_true->SetDirectory(file);
+t_true->Branch("x",&x_save,"x/D");
+t_true->Branch("y",&y_save,"y/D");
+t_true->Branch("z",&z_save,"z/D");
+t_true->Branch("q",&charge_save,"q/D");
+ * @brief Set up tree branches.
+ *
+ * @param t_rec Tree object.
+ * @param x_save X-coordinate variable.
+ * @param y_save Y-coordinate variable.
+ * @param z_save Z-coordinate variable.
+ * @return None.
+ 
+t_rec->SetDirectory(file);
+t_rec->Branch("x",&x_save,"x/D");
+t_rec->Branch("y",&y_save,"y/D");
+t_rec->Branch("z",&z_save,"z/D");
+ * @brief Set up tree branches.
+ *
+ * @param t_rec_charge Tree object.
+ * @param x_save X-coordinate variable.
+ * @param y_save Y-coordinate variable.
+ * @param z_save Z-coordinate variable.
+ * @param charge_save Charge variable.
+ * @param ncharge_save Number of charges variable.
+ * @param chi2_save Chi2 value variable.
+ * @param ndf_save NDF value variable.
+ * @return None.
+ 
+t_rec_charge->SetDirectory(file);
+t_rec_charge->Branch("x",&x_save,"x/D");
+t_rec_charge->Branch("y",&y_save,"y/D");
+t_rec_charge->Branch("z",&z_save,"z/D");
+t_rec_charge->Branch("q",&charge_save,"q/D");
+t_rec_charge->Branch("nq",&ncharge_save,"nq/D");
+t_rec_charge->Branch("chi2",&chi2_save,"chi2/D");
+t_rec_charge->Branch("ndf",&ndf_save,"ndf/D");
+ * @brief Create graph objects.
+ *
+ * @return Graph objects.
+ 
+TGraph2D *g = new TGraph2D();
+TGraph2D *gt = new TGraph2D();
+TGraph2D *g_rec = new TGraph2D();
+TGraph2D *g_rec_blob = new TGraph2D();
+ * @brief Loop through events and fill trees.
+ *
+ * @param start_num Start index.
+ * @param end_num End index.
+ * @return None.
+ 
+for (int i=start_num;i!=end_num+1;i++){
+     * @brief Fill truth tree.
+   * @param truthtiling_th TruthToyTiling object.
+   * @param i Index.
+   * @param gt Graph object.
+   * @return None.
+   
+  CellChargeMap ccmap = truthtiling_th[i]->ccmap();
+  for (auto it = ccmap.begin();it!=ccmap.end(); it++){
+    Point p = it->first->center();
+    x_save = i*nrebin/2.*unit_dis/10. - frame_length/2.*unit_dis/10.;
+    y_save = p.y/units::cm;
+    z_save = p.z/units::cm;
+    charge_save = it->second;
+    
+    gt->SetPoint(ncount_t,x_save,y_save,z_save);
+    t_true->Fill();
+            
+    ncount_t ++;
+  }
+  
+     * @brief Fill reco tree.
+   * @param toytiling ToyTiling object.
+   * @param i Index.
+   * @param g Graph object.
+   * @return None.
+   
+  GeomCellSelection allcell = toytiling[i]->get_allcell();
+  for (int j=0;j!=allcell.size();j++){
+    Point p = allcell[j]->center();
+    x_save = i*nrebin/2.*unit_dis/10. - frame_length/2.*unit_dis/10.;
+    y_save = p.y/units::cm;
+    z_save = p.z/units::cm;
+      
+    g->SetPoint(ncount,x_save,y_save,z_save);
+    t_rec->Fill();
+
+    ncount ++;
+  }
+
+     * @brief Fill reco charge tree.
+   * @param mergetiling MergeToyTiling object.
+   * @param i Index.
+   * @param g_rec Graph object.
+   * @return None.
+   
+  GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+  for (int j=0;j!=allmcell.size();j++){
+    MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j];
+    double charge = toymatrix[i]->Get_Cell_Charge(mcell,1);
+    if (charge> recon_threshold || toymatrix[i]->Get_Solve_Flag()==0){
+
+      if (toymatrix[i]->Get_Solve_Flag()==0)
+        charge = toytiling[i]->get_ave_charge();
+      
+      for (int k=0;k!=mcell->get_allcell().size();k++){
+        Point p = mcell->get_allcell().at(k)->center();
+        x_save = i*nrebin/2.*unit_dis/10. - frame_length/2.*unit_dis/10.;
+        y_save = p.y/units::cm;
+        z_save = p.z/units::cm;
+        charge_save = charge/mcell->get_allcell().size();
+        ncharge_save = mcell->get_allcell().size();
+        chi2_save = toymatrix[i]->Get_Chi2();
+        ndf_save = toymatrix[i]->Get_ndf();
+
+        g_rec->SetPoint(ncount1,x_save,y_save,z_save);
+        t_rec_charge->Fill();
+        
+        ncount1 ++;
+      }
+    }
+  }
+
+     * @brief Fill reco charge blob tree.
+   * @param mergetiling MergeToyTiling object.
+   * @param i Index.
+   * @param g_rec_blob Graph object.
+   * @return None.
+   
+  // if (toymatrix[i]->GetSimpleBlobReduction()){
+  //   for (int j=0;j!=blobtiling[i]->Get_Cells().size();j++){
+  //     const GeomCell *cell = blobtiling[i]->Get_Cells().at(j);
+  //     Point p = cell->center();
+  //     x_save = i*nrebin/2.*unit_dis/10. - frame_length/2.*unit_dis/10.;
+  //     y_save = p.y/units::cm;
+  //     z_save = p.z/units::cm;
+  //     charge_save = blobtiling[i]->Get_Cell_Charge(cell,1);
+  //     ncharge_save = 1;
+	
+  //     g_rec_blob->SetPoint(ncount2,x_save,y_save,z_save);
+  //     t_rec_charge_blob->Fill();
+	
+  //     ncount2 ++;
+  //   }
+  // }else{
+  for (int j=0;j!=allmcell.size();j++){
+    MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j];
+    double charge = toymatrix[i]->Get_Cell_Charge(mcell,1);
+    if (charge> recon_threshold || toymatrix[i]->Get_Solve_Flag()==0){
+
+      if (toymatrix[i]->Get_Solve_FLAG()==0)
+        charge = toytiling[i]->get_ave_charge();
+
+      for (int k=0;k!=mcell->get_allcell().size();k++){
+        Point p = mcell->get_allcell().at(k)->center();
+        x_save = i*nrebin/2.*unit_dis/10. - frame_length/2.*unit_dis/10.;
+        y_save = p.y/units::cm;
+        z_save = p.z/units::cm;
+        charge_save = charge/mcell->get_allcell().size();
+        ncharge_save = mcell->get_allcell().size();
+        
+        g_rec_blob->SetPoint(ncount2,x_save,y_save,z_save);
+        t_rec_charge_blob->Fill();
+        
+        ncount2 ++;
+      }
+    }
+  }
+  // }
+    
+  //save all results
+  // file->Write(Form("toytiling_%d",i),toytiling[i]);
+  // file->Write(Form("mergetiling_%d",i),mergetiling[i]);
+  // file->Write(Form("truthtiling_%d",i),truthtiling[i]);
+  // file->Write(Form("toymatrix_%d",i),toymatrix[i]);
+
+}
+ * @brief Write graphs to file.
+ *
+ * @param g Graph object.
+ * @param gt Graph object.
+ * @param g_rec Graph object.
+ * @param g_rec_blob Graph object.
+ * @return None.
+ 
+g->Write("shower3D");
+gt->Write("shower3D_truth");
+g_rec->Write("shower3D_charge");
+g_rec_blob->Write("shower3D_charge_blob");
+ * @brief Save cluster information.
+ *
+ * @return None.
+ 
+int ncluster = 0;
+for (auto it = cluster_set.begin();it!=cluster_set.end();it++){
+  ncount = 0;
+  TGraph2D *g1 = new TGraph2D();
+  for (int i=0; i!=(*it)->get_allcell().size();i++){
+    const MergeGeomCell *mcell = (const MergeGeomCell*)((*it)->get_allcell().at(i));
+    for (int j=0; j!=mcell->get_allcell().size();j++){
+      Point p = mcell->get_allcell().at(j)->center();
+      x = mcell->GetTimeSlice()*nrebin/2.*unit_dis/10. - frame_length/2.*unit_dis/10.;
+      y = p.y/units::cm;
+      z = p.z/units::cm;
+      g1->SetPoint(ncount,x,y,z);
+      ncount ++;
+    }
+  }
+  g1->Write(Form("cluster_%d",ncluster));
+  ncluster ++;
+}
+ * @brief Save toy tiling information.
+ *
+ * @return None.
+ 
+WCP2dToy::ToyTiling* tt1 = 0;
+int time_slice;
+TTree* ttree = new TTree("T","T");
+ttree->Branch("time_slice",&time_slice,"time_slice/I");
+ttree->Branch("toytiling",&tt1);
+ttree->SetDirectory(file);
+for (int i=start_num;i!=end_num+1;i++){
+  tt1 = toytiling[i];
+  time_slice = i;
+  ttree->Fill();
+}
+ttree->Write();
+ * @brief Save cluster information to tree.
+ *
+ * @return None.
+ 
+TTree *ttree1 = new TTree("TC","TC");
+const GeomCell* cell_save = 0;
+int cluster_num = -1;
+int mcell_id = -1;
+ttree1->Branch("time_slice",&time_slice,"time_slice/I"); 
+ttree1->Branch("cell",&cell_save);
+ttree1->Branch("ncluster",&cluster_num,"cluster_num/I"); 
+ttree1->Branch("mcell_id",&mcell_id,"mcell_id/I");
+ttree1->Branch("charge",&charge_save,"charge/D"); 
+Double_t xx,yy,zz;
+ttree1->Branch("xx",&xx,"xx/D");    
+ttree1->Branch("yy",&yy,"yy/D");    
+ttree1->Branch("zz",&zz,"zz/D");    
+int u_index, v_index, w_index;
+double u_charge, v_charge, w_charge;
+double u_charge_err, v_charge_err, w_charge_err;
+int tpc_no=1, cryostat_no=0;
+ttree1->Branch("tpc_no",&tpc_no,"tpc_no/I");
+ttree1->Branch("cryostat_no",&cryostat_no,"cryostat_no/I");
+ttree1->Branch("u_index",&u_index,"u_index/I");
+ttree1->Branch("v_index",&v_index,"v_index/I");
+ttree1->Branch("w_index",&w_index,"w_index/I");
+ttree1->Branch("u_charge",&u_charge,"u_charge/D");
+ttree1->Branch("v_charge",&v_charge,"v_charge/D");
+ttree1->Branch("w_charge",&w_charge,"w_charge/D");
+ttree1->Branch("u_charge_err",&u_charge_err,"u_charge_err/D");
+ttree1->Branch("v_charge_err",&v_charge_err,"v_charge_err/D");
+ttree1->Branch("w_charge_err",&w_charge_err,"w_charge_err/D");
+ttree1->SetDirectory(file);
+for (auto it = cluster_set.begin();it!=cluster_set.end();it++){
+  cluster_num ++;
+  for (int i=0; i!=(*it)->get_allcell().size();i++){
+    mcell_id ++;
+    time_slice = (*it)->get_allcell().at(i)->GetTimeSlice();
+    x = time_slice*nrebin/2.*unit_dis/10. - frame_length/2.*unit_dis/10.;
+    xx =x;
+    GeomWireSelection wires = toytiling[time_slice]->wires((*it)->get_allcell().at(i));
+    for (int k=0;k!=wires.size();k++){
+      const GeomWire *wire = wires.at(k);
+      WirePlaneType_t plane = wire->plane();
+      if (plane==0){
+        u_index = wire->index();
+        u_charge = toytiling[time_slice]->wcmap()[wire];
+        u_charge_err = toytiling[time_slice]->wcemap()[wire];
+      }else if (plane==1){
+        v_index = wires.at(k)->index();
+        v_charge = toytiling[time_slice]->wcmap()[wire];
+        v_charge_err = toytiling[time_slice]->wcemap()[wire];
+      }else if (plane==2){
+        w_index = wire->index();
+        w_charge = toytiling[time_slice]->wcmap()[wire];
+        w_charge_err = toytiling[time_slice]->wcemap()[wire];
+      }
+    }
+    Point p = (*it)->get_allcell().at(i)->center();
+    yy = p.y/units::cm;
+    zz = p.z/units::cm;
+    charge_save = toymatrix[time_slice]->Get_Cell_Charge((*it)->get_allcell().at(i),1)/(*it)->get_allcell().at(i)->cross_section() * ((*it)->get_allcell().at(i))->cross_section();
+    cell_save = (*it)->get_allcell().at(i);
+    ttree1->Fill();
+  }
+}
+ttree1->Write();
+ * @brief Close output file.
+ *
+ * @param file Output file object.
+ * @return None.
+ 
+file->Close();
+ * @brief Print metric information.
+ *
+ * @param toymetric Metric object.
+ * @return None.
+ 
+toymetric.Print();
+blobmetric.Print();
+ * @brief Return program exit status.
+ *
+ * @return Exit status.
+ 
+return 0;* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {

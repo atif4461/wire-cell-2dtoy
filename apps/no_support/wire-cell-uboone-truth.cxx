@@ -32,6 +32,365 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line argument strings
+ * @return Program exit status
+ 
+int main(int argc, char* argv[]) 
+ * @brief Check command line arguments
+ *
+ * @details Verify the number of command line arguments is sufficient
+ 
+if (argc < 3) {
+   * @brief Display usage message
+ *
+ * @details Print error message indicating insufficient arguments
+ 
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl;
+  return 1;
+}
+ * @brief Initialize geometry data source
+ *
+ * @param argv[1] Path to ChannelWireGeometry.txt file
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Get extent of geometry data source
+ *
+ * @return Vector of doubles representing extent
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Display extent
+ *
+ * @details Print extent values to standard error stream
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Set root file path
+ *
+ * @param argv[2] Path to celltree.root file
+ 
+const char* root_file = argv[2];
+ * @brief Set tree path
+ *
+ * @details Specify path to event data in root file
+ 
+const char* tpath = "/Event/Sim";
+ * @brief Create frame data source
+ *
+ * @param root_file Path to root file
+ * @return Pointer to FrameDataSource object
+ 
+WCP::FrameDataSource* fds = WCPSst::make_fds(root_file);
+ * @brief Check if frame data source creation was successful
+ *
+ * @details If not, print error message and exit
+ 
+if (!fds) {
+  cerr << "ERROR: failed to get FDS from " << root_file << endl;
+  return 1;
+}
+ * @brief Set maximum events
+ *
+ * @details Specify maximum number of events to process
+ 
+int max_events = 100;
+ * @brief Set event number
+ *
+ * @details Specify event number for processing
+ 
+int eve_num = 4;
+ * @brief Create ToyDepositor object
+ *
+ * @param fds Pointer to FrameDataSource object
+ 
+WCP::ToyDepositor toydep(fds);
+ * @brief Get depositions for specified event
+ *
+ * @param eve_num Event number
+ * @return PointValueVector object containing depositions
+ 
+const PointValueVector pvv = toydep.depositions(eve_num);
+ * @brief Create GenerativeFDS object
+ *
+ * @param toydep ToyDepositor object
+ * @param gds Geometry data source object
+ * @param max_events Maximum events
+ * @param threshold Threshold value
+ 
+WCP::GenerativeFDS gfds(toydep,gds,2400,max_events,2.0*1.6*units::millimeter);
+ * @brief Jump to specified event
+ *
+ * @param eve_num Event number
+ 
+gfds.jump(eve_num);
+ * @brief Create ToyuBoNESliceDataSource object
+ *
+ * @param gfds GenerativeFDS object
+ * @param threshold Threshold value
+ 
+WCPSst::ToyuBoNESliceDataSource sds(gfds,1500);
+ * @brief Allocate arrays for storing coordinates
+ *
+ * @details Arrays to store x, y, z coordinates
+ 
+Double_t x[100000],y[100000],z[100000];
+Double_t xt[100000],yt[100000],zt[100000];
+ * @brief Initialize counters
+ *
+ * @details Counters for tracking progress
+ 
+int ncount = 0;
+int ncount_t = 0;
+ * @brief Allocate memory for tiling objects
+ *
+ * @details Arrays to store ToyTiling, MergeToyTiling, TruthToyTiling objects
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[2400];
+WCP2dToy::MergeToyTiling **mergetiling = new WCP2dToy::MergeToyTiling*[2400];
+WCP2dToy::TruthToyTiling **truthtiling = new WCP2dToy::TruthToyTiling*[2400];
+ * @brief Loop through events
+ *
+ * @details Process each event in sequence
+ 
+for (int i=1191;i<2400;i++) {
+ * @brief Jump to current event
+ *
+ * @param i Current event index
+ 
+  sds.jump(i);
+ * @brief Get current slice
+ *
+ * @return Slice object containing event data
+ 
+  WCP::Slice slice = sds.get();
+ * @brief Check if slice has groups
+ *
+ * @details If yes, proceed with processing
+ 
+  if ( slice.group().size() >0){
+ * @brief Display event index and group size
+ *
+ * @details Print to standard output stream
+ 
+    cout << i << " " << slice.group().size() << endl;
+ * @brief Create ToyTiling object
+ *
+ * @param slice Slice object
+ * @param gds Geometry data source object
+ 
+    toytiling[i] = new WCP2dToy::ToyTiling(slice,gds);
+ * @brief Get all cells in ToyTiling object
+ *
+ * @return GeomCellSelection object containing all cells
+ 
+    GeomCellSelection allcell = toytiling[i]->get_allcell();
+ * @brief Display number of cells
+ *
+ * @details Print to standard output stream
+ 
+    cout << allcell.size() << endl;
+ * @brief Create MergeToyTiling object
+ *
+ * @param toytiling ToyTiling object
+ * @param i Current event index
+ * @param threshold Threshold value
+ 
+    mergetiling[i] = new WCP2dToy::MergeToyTiling(*toytiling[i],i,3,1);
+ * @brief Create TruthToyTiling object
+ *
+ * @param toytiling ToyTiling object
+ * @param pvv PointValueVector object
+ * @param i Current event index
+ * @param gds Geometry data source object
+ 
+    truthtiling[i] = new WCP2dToy::TruthToyTiling(*toytiling[i],pvv,i,gds);
+ * @brief Get all merge cells
+ *
+ * @return GeomCellSelection object containing all merge cells
+ 
+    GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+ * @brief Get all wires
+ *
+ * @return GeomWireSelection object containing all wires
+ 
+    GeomWireSelection allmwire = mergetiling[i]->get_allwire();
+ * @brief Display number of merge cells and wires
+ *
+ * @details Print to standard output stream
+ 
+    cout << allmcell.size() << endl;
+ * @brief Store cell centers in arrays
+ *
+ * @param allcell GeomCellSelection object
+ 
+    for (int j=0;j!=allcell.size();j++){
+      Point p = allcell[j]->center();
+      x[ncount] = i*0.32;
+      y[ncount] = p.y/units::cm;
+      z[ncount] = p.z/units::cm;
+      ncount ++;
+    }
+ * @brief Get charge map
+ *
+ * @return CellChargeMap object containing charges
+ 
+    CellChargeMap ccmap = truthtiling[i]->ccmap();
+ * @brief Find minimum and maximum charges
+ *
+ * @param ccmap CellChargeMap object
+ 
+    Double_t charge_min = 10000;
+    Double_t charge_max = 0;
+    for (auto it = ccmap.begin();it!=ccmap.end(); it++){
+      double charge = it->second;
+      if (charge > charge_max) charge_max = charge;
+      if (charge < charge_min) charge_min = charge;
+    }
+ * @brief Store truth cell centers in arrays
+ *
+ * @param ccmap CellChargeMap object
+ 
+    for (auto it = ccmap.begin();it!=ccmap.end(); it++){
+      Point p = it->first->center();
+      xt[ncount_t] = i*0.32;
+      yt[ncount_t] = p.y/units::cm;
+      zt[ncount_t] = p.z/units::cm;
+      ncount_t ++;
+    }
+ * @brief Display summary statistics
+ *
+ * @details Print to standard output stream
+ 
+    cout << i << " " << allcell.size() << " " << allmcell.size() << " " << allmwire.size() << " " << cluster_set.size()  << endl;
+  }
+}
+ * @brief Create application object
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line argument strings
+ 
+TApplication theApp("theApp",&argc,argv);
+ * @brief Set application return status
+ *
+ * @details Enable return from Run method
+ 
+theApp.SetReturnFromRun(true);
+ * @brief Create canvas object
+ *
+ * @param title Canvas title
+ * @param name Canvas name
+ * @param width Canvas width
+ * @param height Canvas height
+ 
+TCanvas c1("ToyMC","ToyMC",800,600);
+ * @brief Draw canvas
+ *
+ * @details Render canvas on screen
+ 
+c1.Draw();
+ * @brief Create ToyEventDisplay object
+ *
+ * @param c1 Canvas object
+ * @param gds Geometry data source object
+ 
+WCP2dToy::ToyEventDisplay display(c1, gds);
+ * @brief Set charge range
+ *
+ * @param charge_min Minimum charge
+ * @param charge_max Maximum charge
+ 
+display.charge_min = charge_min;
+display.charge_max = charge_max;
+ * @brief Set graphics style
+ *
+ * @details Disable statistic display
+ 
+gStyle->SetOptStat(0);
+ * @brief Define color palette
+ *
+ * @details Specify custom color gradient
+ 
+const Int_t NRGBs = 5;
+const Int_t NCont = 255;
+Int_t MyPalette[NCont];
+Double_t stops[NRGBs] = {0.0, 0.34, 0.61, 0.84, 1.0};
+Double_t red[NRGBs] = {0.0, 0.0, 0.87,1.0, 0.51};
+Double_t green[NRGBs] = {0.0, 0.81, 1.0, 0.2,0.0};
+Double_t blue[NRGBs] = {0.51, 1.0, 0.12, 0.0, 0.0};
+Int_t FI = TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+gStyle->SetNumberContours(NCont);
+for (int kk=0;kk!=NCont;kk++) MyPalette[kk] = FI+kk;
+gStyle->SetPalette(NCont,MyPalette);
+ * @brief Initialize display
+ *
+ * @param first Initial value
+ * @param last Last value
+ * @param min Minimum value
+ * @param max Maximum value
+ 
+display.init(0,10.3698,-2.33/2.,2.33/2.);
+ * @brief Draw Monte Carlo data
+ *
+ * @param type Drawing option
+ * @param label Label for drawing
+ 
+display.draw_mc(1,WCP::PointValueVector(),"colz");
+ * @brief Draw slice data
+ *
+ * @param slice Slice object
+ * @param label Label for drawing
+ 
+display.draw_slice(slice,"");
+ * @brief Draw cells
+ *
+ * @param allcell GeomCellSelection object
+ * @param label Label for drawing
+ 
+display.draw_cells(toytiling[i]->get_allcell(),"*same");
+ * @brief Draw merge cells
+ *
+ * @param allmcell GeomCellSelection object
+ * @param label Label for drawing
+ * @param option Drawing option
+ 
+display.draw_mergecells(mergetiling[i]->get_allcell(),"*same",0);
+ * @brief Draw truth cells
+ *
+ * @param ccmap CellChargeMap object
+ * @param label Label for drawing
+ 
+display.draw_truthcells(ccmap,"*same");
+ * @brief Run application
+ *
+ * @details Start event loop
+ 
+theApp.Run();
+}
+ * @brief Calculate total number of merge cells in clusters
+ *
+ * @param cluster_set Cluster set object
+ 
+int ncount_mcell_cluster = 0;
+for (auto it = cluster_set.begin();it!=cluster_set.end();it++){
+  ncount_mcell_cluster += (*it)->get_allcell().size();
+}
+ * @brief Display summary statistics
+ *
+ * @details Print to standard output stream
+ 
+cout << "Summary: " << ncount << " " << ncount_mcell << " " << ncount_mcell_cluster << endl;
+ * @brief Return program exit status
+ *
+ * @return Exit status
+ 
+return 0;* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 3) {

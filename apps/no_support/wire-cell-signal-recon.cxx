@@ -51,6 +51,184 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits if insufficient arguments are provided.
+ 
+if (argc < 3) {
+     * @brief Prints usage message to standard error stream.
+   
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl;
+  return 1;
+}
+ * @brief Creates GeomDataSource object from file specified by first command line argument.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves extent of geometry data source.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints extent of geometry data source to standard error stream.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Opens ROOT file specified by second command line argument.
+ 
+TFile *tfile = TFile::Open(argv[2]);
+ * @brief Creates FrameDataSource object from opened ROOT file.
+ 
+WCP::FrameDataSource* fds = WCPSst::make_fds(*tfile);
+ * @brief Checks if FrameDataSource object creation was successful.
+ 
+if (!fds) {
+     * @brief Prints error message to standard error stream if creation fails.
+   
+  cerr << "ERROR: failed to get FDS from " << argv[2] << endl;
+  return 1;
+}
+ * @brief Sets reconstruction parameters.
+ 
+int recon_threshold = 2000;
+int max_events = 5;
+int eve_num = 1;
+ * @brief Creates ToyDepositor object from FrameDataSource object.
+ 
+WCP::ToyDepositor toydep(fds);
+ * @brief Deposits points using ToyDepositor object.
+ 
+const PointValueVector pvv = toydep.depositions(eve_num);
+ * @brief Creates GenerativeFDS objects.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,9600,max_events,0.5*1.60*units::millimeter);
+ * @brief Creates TruthFDS object.
+ 
+WCP2dToy::ToySignalSimuTrueFDS st_fds(gfds,gds,9600/4,5,0);
+ * @brief Jumps to event in TruthFDS object.
+ 
+st_fds.jump(eve_num);
+ * @brief Creates SimuFDS object.
+ 
+WCP2dToy::ToySignalSimuFDS simu_fds(gfds,gds,9600,max_events,1.647,1.539+1.647,1);
+ * @brief Jumps to event in SimuFDS object.
+ 
+simu_fds.jump(eve_num);
+ * @brief Creates GausFDS object.
+ 
+WCP2dToy::ToySignalGausFDS gaus_fds(simu_fds,gds,9600/4,max_events,1.647,1.539+1.647);
+ * @brief Jumps to event in GausFDS object.
+ 
+gaus_fds.jump(eve_num);
+ * @brief Creates WienFDS object.
+ 
+WCP2dToy::ToySignalWienFDS wien_fds(simu_fds,gds,9600/4,max_events,1.647,1.539+1.647);
+ * @brief Jumps to event in WienFDS object.
+ 
+wien_fds.jump(eve_num);
+ * @brief Retrieves wire selections for each plane.
+ 
+GeomWireSelection wires_u = gds.wires_in_plane(WirePlaneType_t(0));
+GeomWireSelection wires_v = gds.wires_in_plane(WirePlaneType_t(1));
+GeomWireSelection wires_w = gds.wires_in_plane(WirePlaneType_t(2));
+ * @brief Calculates number of wires in each plane.
+ 
+int nwire_u = wires_u.size();
+int nwire_v = wires_v.size();
+int nwire_w = wires_w.size();
+ * @brief Sets thresholds for each plane.
+ 
+float threshold_u = 5.87819e+02 * 4.0;
+float threshold_v = 8.36644e+02 * 4.0;
+float threshold_w = 5.67974e+02 * 4.0;
+ * @brief Sets additional thresholds.
+ 
+float threshold_ug = 755.96;
+float threshold_vg = 822.81;
+float threshold_wg = 510.84;
+ * @brief Creates SliceDataSource objects.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(wien_fds,gaus_fds,threshold_u, 
+					threshold_v, threshold_w, 
+					threshold_ug, 
+					threshold_vg, threshold_wg, 
+					nwire_u, 
+					nwire_v, nwire_w); 
+
+WCPSst::ToyuBooNESliceDataSource sds_th(st_fds,st_fds,1, 
+					1, 1, 
+					threshold_ug, 
+					threshold_vg, threshold_wg, 
+					nwire_u, 
+					nwire_v, nwire_w); 
+ * @brief Allocates memory for ToyTiling objects.
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[2400];
+WCP2dToy::MergeToyTiling **mergetiling = new WCP2dToy::MergeToyTiling*[2400];
+WCP2dToy::TruthToyTiling **truthtiling = new WCP2dToy::TruthToyTiling*[2400];
+WCP2dToy::SimpleBlobToyTiling **blobtiling = new WCP2dToy::SimpleBlobToyTiling*[2400];
+ * @brief Allocates memory for ToyMatrix objects.
+ 
+WCP2dToy::ToyMatrix **toymatrix = new WCP2dToy::ToyMatrix*[2400];
+ * @brief Loops over events and performs processing.
+ 
+for (int i=start_num;i!=end_num+1;i++){
+     * @brief Jumps to event in SliceDataSource objects.
+   
+  sds.jump(i);
+  sds_th.jump(i);
+
+     * @brief Retrieves slices from SliceDataSource objects.
+   
+  WCP::Slice slice = sds.get();
+  WCP::Slice slice_th = sds_th.get();
+
+     * @brief Creates ToyTiling objects.
+   
+  toytiling[i] = new WCP2dToy::ToyTiling(slice,gds,0,0,0,threshold_ug,threshold_vg, threshold_wg);
+
+     * @brief Creates MergeToyTiling objects.
+   
+  mergetiling[i] = new WCP2dToy::MergeToyTiling(*toytiling[i],i,3,1);
+
+     * @brief Retrieves cell and wire selections.
+   
+  GeomCellSelection allcell = toytiling[i]->get_allcell();
+  GeomWireSelection allwire = toytiling[i]->get_allwire();
+  GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+  GeomWireSelection allmwire = mergetiling[i]->get_allwire();
+
+     * @brief Creates TruthToyTiling objects.
+   
+  truthtiling[i] = new WCP2dToy::TruthToyTiling(*toytiling[i],pvv,i,gds,800);
+
+     * @brief Creates ToyMatrix objects.
+   
+  toymatrix[i] = new WCP2dToy::ToyMatrix(*toytiling[i],*mergetiling[i]);
+
+     * @brief Performs further processing.
+   
+  //...
+
+     * @brief Deletes allocated memory.
+   
+  delete fds;
+}
+ * @brief Performs final processing and prints metrics.
+ 
+toymetric.Print();
+blobmetric.Print();
+ * @brief Returns program exit status.
+ 
+return 0;
+}* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 3) {

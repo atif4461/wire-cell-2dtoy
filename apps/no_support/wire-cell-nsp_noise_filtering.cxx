@@ -57,6 +57,233 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * This function is responsible for executing the main logic of the program.
+ * It takes command line arguments, initializes necessary objects, and performs
+ * actions based on those inputs.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[])
+ * @brief Prints usage message and exits the program.
+ *
+ * If the number of command line arguments is less than 4, this function prints
+ * the correct usage message and returns 1 to indicate an error.
+ 
+if (argc < 4) {
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root eve_num " << endl;
+  return 1;
+}
+ * @brief Initializes geometry data source object.
+ *
+ * Creates a WCPSst::GeomDataSource object using the first command line argument.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves extent of the geometry.
+ *
+ * Gets the extent of the geometry from the geom data source object.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints extent of the geometry.
+ *
+ * Prints the extent of the geometry to the standard error stream.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Prints pitch values for each wire plane type.
+ *
+ * Retrieves and prints the pitch values for each wire plane type.
+ 
+cout << "Pitch: " << gds.pitch(WirePlaneType_t(0)) 
+     << " " << gds.pitch(WirePlaneType_t(1)) 
+     << " " << gds.pitch(WirePlaneType_t(2))
+     << endl;
+ * @brief Prints angle values for each wire plane type.
+ *
+ * Retrieves and prints the angle values for each wire plane type.
+ 
+cout << "Angle: " << gds.angle(WirePlaneType_t(0)) 
+     << " " << gds.angle(WirePlaneType_t(1)) 
+     << " " << gds.angle(WirePlaneType_t(2))
+     << endl;
+ * @brief Defines constants and variables.
+ *
+ * Defines several constants and variables used throughout the program.
+ 
+float unit_dis = 1.119;  // 70 KV @ 273 V/cm
+int total_time_bin=9594;
+int frame_length = 3200;
+int max_events = 100;
+int eve_num  = atoi(argv[3]);
+int time_offset = -92.;
+const char* root_file = argv[2];
+ * @brief Initializes data file data source object.
+ *
+ * Creates a WCPSst::DatauBooNEFrameDataSource object using the root file and geom data source.
+ 
+WCPSst::DatauBooNEFrameDataSource data_fds(root_file,gds,total_time_bin);
+ * @brief Jumps to the specified event number.
+ *
+ * Calls the jump method on the data file data source object.
+ 
+data_fds.jump(eve_num);
+ * @brief Retrieves run, subrun, and event numbers.
+ *
+ * Retrieves the run, subrun, and event numbers from the data file data source object.
+ 
+int run_no = data_fds.get_run_no();
+int subrun_no = data_fds.get_subrun_no();
+int event_no = data_fds.get_event_no();
+ * @brief Prints run, subrun, and event numbers.
+ *
+ * Prints the retrieved run, subrun, and event numbers.
+ 
+cout << "Run No: " << run_no << " " << subrun_no << " " << event_no << endl;
+ * @brief Retrieves chirp maps for each plane.
+ *
+ * Retrieves the chirp maps for each plane from the data file data source object.
+ 
+ChirpMap& uplane_map = data_fds.get_u_cmap();
+ChirpMap& vplane_map = data_fds.get_v_cmap();
+ChirpMap& wplane_map = data_fds.get_w_cmap();
+ * @brief Opens output ROOT file.
+ *
+ * Opens a ROOT file in recreate mode.
+ 
+TFile *file = new TFile(Form("nsp1_%d_%d_%d.root",run_no,subrun_no,event_no),"RECREATE");
+ * @brief Retrieves wire selections for each plane.
+ *
+ * Retrieves the wire selections for each plane from the geom data source object.
+ 
+GeomWireSelection wires_u = gds.wires_in_plane(WirePlaneType_t(0));
+GeomWireSelection wires_v = gds.wires_in_plane(WirePlaneType_t(1));
+GeomWireSelection wires_w = gds.wires_in_plane(WirePlaneType_t(2));
+ * @brief Retrieves sizes of wire selections.
+ *
+ * Retrieves the sizes of the wire selections for each plane.
+ 
+Int_t nwire_u = wires_u.size();
+Int_t nwire_v = wires_v.size();
+Int_t nwire_w = wires_w.size();
+ * @brief Creates histograms for raw data.
+ *
+ * Creates TH2F histograms for the raw data of each plane.
+ 
+TH2F *hu_raw = new TH2F("hu_raw","hu_raw",nwire_u,-0.5,nwire_u-0.5,total_time_bin,0,total_time_bin);
+TH2F *hv_raw = new TH2F("hv_raw","hv_raw",nwire_v,-0.5+nwire_u,nwire_v-0.5+nwire_u,total_time_bin,0,total_time_bin);
+TH2F *hw_raw = new TH2F("hw_raw","hw_raw",nwire_w,-0.5+nwire_u+nwire_v,nwire_w-0.5+nwire_u+nwire_v,total_time_bin,0,total_time_bin);
+ * @brief Loops through traces and fills histograms.
+ *
+ * Loops through the traces of the current frame and fills the corresponding histograms.
+ 
+const Frame& frame = data_fds.get();
+size_t ntraces = frame.traces.size();
+for (size_t ind=0; ind<ntraces; ++ind) {
+  const Trace& trace = frame.traces[ind];
+  int tbin = trace.tbin;
+  int chid = trace.chid;
+  int nbins = trace.charge.size();
+  WirePlaneType_t plane = gds.by_channel(chid).at(0)->plane();
+  if (plane == WirePlaneType_t(0)){
+    htemp = hu_raw;
+  }else if (plane == WirePlaneType_t(1)){
+    htemp = hv_raw;
+    chid -= nwire_u;
+  }else if (plane == WirePlaneType_t(2)){
+    htemp = hw_raw;
+    chid -= nwire_u + nwire_v;
+  }
+  for (int i = tbin;i!=tbin+nbins;i++){
+    int tt = i+1;
+    htemp->SetBinContent(chid+1,tt,trace.charge.at(i));
+  }
+}
+ * @brief Creates tree for run information.
+ *
+ * Creates a TTree for storing run information.
+ 
+TTree *Trun = new TTree("Trun","Trun");
+Trun->SetDirectory(file);
+ * @brief Sets branches for run tree.
+ *
+ * Sets branches for the run tree.
+ 
+int detector = 0; // MicroBooNE
+Trun->Branch("detector",&detector,"detector/I");
+Trun->Branch("eventNo",&event_no,"eventNo/I");
+Trun->Branch("runNo",&run_no,"runNo/I");
+Trun->Branch("subRunNo",&subrun_no,"subRunNo/I");  
+Trun->Branch("unit_dis",&unit_dis,"unit_dis/F");
+Trun->Branch("total_time_bin",&total_time_bin,"total_time_bin/I");
+Trun->Branch("frame_length",&frame_length,"frame_length/I");
+Trun->Branch("max_events",&max_events,"max_events/I");
+Trun->Branch("eve_num",&eve_num,"eve_num/I");
+Trun->Branch("time_offset",&time_offset,"time_offset/I");
+ * @brief Fills run tree.
+ *
+ * Fills the run tree.
+ 
+Trun->Fill();
+ * @brief Creates tree for loud and faulty channels.
+ *
+ * Creates TTrees for storing information about loud and faulty channels.
+ 
+TTree *T_lf = new TTree("T_lf","T_lf");
+Int_t channel;
+T_lf->SetDirectory(file);
+T_lf->Branch("channel",&channel,"channel/I");
+std::set<int> lf_noisy_channels = data_fds.get_lf_noisy_channels();
+for (auto it = lf_noisy_channels.begin(); it!= lf_noisy_channels.end(); it++){
+  channel = *it;
+  T_lf->Fill();
+}
+ * @brief Creates tree for bad channels.
+ *
+ * Creates a TTree for storing information about bad channels.
+ 
+TTree *T_bad = new TTree("T_bad","T_bad");
+Int_t chid, plane;
+Int_t start_time,end_time;
+T_bad->Branch("chid",&chid,"chid/I");
+T_bad->Branch("plane",&plane,"plane/I");
+T_bad->Branch("start_time",&start_time,"start_time/I");
+T_bad->Branch("end_time",&end_time,"end_time/I");
+T_bad->SetDirectory(file);
+for (auto it = uplane_map.begin(); it!=uplane_map.end();it++){
+  chid = it->first;
+  plane = 0;
+  start_time = it->second.first;
+  end_time = it->second.second;
+  T_bad->Fill();
+}
+for (auto it = vplane_map.begin(); it!=vplane_map.end();it++){
+  chid = it->first + nwire_u;
+  plane = 1;
+  start_time = it->second.first;
+  end_time = it->second.second;
+  T_bad->Fill();
+}
+for (auto it = wplane_map.begin(); it!=wplane_map.end();it++){
+  chid = it->first + nwire_u + nwire_v;
+  plane = 2;
+  start_time = it->second.first;
+  end_time = it->second.second;
+  T_bad->Fill();
+}
+ * @brief Writes and closes output file.
+ *
+ * Writes the contents of the output file and closes it.
+ 
+file->Write();
+file->Close();* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {

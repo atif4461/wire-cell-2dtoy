@@ -3,6 +3,174 @@
 
 using namespace WCP;
 
+/**
+ * Constructor for the ToyCosmic class.
+ *
+ * @param trackings The input tracking selection.
+ * @param abc The gap cut value between two tracks.
+ * @param abc1 The secondary gap cut value.
+ 
+WCP2dToy::ToyCosmic::ToyCosmic(WCP2dToy::ToyTrackingSelection& trackings, float abc, float abc1) 
+ * Initializes the object with the given parameters.
+  
+: trackings(trackings)
+ * Main logic for processing the tracking selection and generating cosmic candidates.
+ 
+ * Loop through the tracking selection to identify connected tracks.
+ 
+while(used_trackings.size()!= trackings.size())
+ * Get the current tracking object from the list.
+ 
+curr_tracking = trackings_list.front()
+ * Remove the current tracking object from the list and mark it as used.
+ 
+trackings_list.erase(trackings_list.begin())
+used_trackings.push_back(curr_tracking)
+ * Add the current tracking object to the temporary selection.
+ 
+temp.push_back(curr_tracking)
+ * Check for connections between the current tracking object and other tracks.
+ 
+for (int j=j_save;j!=cosmic_candidates.back().size();j++)
+ * Iterate through the remaining tracking objects to find connections.
+ 
+for (auto it = trackings_list.begin(); it!= trackings_list.end();it++)
+ * Check if the current tracking object is connected to another object.
+ 
+if (IsConnected(cosmic_candidates.back().at(j),curr_tracking1))
+ * If connected, add the object to the saved tracking selection and remove it from the list.
+ 
+saved_trackings.push_back(curr_tracking1)
+it = trackings_list.erase(it)
+used_trackings.push_back(curr_tracking1)
+ * Flag to indicate that a connection was found.
+ 
+flag = 1
+ * Insert the saved tracking objects into the cosmic candidate selection.
+ 
+cosmic_candidates.back().insert(cosmic_candidates.back().end(),saved_trackings.begin(),saved_trackings.end())
+ * Repeat the process until all tracking objects have been processed.
+ 
+while(flag)
+ * Create a new WCCosmic object for each cosmic candidate.
+ 
+for (int i = 0;i!=cosmic_candidates.size();i++)
+WCCosmic *cosmic = new WCCosmic(cosmic_candidates.at(i))
+cosmics.push_back(cosmic)
+ * Merge nearby cosmic candidates.
+ 
+int flag = 1
+while(flag)
+ * Check each pair of cosmic candidates for merging.
+ 
+for (int i=0;i!=cosmics.size();i++)
+WCCosmic *cosmic1 = cosmics.at(i)
+ * Skip empty cosmic candidates.
+ 
+if (cosmic1->get_points().size()==0) continue
+ * Check for overlap with other cosmic candidates.
+ 
+for (int j=0;j!=cosmics.size();j++)
+WCCosmic *cosmic2 = cosmics.at(j)
+ * Skip the same cosmic candidate.
+ 
+if (cosmic1 == cosmic2) continue
+ * Calculate distance and angle between the two cosmic candidates.
+ 
+float dis = cosmic1->cal_dist(cosmic2)
+float angle = cosmic1->cal_costh(cosmic2)
+ * Check if the distance and angle meet the merging criteria.
+ 
+if (dis < 10*units::cm && fabs(angle) > 0.94)
+ * Check if the endpoints of the two cosmic candidates are within the gap cut distance.
+ 
+Point p1_f = cosmic1->get_points().front()
+Point p1_b = cosmic1->get_points().back()
+Point p2_f = cosmic2->get_points().front()
+Point p2_b = cosmic2->get_points().back()
+ * Flag to indicate if the endpoints are within the gap cut distance.
+ 
+int flag1 = 0
+ * Check each endpoint combination.
+ 
+if (sqrt(pow(p1_f.x-p2_f.x,2) +pow(p1_f.y-p2_f.y,2) + pow(p1_f.z-p2_f.z,2)) < gap_cut*units::cm)
+flag1 = 1
+ * If not, check the next combination.
+ 
+if (flag1 == 0)
+if (sqrt(pow(p1_f.x-p2_b.x,2) +pow(p1_f.y-p2_b.y,2) + pow(p1_f.z-p2_b.z,2)) < gap_cut*units::cm)
+flag1 = 1
+ * If still not, check the next combination.
+ 
+if(flag1 == 0)
+if (sqrt(pow(p1_b.x-p2_f.x,2) +pow(p1_b.y-p2_f.y,2) + pow(p1_b.z-p2_f.z,2)) < gap_cut*units::cm)
+flag1 = 1
+ * If still not, check the last combination.
+ 
+if (flag1==0)
+if (sqrt(pow(p1_b.x-p2_b.x,2) +pow(p1_b.y-p2_b.y,2) + pow(p1_b.z-p2_b.z,2)) < gap_cut*units::cm)
+flag1 = 1
+ * If the endpoints are within the gap cut distance, merge the cosmic candidates.
+ 
+if (flag1==1)
+cosmic1->Add(cosmic2)
+temp.push_back(cosmic2)
+flag = 1
+break
+ * Remove the merged cosmic candidates from the list.
+ 
+for (int i=0;i!=temp.size();i++)
+auto it = find(cosmics.begin(),cosmics.end(),temp.at(i))
+delete *it
+cosmics.erase(it)
+ * Filter out non-cosmic candidates.
+ 
+WCCosmicSelection temp
+for (int i=0;i!=cosmics.size();i++)
+if (!cosmics.at(i)->IsCosmic())
+temp.push_back(cosmics.at(i))
+ * Remove the non-cosmic candidates from the list.
+ 
+for (int i=0;i!=temp.size();i++)
+auto it = find(cosmics.begin(),cosmics.end(),temp.at(i))
+delete *it
+cosmics.erase(it)
+ * Identify non-cosmic trackings that are near cosmic candidates.
+ 
+nocosmic_trackings.clear()
+ToyTrackingSelection cosmic_trackings
+for (int i=0;i!=cosmics.size();i++)
+cosmic_trackings.insert(cosmic_trackings.end(),cosmics.at(i)->get_trackings().begin(),cosmics.at(i)->get_trackings().end())
+ * Check each non-cosmic tracking against the cosmic candidates.
+ 
+for (int i=0;i!=trackings.size();i++)
+auto it = find(cosmic_trackings.begin(),cosmic_trackings.end(),trackings.at(i))
+if (it == cosmic_trackings.end())
+nocosmic_trackings.push_back(trackings.at(i))
+ * Filter out non-cosmic trackings that are contained within cosmic candidates.
+ 
+ToyTrackingSelection temp1
+for (int i=0; i!= nocosmic_trackings.size();i++)
+int flag_remove = 0
+ * Check if the non-cosmic tracking is contained within a cosmic candidate.
+ 
+if (nocosmic_trackings.at(i)->IsContained())
+ * Check each cosmic candidate.
+ 
+for (int j=0;j!=cosmics.size();j++)
+if (cosmics.at(j)->IsNearBy(nocosmic_trackings.at(i)))
+flag_remove = 1
+break
+ * If contained, mark for removal.
+ 
+if (flag_remove == 1)
+temp1.push_back(nocosmic_trackings.at(i))
+ * Remove the marked non-cosmic trackings.
+ 
+for (int i=0;i!=temp1.size();i++)
+auto it = find(nocosmic_trackings.begin(),nocosmic_trackings.end(),temp1.at(i))
+nocosmic_trackings.erase(it)* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 WCP2dToy::ToyCosmic::ToyCosmic(WCP2dToy::ToyTrackingSelection& trackings, float abc, float abc1)
   : trackings(trackings)
 {
@@ -228,6 +396,14 @@ WCP2dToy::ToyCosmic::ToyCosmic(WCP2dToy::ToyTrackingSelection& trackings, float 
   // }
 }
 
+/**
+ * @brief Checks if two tracks are connected based on their spatial proximity and direction alignment.
+ *
+ * @param tracking1 First track to compare.
+ * @param tracking2 Second track to compare.
+ * @return True if the tracks are connected, false otherwise.
+ * This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 bool WCP2dToy::ToyCosmic::IsConnected(ToyTracking *tracking1, ToyTracking *tracking2){
   //return false;
   WCTrackSelection& tracking1_tracks = tracking1->get_good_tracks();
@@ -347,6 +523,15 @@ bool WCP2dToy::ToyCosmic::IsConnected(ToyTracking *tracking1, ToyTracking *track
   return false;
 }
 
+/**
+ * Checks if two merge space cells are connected based on their positions and dimensions.
+ *
+ * @param mcell1 First merge space cell to check.
+ * @param mcell2 Second merge space cell to check.
+ * @param dis_cut Maximum allowed distance between the centers of the cells.
+ * @return True if the cells are connected, false otherwise.
+ * This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 bool WCP2dToy::ToyCosmic::IsConnected(MergeSpaceCell *mcell1, MergeSpaceCell *mcell2, float dis_cut){
   float dy1 = mcell1->get_dy();
   float dz1 = mcell1->get_dz();

@@ -51,6 +51,234 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * This function initializes the application, sets up the data sources,
+ * performs simulations, and displays the results.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Exit status of the program.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits if insufficient arguments are provided.
+ 
+if (argc < 3) {
+     * @brief Prints error message indicating incorrect usage.
+   
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl;
+  return 1;
+}
+ * @brief Initializes geometry data source from file specified by first command line argument.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves extent of geometry data source.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints extent of geometry data source to standard error stream.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Sets path to root file and tree within it.
+ 
+const char* root_file = argv[2];
+const char* tpath = "/Event/Sim";
+ * @brief Creates frame data source from root file.
+ 
+WCP::FrameDataSource* fds = 0;
+fds = WCPSst::make_fds(root_file);
+ * @brief Checks if frame data source creation was successful.
+ 
+if (!fds) {
+     * @brief Prints error message if frame data source creation failed.
+   
+  cerr << "ERROR: failed to get FDS from " << root_file << endl;
+  return 1;
+}
+ * @brief Performs depositions using toy depositor.
+ 
+WCP::ToyDepositor toydep(fds);
+const PointValueVector pvv = toydep.depositions(1);
+ * @brief Configures generative frame data source.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,9600,5,0.5*1.60*units::millimeter);
+ * @brief Simulates signal using generative frame data source.
+ 
+WCP2dToy::ToySignalSimuFDS simu_fds(gfds,gds,9600,5,1.647,1.539+1.647,1);
+ * @brief Jumps simulation to event index 1.
+ 
+simu_fds.jump(1);
+ * @brief Configures true frame data source.
+ 
+WCP2dToy::ToySignalSimuTrueFDS st_fds(gfds,gds,9600/4,5);
+ * @brief Jumps true frame data source to event index 1.
+ 
+st_fds.jump(1);
+ * @brief Configures Gaussian smear frame data source.
+ 
+WCP2dToy::ToySignalGausFDS gaus_fds(simu_fds,gds,9600/4,5,1.647,1.539+1.647);
+ * @brief Jumps Gaussian smear frame data source to event index 1.
+ 
+gaus_fds.jump(1);
+ * @brief Configures Wiener smear frame data source.
+ 
+WCP2dToy::ToySignalWienFDS wien_fds(simu_fds,gds,9600/4,5,1.647,1.539+1.647);
+ * @brief Jumps Wiener smear frame data source to event index 1.
+ 
+wien_fds.jump(1);
+ * @brief Retrieves wire selections for each plane.
+ 
+GeomWireSelection wires_u = gds.wires_in_plane(WirePlaneType_t(0));
+GeomWireSelection wires_v = gds.wires_in_plane(WirePlaneType_t(1));
+GeomWireSelection wires_w = gds.wires_in_plane(WirePlaneType_t(2));
+ * @brief Calculates number of wires in each plane.
+ 
+int nwire_u = wires_u.size();
+int nwire_v = wires_v.size();
+int nwire_w = wires_w.size();
+ * @brief Defines thresholds for each plane.
+ 
+float threshold_u = 5.87819e+02 * 4.0;
+float threshold_v = 8.36644e+02 * 4.0;
+float threshold_w = 5.67974e+02 * 4.0;
+ * @brief Defines additional thresholds.
+ 
+float threshold_ug = 755.96;
+float threshold_vg = 822.81;
+float threshold_wg = 510.84;
+ * @brief Configures slice data source using Wiener smear frame data source and Gaussian smear frame data source.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(wien_fds,gaus_fds,threshold_u, 
+                                  threshold_v, threshold_w, 
+                                  threshold_ug, 
+                                  threshold_vg, threshold_wg, 
+                                  nwire_u, 
+                                  nwire_v, nwire_w);
+ * @brief Configures alternative slice data source using true frame data source.
+ 
+WCPSst::ToyuBooNESliceDataSource sds_th(st_fds,st_fds,1, 
+                                  1, 1, 
+                                  threshold_ug, 
+                                  threshold_vg, threshold_wg, 
+                                  nwire_u, 
+                                  nwire_v, nwire_w);
+ * @brief Allocates memory for toy tilings, merge tilings, and truth tilings.
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[2400];
+WCP2dToy::MergeToyTiling **mergetiling = new WCP2dToy::MergeToyTiling*[2400];
+WCP2dToy::TruthToyTiling **truthtiling = new WCP2dToy::TruthToyTiling*[2400];
+ * @brief Initializes collections for cells, reconstructed cells, corner cells, blob cells, and charge map.
+ 
+GeomCellSelection total_cells;
+GeomCellSelection total_recon_cells;
+GeomCellSelection total_corner_cells;
+GeomCellSelection total_blob_cells;
+CellChargeMap total_ccmap;
+ * @brief Iterates over events and processes slices.
+ 
+int start_num = 184 + 800;
+int end_num = 186 + 800;
+for (int i=start_num;i!=end_num+1;i++){
+     * @brief Jumps slice data sources to current event index.
+   
+  sds.jump(i);
+  sds_th.jump(i);
+
+     * @brief Retrieves slice from slice data source.
+   
+  WCP::Slice slice = sds.get();
+  WCP::Slice slice_th = sds_th.get();
+
+     * @brief Configures toy tiling using slice and geometry data source.
+   
+  toytiling[i] = new WCP2dToy::ToyTiling(slice,gds,0,0,0,threshold_ug,threshold_vg, threshold_wg);
+
+     * @brief Configures merge tiling using toy tiling.
+   
+  mergetiling[i] = new WCP2dToy::MergeToyTiling(*toytiling[i],i);
+
+     * @brief Retrieves all cells and wires from toy tiling and merge tiling.
+   
+  GeomCellSelection allcell = toytiling[i]->get_allcell();
+  GeomWireSelection allwire = toytiling[i]->get_allwire();
+  GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+  GeomWireSelection allmwire = mergetiling[i]->get_allwire();
+
+     * @brief Prints size of merged cell selection and truth group size.
+   
+  cout << i << " " << allmcell.size() << " " << allmwire.size() << " " << slice_th.group().size() << endl;
+
+     * @brief Configures truth tiling using toy tiling, point value vector, event index, and geometry data source.
+   
+  truthtiling[i] = new WCP2dToy::TruthToyTiling(*toytiling[i],pvv,i,gds,800);
+
+     * @brief Adds all cells from toy tiling to total cells collection.
+   
+  for (int j=0;j!=allcell.size();j++){
+    total_cells.push_back(allcell.at(j));
+  }
+
+     * @brief Inserts charge map from truth tiling into total charge map.
+   
+  CellChargeMap ccmap = truthtiling[i]->ccmap();
+  total_ccmap.insert(ccmap.begin(),ccmap.end());
+}
+ * @brief Defines minimum and maximum charge values.
+ 
+Double_t charge_min = 10000;
+Double_t charge_max = 0;
+ * @brief Initializes ROOT application.
+ 
+TApplication theApp("theApp",&argc,argv);
+theApp.SetReturnFromRun(true);
+ * @brief Creates canvas for displaying results.
+ 
+TCanvas c1("ToyMC","ToyMC",800,600);
+c1.Draw();
+ * @brief Configures event display using canvas and geometry data source.
+ 
+WCP2dToy::ToyEventDisplay display(c1, gds);
+display.charge_min = charge_min;
+display.charge_max = charge_max;
+ * @brief Disables statistics display.
+ 
+gStyle->SetOptStat(0);
+ * @brief Defines custom color palette.
+ 
+const Int_t NRGBs = 5;
+const Int_t NCont = 255;
+Int_t MyPalette[NCont];
+Double_t stops[NRGBs] = {0.0, 0.34, 0.61, 0.84, 1.0};
+Double_t red[NRGBs] = {0.0, 0.0, 0.87,1.0, 0.51};
+Double_t green[NRGBs] = {0.0, 0.81, 1.0, 0.2,0.0};
+Double_t blue[NRGBs] = {0.51, 1.0, 0.12, 0.0, 0.0};
+Int_t FI = TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+gStyle->SetNumberContours(NCont);
+for (int kk=0;kk!=NCont;kk++) MyPalette[kk] = FI+kk;
+gStyle->SetPalette(NCont,MyPalette);
+ * @brief Initializes event display.
+ 
+display.init(0,10.3698,-2.33/2.,2.33/2.);
+ * @brief Draws Monte Carlo truth using point value vector.
+ 
+display.draw_mc(1,WCP::PointValueVector(),"colz");
+ * @brief Draws cells from total cells collection.
+ 
+display.draw_cells(total_cells,"*same");
+ * @brief Draws truth cells from total charge map.
+ 
+display.draw_truthcells(total_ccmap,"*same");
+ * @brief Runs ROOT application.
+ 
+theApp.Run();
+
+return 0;
+}* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 3) {

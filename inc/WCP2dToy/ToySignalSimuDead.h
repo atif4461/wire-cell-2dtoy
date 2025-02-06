@@ -8,6 +8,8 @@
 #include "TGraph.h"
 
 namespace WCP2dToy {
+
+  // Error in ai-comm-gen	
   class ToySignalSimuDeadFDS : public WCP::FrameDataSource
   {
   public:
