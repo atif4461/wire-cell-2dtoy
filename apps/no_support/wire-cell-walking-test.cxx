@@ -30,6 +30,187 @@
 using namespace WCP;
 using namespace std;
 
+/**
+ * @brief Main program entry point
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line argument strings
+ * @return Program exit status
+ 
+int main(int argc, char* argv[]) 
+ * @brief Get the geometry data source
+ *
+ * @param path Path to the shower 3D root file
+ * @return Geometry data source object
+ 
+WCPSst::GeomDataSource gds(argv[1])
+ * @brief Get the extent of the geometry
+ *
+ * @return Vector of doubles representing the extent
+ 
+std::vector<double> ex = gds.extent()
+ * @brief Print the extent to the error stream
+ 
+cerr << "Extent: " << " x:" << ex[0]/units::mm << " mm" << " y:" << ex[1]/units::m << " m" << " z:" << ex[2]/units::m << " m" << endl
+ * @brief Get the pitch of the wire planes
+ *
+ * @param type Type of wire plane
+ * @return Pitch value
+ 
+double pitch = gds.pitch(WirePlaneType_t(0))
+ * @brief Get the angle of the wire planes
+ *
+ * @param type Type of wire plane
+ * @return Angle value
+ 
+double angle = gds.angle(WirePlaneType_t(0))
+ * @brief Open the ROOT file
+ *
+ * @param filename Name of the file to open
+ * @return Pointer to the opened file
+ 
+TFile *file = new TFile(filename)
+ * @brief Get the trees from the file
+ *
+ * @param treename Name of the tree to retrieve
+ * @return Pointer to the retrieved tree
+ 
+TTree *T = (TTree*)file->Get("T")
+TTree *TC = (TTree*)file->Get("TC")
+TTree *Trun = (TTree*)file->Get("Trun")
+ * @brief Set the branch addresses for the trees
+ *
+ * @param branchnames Names of the branches to set
+ 
+Trun->SetBranchAddress("nrebin",&nrebin)
+Trun->SetBranchAddress("unit_dis",&unit_dis)
+Trun->SetBranchAddress("total_time_bin",&total_time_bin)
+ * @brief Get the singleton instance of the TPC parameters
+ *
+ * @return Reference to the singleton instance
+ 
+TPCParams& mp = Singleton<TPCParams>::Instance()
+ * @brief Set the pitches and time slice width for the TPC parameters
+ *
+ * @param pitch_u Pitch value for u direction
+ * @param pitch_v Pitch value for v direction
+ * @param pitch_w Pitch value for w direction
+ * @param time_slice_width Time slice width value
+ 
+mp.set_pitch_u(pitch_u)
+mp.set_pitch_v(pitch_v)
+mp.set_pitch_w(pitch_w)
+mp.set_ts_width(time_slice_width)
+ * @brief Create a new ToyTiling object array
+ *
+ * @param ntime Number of time slices
+ * @return Array of ToyTiling objects
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[ntime]
+ * @brief Loop through the entries of the TC tree
+ *
+ * @param i Entry index
+ 
+for (int i=0;i!=TC->GetEntries();i++)
+ * @brief Get the entry from the TC tree
+ *
+ * @param i Entry index
+ 
+TC->GetEntry(i)
+ * @brief Add a cell to the ToyTiling object
+ *
+ * @param gds Geometry data source
+ * @param cell Cell to add
+ * @param u_index U index value
+ * @param v_index V index value
+ * @param w_index W index value
+ * @param u_charge U charge value
+ * @param v_charge V charge value
+ * @param w_charge W charge value
+ * @param u_charge_err U charge error value
+ * @param v_charge_err V charge error value
+ * @param w_charge_err W charge error value
+ 
+toytiling[time_slice]->AddCell(gds,cell1,u_index,v_index,w_index,u_charge,v_charge,w_charge,u_charge_err,v_charge_err,w_charge_err)
+ * @brief Create a new SpaceCell object
+ *
+ * @param cluster_num Cluster number
+ * @param cell Cell object
+ * @param x X position value
+ * @param charge Charge value
+ * @param unit_dis Unit distance value
+ * @return SpaceCell object
+ 
+SpaceCell *space_cell = new SpaceCell(cluster_num,*cell1,x*units::cm,charge,unit_dis/10.*nrebin/2.*units::cm)
+ * @brief Add the SpaceCell object to the MergeSpaceCell object
+ *
+ * @param space_cell SpaceCell object to add
+ 
+mcell->AddSpaceCell(space_cell)
+ * @brief Create a new ToyCrawler object
+ *
+ * @param mcells MergeSpaceCell selection
+ 
+WCP2dToy::ToyCrawler toycrawler(mcells)
+ * @brief Get the map of MergeSpaceCell objects
+ *
+ * @return Map of MergeSpaceCell objects
+ 
+MergeSpaceCellMap& mcells_map = toycrawler.Get_mcells_map()
+ * @brief Find the center point
+ *
+ * @param mcells MergeSpaceCell selection
+ * @return Center point
+ 
+Point center(0,0,0)
+ * @brief Calculate the center point coordinates
+ *
+ * @param i Index of the MergeSpaceCell object
+ 
+for (int i=0;i!=mcells.size();i++)
+center.x +=mcells.at(i)->Get_Center().x *mcells.at(i)->Get_all_spacecell().size()
+center.y +=mcells.at(i)->Get_Center().y *mcells.at(i)->Get_all_spacecell().size()
+center.z +=mcells.at(i)->Get_Center().z *mcells.at(i)->Get_all_spacecell().size()
+ * @brief Find the furthest MergeSpaceCell object from the center point
+ *
+ * @param i Index of the MergeSpaceCell object
+ * @return Furthest MergeSpaceCell object
+ 
+float max_dis = 0
+MergeSpaceCell *mcell1
+for (int i=0;i!=mcells.size();i++)
+float dis = sqrt(pow(mcells.at(i)->Get_Center().x-center.x,2) + pow(mcells.at(i)->Get_Center().y-center.y,2) + pow(mcells.at(i)->Get_Center().z-center.z,2))
+if (dis > max_dis)
+max_dis = dis
+mcell1 = mcells.at(i)
+ * @brief Find the furthest MergeSpaceCell object from the previous one
+ *
+ * @param i Index of the MergeSpaceCell object
+ * @return Furthest MergeSpaceCell object
+ 
+float max_dis = 0
+MergeSpaceCell *mcell2
+for (int i=0;i!=mcells.size();i++)
+float dis = sqrt(pow(mcells.at(i)->Get_Center().x-mcell1->Get_Center().x,2) + pow(mcells.at(i)->Get_Center().y-mcell1->Get_Center().y,2) + pow(mcells.at(i)->Get_Center().z-mcell1->Get_Center().z,2))
+if (dis > max_dis)
+max_dis = dis
+mcell2 = mcells.at(i)
+ * @brief Create a new ToyWalking object
+ *
+ * @param mcell1 First MergeSpaceCell object
+ * @param start_point Start point
+ * @param mcell2 Second MergeSpaceCell object
+ * @param end_point End point
+ * @param mcells_map Map of MergeSpaceCell objects
+ * @param max_steps Maximum number of steps
+ 
+WCP2dToy::ToyWalking walking(mcell1,start_point,mcell2,end_point,mcells_map,5000)
+ * @brief Get the selected MergeSpaceCell objects
+ *
+ * @return Selection of MergeSpaceCell objects
+ 
+MergeSpaceCellSelection mcells1 = walking.get_cells()* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.2.
+*/ 
 int main(int argc, char* argv[])
 {
    if (argc < 3) {

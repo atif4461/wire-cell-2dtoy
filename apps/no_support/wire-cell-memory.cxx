@@ -51,6 +51,206 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Function to initialize Kokkos.
+ *
+ * @details Initializes Kokkos before executing any Kokkos code.
+ 
+void InitializeKokkos()
+ * @brief Function to finalize Kokkos.
+ *
+ * @details Finalizes Kokkos after executing all Kokkos code.
+ 
+void FinalizeKokkos()
+ * @brief Function to handle command line arguments.
+ *
+ * @details Checks the number of command line arguments and prints usage message if insufficient.
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Error code (non-zero if invalid arguments).
+ 
+int HandleArguments(int argc, char* argv[])
+ * @brief Function to load geometry data source.
+ *
+ * @details Loads geometry data from a file specified by the first command line argument.
+ * @param argv Array of command line argument strings.
+ * @return Geometry data source object.
+ 
+WCPSst::GeomDataSource LoadGeometryData(char* argv[])
+ * @brief Function to print extent of geometry data.
+ *
+ * @details Prints the extent of the loaded geometry data.
+ * @param gds Geometry data source object.
+ 
+void PrintGeometryExtent(WCPSst::GeomDataSource gds)
+ * @brief Function to open ROOT file.
+ *
+ * @details Opens a ROOT file specified by the second command line argument.
+ * @param root_file Path to the ROOT file.
+ * @return Pointer to the opened ROOT file.
+ 
+TFile* OpenRootFile(const char* root_file)
+ * @brief Function to make frame data source.
+ *
+ * @details Creates a frame data source object from the opened ROOT file.
+ * @param tfile Pointer to the opened ROOT file.
+ * @return Frame data source object.
+ 
+WCP::FrameDataSource* MakeFrameDataSource(TFile* tfile)
+ * @brief Function to set up ToyDepositor.
+ *
+ * @details Sets up a ToyDepositor object with the frame data source.
+ * @param fds Frame data source object.
+ 
+void SetUpToyDepositor(WCP::FrameDataSource* fds)
+ * @brief Function to generate depositions.
+ *
+ * @details Generates depositions using the ToyDepositor object.
+ * @param toydep ToyDepositor object.
+ * @param eve_num Event number.
+ * @return Vector of point values representing depositions.
+ 
+PointValueVector GenerateDepositions(WCP::ToyDepositor toydep, int eve_num)
+ * @brief Function to set up GenerativeFDS.
+ *
+ * @details Sets up a GenerativeFDS object with the ToyDepositor and geometry data source.
+ * @param toydep ToyDepositor object.
+ * @param gds Geometry data source object.
+ * @param max_events Maximum number of events.
+ 
+void SetUpGenerativeFDS(WCP::ToyDepositor toydep, WCPSst::GeomDataSource gds, int max_events)
+ * @brief Function to jump to a specific event.
+ *
+ * @details Jumps the GenerativeFDS object to a specific event.
+ * @param gfds GenerativeFDS object.
+ * @param eve_num Event number.
+ 
+void JumpToEvent(WCP::GenerativeFDS gfds, int eve_num)
+ * @brief Function to set up ToySignalSimuTrueFDS.
+ *
+ * @details Sets up a ToySignalSimuTrueFDS object with the GenerativeFDS and geometry data source.
+ * @param gfds GenerativeFDS object.
+ * @param gds Geometry data source object.
+ 
+void SetUpToySignalSimuTrueFDS(WCP::GenerativeFDS gfds, WCPSst::GeomDataSource gds)
+ * @brief Function to set up ToySignalSimuFDS.
+ *
+ * @details Sets up a ToySignalSimuFDS object with the GenerativeFDS and geometry data source.
+ * @param gfds GenerativeFDS object.
+ * @param gds Geometry data source object.
+ 
+void SetUpToySignalSimuFDS(WCP::GenerativeFDS gfds, WCPSst::GeomDataSource gds)
+ * @brief Function to set up ToySignalGausFDS.
+ *
+ * @details Sets up a ToySignalGausFDS object with the ToySignalSimuFDS and geometry data source.
+ * @param simu_fds ToySignalSimuFDS object.
+ * @param gds Geometry data source object.
+ 
+void SetUpToySignalGausFDS(WCP2dToy::ToySignalSimuFDS simu_fds, WCPSst::GeomDataSource gds)
+ * @brief Function to set up ToySignalWienFDS.
+ *
+ * @details Sets up a ToySignalWienFDS object with the ToySignalSimuFDS and geometry data source.
+ * @param simu_fds ToySignalSimuFDS object.
+ * @param gds Geometry data source object.
+ 
+void SetUpToySignalWienFDS(WCP2dToy::ToySignalSimuFDS simu_fds, WCPSst::GeomDataSource gds)
+ * @brief Function to set up TuyouBooNESliceDataSource.
+ *
+ * @details Sets up a TuyouBooNESliceDataSource object with the ToySignalWienFDS, ToySignalGausFDS, and thresholds.
+ * @param wien_fds ToySignalWienFDS object.
+ * @param gaus_fds ToySignalGausFDS object.
+ * @param threshold_u U-plane threshold.
+ * @param threshold_v V-plane threshold.
+ * @param threshold_w W-plane threshold.
+ * @param threshold_ug U-plane global threshold.
+ * @param threshold_vg V-plane global threshold.
+ * @param threshold_wg W-plane global threshold.
+ * @param nwire_u Number of u-plane wires.
+ * @param nwire_v Number of v-plane wires.
+ * @param nwire_w Number of w-plane wires.
+ 
+void SetUpTuyouBooNESliceDataSource(WCP2dToy::ToySignalWienFDS wien_fds, WCP2dToy::ToySignalGausFDS gaus_fds, float threshold_u, float threshold_v, float threshold_w, float threshold_ug, float threshold_vg, float threshold_wg, int nwire_u, int nwire_v, int nwire_w)
+ * @brief Function to set up ToyTiling.
+ *
+ * @details Sets up a ToyTiling object with the Slice and geometry data source.
+ * @param slice Slice object.
+ * @param gds Geometry data source object.
+ 
+void SetUpToyTiling(WCP::Slice slice, WCPSst::GeomDataSource gds)
+ * @brief Function to set up MergeToyTiling.
+ *
+ * @details Sets up a MergeToyTiling object with the ToyTiling object.
+ * @param toytiling ToyTiling object.
+ 
+void SetUpMergeToyTiling(WCP2dToy::ToyTiling toytiling)
+ * @brief Function to set up TruthToyTiling.
+ *
+ * @details Sets up a TruthToyTiling object with the ToyTiling object, point value vector, and geometry data source.
+ * @param toytiling ToyTiling object.
+ * @param pvv Point value vector.
+ * @param gds Geometry data source object.
+ 
+void SetUpTruthToyTiling(WCP2dToy::ToyTiling toytiling, PointValueVector pvv, WCPSst::GeomDataSource gds)
+ * @brief Function to set up ToyMatrix.
+ *
+ * @details Sets up a ToyMatrix object with the ToyTiling and MergeToyTiling objects.
+ * @param toytiling ToyTiling object.
+ * @param mergetiling MergeToyTiling object.
+ 
+void SetUpToyMatrix(WCP2dToy::ToyTiling toytiling, WCP2dToy::MergeToyTiling mergetiling)
+ * @brief Function to calculate chi-squared and NDF.
+ *
+ * @details Calculates the chi-squared and NDF values for the ToyMatrix object.
+ * @param toymatrix ToyMatrix object.
+ 
+void CalculateChiSquaredAndNDF(WCP2dToy::ToyMatrix toymatrix)
+ * @brief Function to add to metric.
+ *
+ * @details Adds the ToyMatrix object to the metric.
+ * @param toymetric Metric object.
+ * @param toymatrix ToyMatrix object.
+ 
+void AddToMetric(WCP2dToy::ToyMetric toymetric, WCP2dToy::ToyMatrix toymatrix)
+ * @brief Function to solve matrix.
+ *
+ * @details Solves the matrix using the ToyMatrixMarkov object.
+ * @param toymatrix ToyMatrix object.
+ 
+void SolveMatrix(WCP2dToy::ToyMatrix toymatrix)
+ * @brief Function to reduce blobs.
+ *
+ * @details Reduces blobs using the SimpleBlobToyTiling object.
+ * @param toytiling ToyTiling object.
+ * @param mergetiling MergeToyTiling object.
+ * @param toymatrix ToyMatrix object.
+ 
+void ReduceBlobs(WCP2dToy::ToyTiling toytiling, WCP2dToy::MergeToyTiling mergetiling, WCP2dToy::ToyMatrix toymatrix)
+ * @brief Function to perform Markov chain Monte Carlo.
+ *
+ * @details Performs Markov chain Monte Carlo using the ToyMatrixMarkov object.
+ * @param toymatrix ToyMatrix object.
+ 
+void PerformMCMC(WCP2dToy::ToyMatrix toymatrix)
+ * @brief Function to save results.
+ *
+ * @details Saves the results to a file.
+ * @param file File pointer.
+ 
+void SaveResults(TFile* file)
+ * @brief Function to close file.
+ *
+ * @details Closes the file.
+ * @param file File pointer.
+ 
+void CloseFile(TFile* file)* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.2.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {

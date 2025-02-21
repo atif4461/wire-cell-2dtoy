@@ -32,6 +32,182 @@ using namespace std;
 #define MAX_TRACKS 30000
 
 
+/**
+
+```cpp * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[])
+ * @brief Prints usage message and exits if insufficient arguments are provided.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+if (argc <= 3) {
+    cerr << "usage: wire-cell-allcluster geometry.txt /path/to/shower_3D.root #eve" << endl;
+    return 1;
+}
+ * @brief Creates a GeomDataSource object from the first command line argument.
+ *
+ * @param argv Array of command line argument strings.
+ * @return A GeomDataSource object.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves the extent of the geometry data source.
+ *
+ * @param gds GeomDataSource object.
+ * @return A vector of doubles representing the extent.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints the extent of the geometry data source.
+ *
+ * @param ex Vector of doubles representing the extent.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Prints the pitches of the wire planes.
+ *
+ * @param gds GeomDataSource object.
+ 
+cout << "Pitch: " << gds.pitch(WirePlaneType_t(0)) 
+     << " " << gds.pitch(WirePlaneType_t(1)) 
+     << " " << gds.pitch(WirePlaneType_t(2))
+     << endl;
+ * @brief Prints the angles of the wire planes.
+ *
+ * @param gds GeomDataSource object.
+ 
+cout << "Angle: " << gds.angle(WirePlaneType_t(0)) 
+     << " " << gds.angle(WirePlaneType_t(1)) 
+     << " " << gds.angle(WirePlaneType_t(2))
+     << endl;
+ * @brief Opens a ROOT file from the second command line argument.
+ *
+ * @param argv Array of command line argument strings.
+ * @return A pointer to a TFile object.
+ 
+TString filename = argv[2];
+TFile *file = new TFile(filename);
+ * @brief Retrieves trees from the ROOT file.
+ *
+ * @param file Pointer to a TFile object.
+ * @return Pointers to TTree objects.
+ 
+TTree *TC = (TTree*)file->Get("TC");
+TTree *Trun = (TTree*)file->Get("Trun");
+TTree *TMC = (TTree*)file->Get("TMC");
+ * @brief Sets up branches for the trees.
+ *
+ * @param TC Pointer to a TTree object.
+ * @param Trun Pointer to a TTree object.
+ 
+float unit_dis;
+int nrebin;
+int total_time_bin;
+Trun->SetBranchAddress("nrebin",&nrebin);
+Trun->SetBranchAddress("unit_dis",&unit_dis);
+Trun->SetBranchAddress("total_time_bin",&total_time_bin);
+Trun->GetEntry(0);
+ * @brief Configures the TPC parameters singleton instance.
+ *
+ * @param gds GeomDataSource object.
+ * @param nrebin Integer value.
+ * @param unit_dis Float value.
+ 
+TPCParams& mp = Singleton<TPCParams>::Instance();
+double pitch_u = gds.pitch(WirePlaneType_t(0));
+double pitch_v = gds.pitch(WirePlaneType_t(1));
+double pitch_w = gds.pitch(WirePlaneType_t(2));
+double time_slice_width = nrebin * unit_dis * 0.5 * units::mm;
+mp.set_pitch_u(pitch_u);
+mp.set_pitch_v(pitch_v);
+mp.set_pitch_w(pitch_w);
+mp.set_ts_width(time_slice_width);
+ * @brief Processes the tree entries.
+ *
+ * @param TC Pointer to a TTree object.
+ * @param gds GeomDataSource object.
+ 
+int prev_mcell_id = -1;
+int prev_cluster_num = -1;
+MergeSpaceCellSelection mcells;
+int flag = 0;
+MergeSpaceCell *mcell = 0;
+SpaceCellSelection cells;
+for (int i=0;i!=TC->GetEntries();i++){
+    TC->GetEntry(i);
+    //...
+}
+ * @brief Creates a ToyCrawler object and adds it to the list of crawlers.
+ *
+ * @param mcells MergeSpaceCellSelection object.
+ 
+WCP2dToy::ToyCrawler* toycrawler = new WCP2dToy::ToyCrawler(mcells);
+toycrawler->FormGraph();
+crawlers.push_back(toycrawler);
+ * @brief Checks the number of clusters.
+ *
+ * @param trackings List of ToyTracking objects.
+ 
+int sum = 0;
+for (int i=0;i!=crawlers.size();i++){
+    WCP2dToy::ToyTracking *toytracking = new WCP2dToy::ToyTracking(*crawlers.at(i));
+    //...
+}
+ * @brief Writes the results to a new ROOT file.
+ *
+ * @param trackings List of ToyTracking objects.
+ * @param eve_no Integer value.
+ 
+TFile *file1 = new TFile(Form("cluster_tracking_%d.root",eve_no),"RECREATE");
+//...
+ * @brief Fills the trees with data.
+ *
+ * @param trackings List of ToyTracking objects.
+ 
+for (int i = 0; i!=good_tracks.size();i++){
+    WCTrack *track = good_tracks.at(i);
+    //...
+}
+for (int i=0;i!=vertices.size();i++){
+    WCVertex *vertex = vertices.at(i);
+    //...
+}
+for (int i = 0; i!=bad_tracks.size();i++){
+    WCTrack *track = bad_tracks.at(i);
+    //...
+}
+for (int i = 0; i!=short_tracks.size();i++){
+    WCTrack *track = short_tracks.at(i);
+    //...
+}
+for (int i = 0; i!=parallel_tracks.size();i++){
+    WCTrack *track = parallel_tracks.at(i);
+    //...
+}
+for (int i=0;i!=showers.size();i++){
+    WCShower *shower = showers.at(i);
+    //...
+}
+ * @brief Writes the graphs to the file.
+ *
+ * @param file1 Pointer to a TFile object.
+ 
+g->Write("shower3D");
+TC->CloneTree()->Write();
+Trun->CloneTree()->Write();
+TMC->CloneTree()->Write();
+file1->Write();
+file1->Close();
+```* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.2.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc <= 3) {

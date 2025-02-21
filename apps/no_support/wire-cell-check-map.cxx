@@ -37,6 +37,200 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits if insufficient arguments are provided.
+ 
+if (argc < 3) {
+     * @brief Prints error message indicating incorrect usage.
+   
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl;
+  return 1;
+}
+ * @brief Creates a geometry data source object from the first command line argument.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves the extent of the geometry data source.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints the extent of the geometry data source.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Sets the path to the ROOT file specified by the second command line argument.
+ 
+const char* root_file = argv[2];
+ * @brief Sets the tree path within the ROOT file.
+ 
+const char* tpath = "/Event/Sim";
+ * @brief Creates a frame data source object from the ROOT file.
+ 
+WCP::FrameDataSource* fds = 0;
+fds = WCPSst::make_fds(root_file);
+ * @brief Checks if the frame data source was successfully created.
+ 
+if (!fds) {
+     * @brief Prints an error message if the frame data source creation failed.
+   
+  cerr << "ERROR: failed to get FDS from " << root_file << endl;
+  return 1;
+}
+ * @brief Creates a ToyDepositor object from the frame data source.
+ 
+WCP::ToyDepositor toydep(fds);
+ * @brief Retrieves depositions from the ToyDepositor object.
+ 
+const PointValueVector pvv = toydep.depositions(1);
+ * @brief Creates a GenerativeFDS object from the ToyDepositor and geometry data source objects.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,2400,5,2.0*1.6*units::millimeter);
+ * @brief Jumps to the first event in the GenerativeFDS object.
+ 
+gfds.jump(1);
+ * @brief Creates a ToyuBooNESliceDataSource object from the GenerativeFDS object.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(gfds,1500);
+ * @brief Allocates arrays to store coordinates and counts.
+ 
+const int N = 100000;
+Double_t x[N],y[N],z[N];
+Double_t xt[N],yt[N],zt[N];
+int ncount = 0;
+int ncount_t = 0;
+ * @brief Allocates memory for ToyTiling, MergeToyTiling, and TruthToyTiling objects.
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[2400];
+WCP2dToy::MergeToyTiling **mergetiling = new WCP2dToy::MergeToyTiling*[2400];
+WCP2dToy::TruthToyTiling **truthtiling = new WCP2dToy::TruthToyTiling*[2400];
+ * @brief Loop through events in the ToyuBooNESliceDataSource object.
+ 
+for (int i=352;i!=sds.size();i++) {
+     * @brief Jumps to the current event in the ToyuBooNESliceDataSource object.
+   
+  sds.jump(i);
+
+     * @brief Retrieves the current slice from the ToyuBooNESliceDataSource object.
+   
+  WCP::Slice slice = sds.get();
+
+     * @brief Checks if the slice has groups.
+   
+  if (slice.group().size() > 0) {
+
+         * @brief Creates ToyTiling, MergeToyTiling, and TruthToyTiling objects for the current slice.
+     
+    toytiling[i] = new WCP2dToy::ToyTiling(slice,gds);
+    mergetiling[i] = new WCP2dToy::MergeToyTiling(*toytiling[i],i);
+    truthtiling[i] = new WCP2dToy::TruthToyTiling(*toytiling[i],pvv,i,gds);
+
+         * @brief Retrieves selections of cells and wires from the ToyTiling and MergeToyTiling objects.
+     
+    GeomCellSelection allcell = toytiling[i]->get_allcell();
+    GeomWireSelection allwire = toytiling[i]->get_allwire();
+    GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+    GeomWireSelection allmwire = mergetiling[i]->get_allwire();
+
+         * @brief Loops through cells and stores their centers in arrays.
+     
+    for (int j=0;j!=allcell.size();j++) {
+      Point p = allcell[j]->center();
+      x[ncount] = i*0.32;
+      y[ncount] = p.y/units::cm;
+      z[ncount] = p.z/units::cm;
+      ncount++;
+    }
+
+         * @brief Retrieves the cell-charge map from the TruthToyTiling object.
+     
+    CellChargeMap ccmap = truthtiling[i]->ccmap();
+
+         * @brief Initializes variables to track minimum and maximum charges.
+     
+    Double_t charge_min = 10000;
+    Double_t charge_max = 0;
+
+         * @brief Loops through the cell-charge map and updates minimum and maximum charges.
+     
+    for (auto it = ccmap.begin();it!=ccmap.end(); it++) {
+      Point p = it->first->center();
+      xt[ncount_t] = i*0.32;
+      yt[ncount_t] = p.y/units::cm;
+      zt[ncount_t] = p.z/units::cm;
+      ncount_t++;
+
+      double charge = it->second;
+      if (charge > charge_max) charge_max = charge;
+      if (charge < charge_min) charge_min = charge;
+    }
+
+         * @brief Performs checks on merged cells and wires.
+     
+    //... (rest of the code remains the same)
+ * @brief Creates a ROOT application object.
+ 
+TApplication theApp("theApp",&argc,argv);
+ * @brief Configures the application to return from Run method.
+ 
+theApp.SetReturnFromRun(true);
+ * @brief Creates a canvas object.
+ 
+TCanvas c1("ToyMC","ToyMC",800,600);
+ * @brief Draws the canvas.
+ 
+c1.Draw();
+ * @brief Creates a ToyEventDisplay object from the canvas and geometry data source objects.
+ 
+WCP2dToy::ToyEventDisplay display(c1, gds);
+ * @brief Sets the charge range for the display object.
+ 
+display.charge_min = charge_min;
+display.charge_max = charge_max;
+ * @brief Configures the graphics style.
+ 
+gStyle->SetOptStat(0);
+ * @brief Defines a color palette.
+ 
+const Int_t NRGBs = 5;
+const Int_t NCont = 255;
+Int_t MyPalette[NCont];
+Double_t stops[NRGBs] = {0.0, 0.34, 0.61, 0.84, 1.0};
+Double_t red[NRGBs] = {0.0, 0.0, 0.87,1.0, 0.51};
+Double_t green[NRGBs] = {0.0, 0.81, 1.0, 0.2,0.0};
+Double_t blue[NRGBs] = {0.51, 1.0, 0.12, 0.0, 0.0};
+Int_t FI = TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+gStyle->SetNumberContours(NCont);
+for (int kk=0;kk!=NCont;kk++) MyPalette[kk] = FI+kk;
+gStyle->SetPalette(NCont,MyPalette);
+ * @brief Initializes the display object.
+ 
+display.init(0,10.3698,-2.33/2.,2.33/2.);
+ * @brief Draws various elements on the display object.
+ 
+display.draw_mc(1,WCP::PointValueVector(),"colz");
+display.draw_slice(slice,"");
+display.draw_cells(toytiling[i]->get_allcell(),"*same");
+display.draw_mergecells(mergetiling[i]->get_allcell(),"*same",1);
+display.draw_truthcells(ccmap,"*same");
+ * @brief Runs the application.
+ 
+theApp.Run();
+}
+ * @brief Prints summary information.
+ 
+cout << "Summary: " << ncount << " " << ncount_mcell << " " << ncount_mcell_cluster << endl;
+ * @brief Returns the program exit status.
+ 
+return 0;* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.2.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 3) {

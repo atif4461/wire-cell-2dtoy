@@ -30,6 +30,153 @@
 using namespace WCP;
 using namespace std;
 
+/**
+ * @brief Main function of the program
+ *
+ * This function serves as the entry point of the program. It sets up the environment,
+ * reads command line arguments, defines user parameters, and performs the main logic
+ * of the program.
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line argument strings
+ * @return Exit status of the program
+ 
+int main(int argc, char* argv[]) 
+ * @brief Sets up the environment
+ *
+ * This section sets the error ignore level and checks the number of command line arguments.
+ 
+// Setup environment
+gErrorIgnoreLevel = kError;
+ * @brief Checks command line arguments and prints usage message if invalid
+ *
+ * This section checks if the number of command line arguments is less than 3 and prints
+ * the usage message if true.
+ 
+if (argc < 3) {
+  cerr << "usage:  wire-cell-uboone-truth-MM /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl;
+  return 1;
+}
+ * @brief Defines user parameters
+ *
+ * This section defines various user parameters such as run mode, slice range, and thresholds.
+ 
+const Int_t runMode = 0;
+const Int_t firstSlice = 460;
+const Int_t lastSlice = 560;
+const Int_t sliceStep = 10;
+const Double_t lowZ = 1.5;
+const Double_t highZ = 2.5;
+const Double_t lowY = 0.5;
+const Double_t highY = 1.0;
+const Int_t binsPerFrame = 2400;
+const Int_t totalFrames = 5;
+const Int_t elecThreshold = 2000;
+ * @brief Creates diagnostic histograms
+ *
+ * This section creates several histograms for diagnostic purposes.
+ 
+TH2F *eigenValHist = new TH2F("eigenValHist","",15,0,30,15,0,30);
+eigenValHist->GetXaxis()->SetTitle("Number of Cells");
+eigenValHist->GetYaxis()->SetTitle("Number of Non-zero Eigenvalues");
+TH1F *passChargeRecoRes = new TH1F("passChargeRecoRes","",40,-2.0,2.0);
+passChargeRecoRes->GetXaxis()->SetTitle("(recoCharge-trueCharge)/trueCharge");
+passChargeRecoRes->GetYaxis()->SetTitle("# of Events");
+TH1F *failChargeRecoRes = new TH1F("failChargeRecoRes","",40,-2.0,2.0);
+failChargeRecoRes->GetXaxis()->SetTitle("(recoCharge-trueCharge)/trueCharge");
+failChargeRecoRes->GetYaxis()->SetTitle("# of Events");
+TH1F *totalChargeRecoRes = new TH1F("totalChargeRecoRes","",40,-2.0,2.0);
+totalChargeRecoRes->GetXaxis()->SetTitle("(recoCharge-trueCharge)/trueCharge");
+totalChargeRecoRes->GetYaxis()->SetTitle("# of Events");
+ * @brief Sets up display options
+ *
+ * This section sets up the display options such as statistics and color palette.
+ 
+gStyle->SetOptStat(0);  
+const Int_t NRGBs = 5;
+const Int_t NCont = 255;
+Int_t MyPalette[NCont];
+Double_t stops[NRGBs] = {0.0, 0.34, 0.61, 0.84, 1.0};
+Double_t red[NRGBs] = {0.0, 0.0, 0.87,1.0, 0.51};
+Double_t green[NRGBs] = {0.0, 0.81, 1.0, 0.2,0.0};
+Double_t blue[NRGBs] = {0.51, 1.0, 0.12, 0.0, 0.0};
+Int_t FI = TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+gStyle->SetNumberContours(NCont);
+for (int kk=0;kk!=NCont;kk++) MyPalette[kk] = FI+kk;
+gStyle->SetPalette(NCont,MyPalette);
+ * @brief Gets geometry data source and frame data source
+ *
+ * This section gets the geometry data source and frame data source from files.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+WCP::FrameDataSource* fds = 0;
+fds = WCPSst::make_fds(root_file);
+ * @brief Creates generative frame data source and slice data source
+ *
+ * This section creates generative frame data source and slice data source objects.
+ 
+WCP::ToyDepositor toydep(fds);
+const PointValueVector pvv = toydep.depositions(1);
+WCP::GenerativeFDS gfds(toydep,gds,binsPerFrame,totalFrames,2.0*1.6*units::millimeter);
+gfds.jump(1); 
+WCPSst::ToyuBooNESliceDataSource sds(gfds,elecThreshold);
+ * @brief Starts interactive application
+ *
+ * This section starts the interactive application for plotting during program execution.
+ 
+TApplication theApp("theApp",0,0); 
+theApp.SetReturnFromRun(true);
+ * @brief Creates toy display for plotting
+ *
+ * This section creates a toy display object for plotting.
+ 
+TCanvas c1("ToyMC","ToyMC",1200,600);
+WCP2dToy::ToyEventDisplay display(c1,gds);
+ * @brief Main loop over slices
+ *
+ * This section loops over slices and performs various operations such as tiling, matrix calculations,
+ * and plotting.
+ 
+const int N = 100000;
+Double_t x[N],y[N],z[N];
+Double_t xt[N],yt[N],zt[N];
+int ncount = 0;
+int ncount_t = 0;
+int numSolved1 = 0;
+int numSolved2 = 0;
+int numTotal = 0;
+for (int i = 0; i!= sds.size(); i++){
+  //...
+}
+ * @brief Saves output for 3D display
+ *
+ * This section saves the output for 3D display.
+ 
+TGraph2D *g = new TGraph2D(ncount,x,y,z);
+g->SetName("g");
+TGraph2D *gt = new TGraph2D(ncount_t,xt,yt,zt);
+gt->SetName("gt");
+TFile *file = new TFile("eventInfo.root","RECREATE");
+g->Write("recoHits");
+gt->Write("truthHits");
+eigenValHist->Write();
+passChargeRecoRes->Write();
+failChargeRecoRes->Write();
+totalChargeRecoRes->Write();
+file->Write();
+file->Close();
+ * @brief Ends the application
+ *
+ * This section ends the application and prints some summary information.
+ 
+cout << "///////////////////////////////////////////////////////" << endl;
+cout << "//// NUM SOLVED1:  " << numSolved1 << endl;
+cout << "//// NUM SOLVED2:  " << numSolved2 << endl;
+cout << "//// NUM TOTAL:    " << numTotal << endl;
+cout << "///////////////////////////////////////////////////////" << endl;
+return 0;
+}* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.2.
+*/ 
 int main(int argc, char* argv[])
 {
   // Setup environment

@@ -51,6 +51,431 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits if insufficient arguments are provided.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+if (argc < 3) {
+     * @brief Prints usage message.
+   
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl;
+  return 1;
+}
+ * @brief Creates GeomDataSource object from file path provided as command line argument.
+ *
+ * @param argv Array of command line argument strings.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves extent of geometry data source.
+ *
+ * @param gds GeomDataSource object.
+ * @return Vector of doubles representing extent.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints extent of geometry data source.
+ *
+ * @param ex Vector of doubles representing extent.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Opens ROOT file specified by command line argument.
+ *
+ * @param argv Array of command line argument strings.
+ * @return Pointer to opened TFile object.
+ 
+const char* root_file = argv[2];
+const char* tpath = "/Event/Sim";
+TFile *tfile = TFile::Open(root_file);
+ * @brief Creates FrameDataSource object from TFile object.
+ *
+ * @param tfile Pointer to TFile object.
+ * @return Pointer to FrameDataSource object.
+ 
+WCP::FrameDataSource* fds = 0;
+fds = WCPSst::make_fds(*tfile);
+ * @brief Checks if FrameDataSource creation was successful.
+ *
+ * @param fds Pointer to FrameDataSource object.
+ * @return Program exit status.
+ 
+if (!fds) {
+     * @brief Prints error message and exits.
+   
+  cerr << "ERROR: failed to get FDS from " << root_file << endl;
+  return 1;
+}
+ * @brief Sets reconstruction parameters.
+ 
+int recon_threshold = 2000;
+int max_events = 5;
+int eve_num = 1;
+ * @brief Creates ToyDepositor object from FrameDataSource object.
+ *
+ * @param fds Pointer to FrameDataSource object.
+ 
+WCP::ToyDepositor toydep(fds);
+ * @brief Deposits points onto detector plane.
+ *
+ * @param toydep ToyDepositor object.
+ * @param eve_num Event number.
+ * @return PointValueVector object containing deposited points.
+ 
+const PointValueVector pvv = toydep.depositions(eve_num);
+ * @brief Creates GenerativeFDS objects.
+ *
+ * @param toydep ToyDepositor object.
+ * @param gds GeomDataSource object.
+ * @param max_events Maximum number of events.
+ * @param threshold Threshold value.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,9600,max_events,0.5*1.60*units::millimeter);
+ * @brief Creates TruthFDS object.
+ *
+ * @param gfds GenerativeFDS object.
+ * @param gds GeomDataSource object.
+ * @param max_events Maximum number of events.
+ 
+WCP2dToy::ToySignalSimuTrueFDS st_fds(gfds,gds,9600/4,5,0);
+ * @brief Jumps to event in TruthFDS object.
+ *
+ * @param st_fds TruthFDS object.
+ * @param eve_num Event number.
+ 
+st_fds.jump(eve_num);
+ * @brief Creates SimuFDS object.
+ *
+ * @param gfds GenerativeFDS object.
+ * @param gds GeomDataSource object.
+ * @param max_events Maximum number of events.
+ * @param threshold Threshold value.
+ 
+WCP2dToy::ToySignalSimuFDS simu_fds(gfds,gds,9600,max_events,1.647,1.539+1.647,1);
+ * @brief Jumps to event in SimuFDS object.
+ *
+ * @param simu_fds SimuFDS object.
+ * @param eve_num Event number.
+ 
+simu_fds.jump(eve_num);
+ * @brief Creates GausFDS object.
+ *
+ * @param simu_fds SimuFDS object.
+ * @param gds GeomDataSource object.
+ * @param max_events Maximum number of events.
+ * @param threshold Threshold value.
+ 
+WCP2dToy::ToySignalGausFDS gaus_fds(simu_fds,gds,9600/4,max_events,1.647,1.539+1.647);
+ * @brief Jumps to event in GausFDS object.
+ *
+ * @param gaus_fds GausFDS object.
+ * @param eve_num Event number.
+ 
+gaus_fds.jump(eve_num);
+ * @brief Creates WienFDS object.
+ *
+ * @param simu_fds SimuFDS object.
+ * @param gds GeomDataSource object.
+ * @param max_events Maximum number of events.
+ * @param threshold Threshold value.
+ 
+WCP2dToy::ToySignalWienFDS wien_fds(simu_fds,gds,9600/4,max_events,1.647,1.539+1.647);
+ * @brief Jumps to event in WienFDS object.
+ *
+ * @param wien_fds WienFDS object.
+ * @param eve_num Event number.
+ 
+wien_fds.jump(eve_num);
+ * @brief Retrieves wire selections from GeomDataSource object.
+ *
+ * @param gds GeomDataSource object.
+ * @return Vectors of GeomWireSelection objects.
+ 
+GeomWireSelection wires_u = gds.wires_in_plane(WirePlaneType_t(0));
+GeomWireSelection wires_v = gds.wires_in_plane(WirePlaneType_t(1));
+GeomWireSelection wires_w = gds.wires_in_plane(WirePlaneType_t(2));
+ * @brief Calculates number of wires in each selection.
+ *
+ * @param wires_u GeomWireSelection object.
+ * @param wires_v GeomWireSelection object.
+ * @param wires_w GeomWireSelection object.
+ * @return Integers representing number of wires.
+ 
+int nwire_u = wires_u.size();
+int nwire_v = wires_v.size();
+int nwire_w = wires_w.size();
+ * @brief Sets thresholds for u, v, and w planes.
+ 
+float threshold_u = 5.87819e+02 * 4.0;
+float threshold_v = 8.36644e+02 * 4.0;
+float threshold_w = 5.67974e+02 * 4.0;
+ * @brief Sets thresholds for u, v, and w planes with Gaussian smearing.
+ 
+float threshold_ug = 755.96;
+float threshold_vg = 822.81;
+float threshold_wg = 510.84;
+ * @brief Creates ToYuBooNESliceDataSource objects.
+ *
+ * @param wien_fds WienFDS object.
+ * @param gaus_fds GausFDS object.
+ * @param threshold_u Threshold value for u plane.
+ * @param threshold_v Threshold value for v plane.
+ * @param threshold_w Threshold value for w plane.
+ * @param threshold_ug Threshold value for u plane with Gaussian smearing.
+ * @param threshold_vg Threshold value for v plane with Gaussian smearing.
+ * @param threshold_wg Threshold value for w plane with Gaussian smearing.
+ * @param nwire_u Number of wires in u plane.
+ * @param nwire_v Number of wires in v plane.
+ * @param nwire_w Number of wires in w plane.
+ * @return ToYuBooNESliceDataSource objects.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(wien_fds,gaus_fds,threshold_u, 
+					threshold_v, threshold_w, 
+					threshold_ug, 
+					threshold_vg, threshold_wg, 
+					nwire_u, 
+					nwire_v, nwire_w); 
+
+WCPSst::ToyuBooNESliceDataSource sds_th(st_fds,st_fds,1, 
+					1, 1, 
+					threshold_ug, 
+					threshold_vg, threshold_wg, 
+					nwire_u, 
+					nwire_v, nwire_w); 
+ * @brief Initializes counters.
+ 
+int ncount = 0;
+int ncount1 = 0;  
+int ncount2 = 0;
+ * @brief Allocates memory for ToyTiling, MergeToyTiling, TruthToyTiling, ToyMatrix, and SimpleBlobToyTiling objects.
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[2400];
+WCP2dToy::MergeToyTiling **mergetiling = new WCP2dToy::MergeToyTiling*[2400];
+WCP2dToy::TruthToyTiling **truthtiling = new WCP2dToy::TruthToyTiling*[2400];
+WCP2dToy::SimpleBlobToyTiling **blobtiling = new WCP2dToy::SimpleBlobToyTiling*[2400];
+ * @brief Allocates memory for ToyMatrix objects.
+ 
+WCP2dToy::ToyMatrix **toymatrix = new WCP2dToy::ToyMatrix*[2400];
+ * @brief Sets start and end numbers for iteration.
+ 
+int start_num = 0 ;
+int end_num = sds.size()-1;
+ * @brief Iterates over slices and performs processing.
+ *
+ * @param start_num Start number.
+ * @param end_num End number.
+ 
+for (int i=start_num;i!=end_num+1;i++){
+ * @brief Jumps to current slice in ToYuBooNESliceDataSource objects.
+ *
+ * @param sds ToYuBooNESliceDataSource object.
+ * @param sds_th ToYuBooNESliceDataSource object.
+ * @param i Current slice index.
+ 
+sds.jump(i);
+sds_th.jump(i);
+ * @brief Retrieves Slice object from ToYuBooNESliceDataSource object.
+ *
+ * @param sds ToYuBooNESliceDataSource object.
+ * @return Slice object.
+ 
+WCP::Slice slice = sds.get();
+WCP::Slice slice_th = sds_th.get();
+ * @brief Creates ToyTiling object from Slice object.
+ *
+ * @param slice Slice object.
+ * @param gds GeomDataSource object.
+ * @param threshold_ug Threshold value for u plane with Gaussian smearing.
+ * @param threshold_vg Threshold value for v plane with Gaussian smearing.
+ * @param threshold_wg Threshold value for w plane with Gaussian smearing.
+ * @return ToyTiling object.
+ 
+toytiling[i] = new WCP2dToy::ToyTiling(slice,gds,0,0,0,threshold_ug,threshold_vg, threshold_wg);
+ * @brief Creates MergeToyTiling object from ToyTiling object.
+ *
+ * @param toytiling ToyTiling object.
+ * @param i Current slice index.
+ * @return MergeToyTiling object.
+ 
+mergetiling[i] = new WCP2dToy::MergeToyTiling(*toytiling[i],i,3,1);
+ * @brief Retrieves all cell and wire selections from ToyTiling and MergeToyTiling objects.
+ *
+ * @param toytiling ToyTiling object.
+ * @param mergetiling MergeToyTiling object.
+ * @return GeomCellSelection and GeomWireSelection objects.
+ 
+GeomCellSelection allcell = toytiling[i]->get_allcell();
+GeomWireSelection allwire = toytiling[i]->get_allwire();
+GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+GeomWireSelection allmwire = mergetiling[i]->get_allwire();
+ * @brief Prints size of allmcell and allmwire selections.
+ *
+ * @param allmcell GeomCellSelection object.
+ * @param allmwire GeomWireSelection object.
+ 
+cout << i << " " << allmcell.size() << " " << allmwire.size() << endl;
+ * @brief Creates TruthToyTiling object from ToyTiling object.
+ *
+ * @param toytiling ToyTiling object.
+ * @param pvv PointValueVector object.
+ * @param i Current slice index.
+ * @param gds GeomDataSource object.
+ * @return TruthToyTiling object.
+ 
+truthtiling[i] = new WCP2dToy::TruthToyTiling(*toytiling[i],pvv,i,gds,800);
+ * @brief Creates ToyMatrix object from ToyTiling and MergeToyTiling objects.
+ *
+ * @param toytiling ToyTiling object.
+ * @param mergetiling MergeToyTiling object.
+ * @return ToyMatrix object.
+ 
+toymatrix[i] = new WCP2dToy::ToyMatrix(*toytiling[i],*mergetiling[i]);
+ * @brief Checks solve flag of ToyMatrix object.
+ *
+ * @param toymatrix ToyMatrix object.
+ 
+if (toymatrix[i]->Get_Solve_Flag()==0){
+ * @brief Creates ToyMatrixIterate object from ToyMatrix object.
+ *
+ * @param toymatrix ToyMatrix object.
+ * @param allmcell GeomCellSelection object.
+ * @return ToyMatrixIterate object.
+ 
+WCP2dToy::ToyMatrixIterate toymatrix_it(*toymatrix[i]);
+}
+ * @brief Prints chi2 and NDF values of ToyMatrix object.
+ *
+ * @param toymatrix ToyMatrix object.
+ 
+cout << "chi2: " << toymatrix[i]->Get_Chi2() << endl;
+cout << "NDF: " << toymatrix[i]->Get_ndf() << endl;
+}
+ * @brief Creates ToyTiling and TruthToyTiling objects for truth comparison.
+ *
+ * @param slice_th Slice object.
+ * @param gds GeomDataSource object.
+ * @param threshold_ug Threshold value for u plane with Gaussian smearing.
+ * @param threshold_vg Threshold value for v plane with Gaussian smearing.
+ * @param threshold_wg Threshold value for w plane with Gaussian smearing.
+ * @return ToyTiling and TruthToyTiling objects.
+ 
+toytiling_th[i] = new WCP2dToy::ToyTiling(slice_th,gds,0,0,0,threshold_ug,threshold_vg, threshold_wg);
+truthtiling_th[i] = new WCP2dToy::TruthToyTiling(*toytiling_th[i],pvv,i,gds,800);
+}
+ * @brief Performs metric calculations.
+ 
+WCP2dToy::ToyMetric toymetric;
+WCP2dToy::BlobMetric blobmetric;
+ * @brief Adds to metric calculation.
+ *
+ * @param toymetric ToyMetric object.
+ * @param allmcell GeomCellSelection object.
+ * @param toymatrix ToyMatrix object.
+ * @param ccmap CellChargeMap object.
+ 
+CellChargeMap ccmap = truthtiling[i]->ccmap();
+if (toymatrix[i]->Get_Solve_Flag()!=0)
+toymetric.Add(allmcell,*toymatrix[i],ccmap);
+ * @brief Adds solve flag to metric calculation.
+ *
+ * @param toymetric ToyMetric object.
+ * @param toymatrix ToyMatrix object.
+ 
+toymetric.AddSolve(toymatrix[i]->Get_Solve_FLAG());
+ * @brief Finds minimum and maximum charges.
+ *
+ * @param toymatrix ToyMatrix object.
+ * @param allmcell GeomCellSelection object.
+ 
+Double_t charge_min = 10000;
+Double_t charge_max = 0;
+
+}
+ * @brief Processes remaining slices.
+ 
+if (start_num!= end_num){
+//...
+ * @brief Saves results to file.
+ 
+TFile *file = new TFile("shower3D_signal.root","RECREATE");
+ * @brief Creates TTrees for saving results.
+ 
+TTree *t_true = new TTree("T_true","T_true");
+TTree *t_rec = new TTree("T_rec","T_rec");
+TTree *t_rec_charge = new TTree("T_rec_charge","T_rec_charge");
+TTree *t_rec_charge_blob = new TTree("T_rec_charge_blob","T_rec_charge_blob");
+ * @brief Branches TTrees.
+ 
+Double_t x_save, y_save, z_save;
+Double_t charge_save;
+Double_t ncharge_save;
+Double_t chi2_save;
+Double_t ndf_save;
+ * @brief Saves results to TTrees.
+ *
+ * @param t_true TTree object.
+ * @param t_rec TTree object.
+ * @param t_rec_charge TTree object.
+ * @param t_rec_charge_blob TTree object.
+ 
+t_true->SetDirectory(file);
+t_true->Branch("x",&x_save,"x/D");
+t_true->Branch("y",&y_save,"y/D");
+t_true->Branch("z",&z_save,"z/D");
+t_true->Branch("q",&charge_save,"q/D");
+  
+t_rec->SetDirectory(file);
+t_rec->Branch("x",&x_save,"x/D");
+t_rec->Branch("y",&y_save,"y/D");
+t_rec->Branch("z",&z_save,"z/D");
+  
+t_rec_charge->SetDirectory(file);
+t_rec_charge->Branch("x",&x_save,"x/D");
+t_rec_charge->Branch("y",&y_save,"y/D");
+t_rec_charge->Branch("z",&z_save,"z/D");
+t_rec_charge->Branch("q",&charge_save,"q/D");
+t_rec_charge->Branch("nq",&ncharge_save,"nq/D");
+t_rec_charge->Branch("chi2",&chi2_save,"chi2/D");
+t_rec_charge->Branch("ndf",&ndf_save,"ndf/D");
+ * @brief Saves results to TTrees.
+ *
+ * @param t_rec_charge_blob TTree object.
+ 
+t_rec_charge_blob->SetDirectory(file);
+t_rec_charge_blob->Branch("x",&x_save,"x/D");
+t_rec_charge_blob->Branch("y",&y_save,"y/D");
+t_rec_charge_blob->Branch("z",&z_save,"z/D");
+t_rec_charge_blob->Branch("q",&charge_save,"q/D");
+t_rec_charge_blob->Branch("nq",&ncharge_save,"nq/D");
+ * @brief Saves graphs to file.
+ 
+TGraph2D *g = new TGraph2D();
+TGraph2D *gt = new TGraph2D();
+TGraph2D *g_rec = new TGraph2D();
+TGraph2D *g_rec_blob = new TGraph2D();
+ * @brief Writes TTrees and graphs to file.
+ 
+file->Write();
+file->Close();
+ * @brief Prints metrics.
+ 
+toymetric.Print();
+blobmetric.Print();
+
+return 0;
+}* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.2.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 3) {

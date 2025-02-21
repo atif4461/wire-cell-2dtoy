@@ -51,6 +51,224 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Constructor for WCPSstGeDataSource class.
+ *
+ * @param path Path to geometry file.
+ 
+WCPSst::GeomDataSource gds(argv[1])
+ * @brief Get extent of the geometry.
+ *
+ * @return Vector of doubles representing the extent.
+ 
+std::vector<double> ex = gds.extent()
+ * @brief Get pitch of the wire plane.
+ *
+ * @param type Type of wire plane.
+ * @return Pitch value.
+ 
+float pitch(WirePlaneType_t(0))
+ * @brief Get angle of the wire plane.
+ *
+ * @param type Type of wire plane.
+ * @return Angle value.
+ 
+float angle(WirePlaneType_t(0))
+ * @brief Create FrameDataSource object.
+ *
+ * @param root_file Root file path.
+ * @return Pointer to FrameDataSource object.
+ 
+WCP::FrameDataSource* fds = WCPSst::make_fds(root_file)
+ * @brief ToyuBooNEFrameDataSource constructor.
+ *
+ * @param tree Tree object.
+ * @param gds GeomDataSource object.
+ 
+WCPSst::ToyuBooNEFrameDataSource data_fds(*sst,gds)
+ * @brief Jump to event number.
+ *
+ * @param num Event number.
+ 
+void jump(eve_num)
+ * @brief ToyDepositor constructor.
+ *
+ * @param fds FrameDataSource object.
+ * @param index Index value.
+ * @param dis Distance value.
+ 
+WCP::ToyDepositor toydep(fds,0,unit_dis)
+ * @brief Depositor method.
+ *
+ * @param num Event number.
+ * @return PointValueVector object.
+ 
+const PointValueVector pvv = toydep.depositions(eve_num)
+ * @brief GenerativeFDS constructor.
+ *
+ * @param dep ToyDepositor object.
+ * @param gds GeomDataSource object.
+ * @param npmax Maximum number of points.
+ * @param nevents Number of events.
+ * @param dis Distance value.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,9600,max_events,0.5*unit_dis*units::millimeter,unit_dis)
+ * @brief ToySignalSimuTrueFDS constructor.
+ *
+ * @param gfs GenerativeFDS object.
+ * @param gds GeomDataSource object.
+ * @param npmax Maximum number of points.
+ * @param nevents Number of events.
+ * @param time Time value.
+ 
+WCP2dToy::ToySignalSimuTrueFDS st_fds(gfds,gds,9600/4,max_events,0)
+ * @brief ToyTiling constructor.
+ *
+ * @param slice Slice object.
+ * @param gds GeomDataSource object.
+ * @param index Index values.
+ * @param ug Threshold value.
+ * @param vg Threshold value.
+ * @param wg Threshold value.
+ 
+WCP2dToy::ToyTiling** toytiling = new WCP2dToy::ToyTiling*[2400]
+ * @brief MergeToyTiling constructor.
+ *
+ * @param toytiling ToyTiling object.
+ * @param index Index value.
+ * @param size Size value.
+ * @param flag Flag value.
+ 
+WCP2dToy::MergeToyTiling** mergetiling = new WCP2dToy::MergeToyTiling*[2400]
+ * @brief TruthToyTiling constructor.
+ *
+ * @param toytiling ToyTiling object.
+ * @param pvv PointValueVector object.
+ * @param index Index value.
+ * @param gds GeomDataSource object.
+ * @param size Size value.
+ * @param dis Distance value.
+ 
+WCP2dToy::TruthToyTiling** truthtiling = new WCP2dToy::TruthToyTiling*[2400]
+ * @brief ToyMatrix constructor.
+ *
+ * @param toytiling ToyTiling object.
+ * @param mergetiling MergeToyTiling object.
+ 
+WCP2dToy::ToyMatrix** toymatrix = new WCP2dToy::ToyMatrix*[2400]
+ * @brief Add method for ToyMetric class.
+ *
+ * @param allmcell GeomCellSelection object.
+ * @param matrix ToyMatrix object.
+ * @param ccmap CellChargeMap object.
+ 
+void Add(GeomCellSelection& allmcell, WCP2dToy::ToyMatrix* matrix, CellChargeMap& ccmap)
+ * @brief Print method for ToyMetric class.
+ 
+void Print()
+ * @brief ToyBlobMetric class.
+ 
+class ToyBlobMetric
+ * @brief Add method for ToyBlobMetric class.
+ *
+ * @param blobting SimpleBlobToyTiling object.
+ * @param ccmap CellChargeMap object.
+ 
+void Add(SimpleBlobToyTiling& blobting, CellChargeMap& ccmap)
+ * @brief Print method for ToyBlobMetric class.
+ 
+void Print()
+ * @brief ClusterSet class.
+ 
+class ClusterSet
+ * @brief Insert method for ClusterSet class.
+ *
+ * @param cluster GeomCluster object.
+ 
+void Insert(GeomCluster& cluster)
+ * @brief Begin method for ClusterSet class.
+ *
+ * @return Iterator to beginning of set.
+ 
+iterator begin()
+ * @brief End method for ClusterSet class.
+ *
+ * @return Iterator to end of set.
+ 
+iterator end()
+ * @brief Clear method for ClusterSet class.
+ 
+void clear()
+ * @brief Size method for ClusterSet class.
+ *
+ * @return Number of elements in set.
+ 
+size_type size()
+ * @brief Erase method for ClusterSet class.
+ *
+ * @param it Iterator to element to erase.
+ 
+void erase(iterator it)
+ * @brief File class.
+ 
+class File
+ * @brief Open method for File class.
+ *
+ * @param filename File name.
+ * @param mode Mode string.
+ * @return Pointer to File object.
+ 
+File* Open(const char* filename, const char* mode)
+ * @brief Close method for File class.
+ 
+void Close()
+ * @brief Write method for File class.
+ *
+ * @param name Object name.
+ 
+void Write(const char* name)
+ * @brief Tree class.
+ 
+class Tree
+ * @brief Branch method for Tree class.
+ *
+ * @param name Branch name.
+ * @param address Address of variable to branch.
+ * @param desc Description string.
+ 
+void Branch(const char* name, void* address, const char* desc)
+ * @brief SetDirectory method for Tree class.
+ *
+ * @param file File object.
+ 
+void SetDirectory(File* file)
+ * @brief Fill method for Tree class.
+ 
+void Fill()
+ * @brief Graph2D class.
+ 
+class Graph2D
+ * @brief SetPoint method for Graph2D class.
+ *
+ * @param index Index value.
+ * @param x X-coordinate value.
+ * @param y Y-coordinate value.
+ * @param z Z-coordinate value.
+ 
+void SetPoint(Int_t index, Double_t x, Double_t y, Double_t z)
+ * @brief Write method for Graph2D class.
+ *
+ * @param name Name string.
+ 
+void Write(const char* name)* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.2.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {
