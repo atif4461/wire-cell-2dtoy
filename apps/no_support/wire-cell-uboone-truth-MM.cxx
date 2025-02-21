@@ -30,6 +30,395 @@
 using namespace WCP;
 using namespace std;
 
+/**
+ * @brief Main program entry point.
+ *
+ * This function serves as the primary entry point for the application.
+ * It initializes variables, reads input files, performs data processing,
+ * and saves results to output files.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Integer indicating program execution status.
+  
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits the program if insufficient arguments are provided.
+ *
+ * Checks the number of command line arguments and displays usage instructions
+ * if fewer than three arguments are supplied.
+  
+if (argc < 3) {
+         * @brief Usage message.
+     
+    cerr << "usage:  wire-cell-uboone-truth /path/to/ChannelWireGeometry.txt /path/to/celltree.root" << endl;
+    return 1;
+}
+ * @brief Sets up the environment.
+ *
+ * This section sets the error ignore level and checks the number of command line arguments.
+ 
+// Setup environment
+gErrorIgnoreLevel = kError;
+ * @brief Defines additional user-defined parameters.
+ *
+ * This section defines several constants such as run mode, slice range, bin count, etc.
+ 
+const Int_t runMode = 0;
+const Int_t firstSlice = 460;
+const Int_t lastSlice = 560;
+const Int_t sliceStep = 10;
+const Double_t lowZ = 1.5;
+const Double_t highZ = 2.5;
+const Double_t lowY = 0.5;
+const Double_t highY = 1.0;
+const Int_t binsPerFrame = 2400;
+const Int_t totalFrames = 5;
+const Int_t elecThreshold = 2000;
+ * @brief Defines diagnostic histograms.
+ *
+ * This section defines several histograms for storing and analyzing data.
+ 
+TH2F *eigenValHist = new TH2F("eigenValHist","",15,0,30,15,0,30);
+eigenValHist->GetXaxis()->SetTitle("Number of Cells");
+eigenValHist->GetYaxis()->SetTitle("Number of Non-zero Eigenvalues");
+TH1F *passChargeRecoRes = new TH1F("passChargeRecoRes","",40,-2.0,2.0);
+passChargeRecoRes->GetXaxis()->SetTitle("(recoCharge-trueCharge)/trueCharge");
+passChargeRecoRes->GetYaxis()->SetTitle("# of Events");
+TH1F *failChargeRecoRes = new TH1F("failChargeRecoRes","",40,-2.0,2.0);
+failChargeRecoRes->GetXaxis()->SetTitle("(recoCharge-trueCharge)/trueCharge");
+failChargeRecoRes->GetYaxis()->SetTitle("# of Events");
+TH1F *totalChargeRecoRes = new TH1F("totalChargeRecoRes","",40,-2.0,2.0);
+totalChargeRecoRes->GetXaxis()->SetTitle("(recoCharge-trueCharge)/trueCharge");
+totalChargeRecoRes->GetYaxis()->SetTitle("# of Events");
+ * @brief Sets up display options.
+ *
+ * This section configures the display settings for visualization.
+ 
+gStyle->SetOptStat(0);  
+const Int_t NRGBs = 5;
+const Int_t NCont = 255;
+Int_t MyPalette[NCont];
+Double_t stops[NRGBs] = {0.0, 0.34, 0.61, 0.84, 1.0};
+Double_t red[NRGBs] = {0.0, 0.0, 0.87,1.0, 0.51};
+Double_t green[NRGBs] = {0.0, 0.81, 1.0, 0.2,0.0};
+Double_t blue[NRGBs] = {0.51, 1.0, 0.12, 0.0, 0.0};
+Int_t FI = TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+gStyle->SetNumberContours(NCont);
+for (int kk=0;kk!=NCont;kk++) MyPalette[kk] = FI+kk;
+gStyle->SetPalette(NCont,MyPalette);
+ * @brief Gets GDS from geometry text file.
+ *
+ * Retrieves the geometry data source object from the specified file.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Gets FDS from ROOT file.
+ *
+ * Retrieves the frame data source object from the specified ROOT file.
+ 
+const char* root_file = argv[2];
+const char* tpath = "/Event/Sim";
+WCP::FrameDataSource* fds = 0;
+fds = WCPSst::make_fds(root_file);
+if (!fds) {
+         * @brief Error handling for failed FDS retrieval.
+     
+    cerr << "ERROR: failed to get FDS from " << root_file << endl;
+    return 1;
+}
+ * @brief Makes GenerativeFDS to represent reco info using SimChannels.
+ *
+ * Creates a generative frame data source object using the frame data source and geometry data source.
+ 
+WCP::ToyDepositor toydep(fds);
+const PointValueVector pvv = toydep.depositions(1);
+WCP::GenerativeFDS gfds(toydep,gds,binsPerFrame,totalFrames,2.0*1.6*units::millimeter);
+gfds.jump(1); 
+ * @brief Creates MicroBooNE SDS using GenerativeFDS.
+ *
+ * Creates a slice data source object using the generative frame data source and electron threshold.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(gfds,elecThreshold);
+ * @brief Starts interactive application used for plotting during program execution.
+ *
+ * Initializes the application for interactive plotting.
+ 
+TApplication theApp("theApp",0,0); 
+theApp.SetReturnFromRun(true);
+ * @brief Creates toy display for plotting.
+ *
+ * Initializes a canvas for displaying the event data.
+ 
+TCanvas c1("ToyMC","ToyMC",1200,600);
+WCP2dToy::ToyEventDisplay display(c1,gds);
+ * @brief Main loop over slices.
+ *
+ * Iterates through the slices, performing various operations such as tiling, merging, and drawing.
+ 
+const int N = 100000;
+Double_t x[N],y[N],z[N];
+Double_t xt[N],yt[N],zt[N];
+int ncount = 0;
+int ncount_t = 0;
+int numSolved1 = 0;
+int numSolved2 = 0;
+int numTotal = 0;
+for (int i = 0; i!= sds.size(); i++){
+         * @brief Gets next slice.
+     
+    sds.jump(i);
+    WCP::Slice slice = sds.get();
+
+         * @brief Looks at slice if there is above-threshold activity.
+     
+    if (slice.group().size() > 0){
+                 * @brief Does tiling for all possible hits.
+         
+        WCP2dToy::ToyTiling toytiling(slice,gds);
+                 * @brief Does merged tiling for all possible hits.
+         
+        WCP2dToy::MergeToyTiling mergetiling(toytiling);
+                 * @brief Does tiling using truth info for real hits.
+         
+        WCP2dToy::TruthToyTiling truthtiling(toytiling,pvv,i,gds);
+        
+                 * @brief Collects cell and wire information.
+         
+        GeomCellSelection allcell = toytiling.get_allcell();
+        GeomWireSelection allwire = toytiling.get_allwire();
+        GeomCellSelection allmcell = mergetiling.get_allcell();
+        GeomWireSelection allmwire = mergetiling.get_allwire();
+
+                 * @brief Gets wire-to-cells mapping.
+         
+        GeomWireMap wmap = toytiling.wmap();
+
+                 * @brief Gets cell-to-wires mapping.
+         
+        GeomCellMap cmap = toytiling.cmap();
+
+                 * @brief Gets wire charge map using SimChannel information.
+         
+        WireChargeMap wcmap = toytiling.wcmap();
+
+                 * @brief Gets true cell charge map using truth info tiling.
+         
+        CellChargeMap ccmap = truthtiling.ccmap();
+
+                 * @brief Blocks for solving matrix equation.
+         
+        if((allcell.size() > 0) && (allwire.size() > 0)){
+                         * @brief Initializes matrices for Wire-Cell inversion.
+             
+            TMatrixD wireMat;
+            wireMat.ResizeTo(allwire.size(),1);
+            TMatrixD cellMat;
+            cellMat.ResizeTo(allcell.size(),1);
+            TMatrixD geoMat;
+            geoMat.ResizeTo(allwire.size(),allcell.size());
+            TMatrixD transpGeoMat;
+            transpGeoMat.ResizeTo(allcell.size(),allwire.size());
+            TMatrixD tempGeoMat1;
+            tempGeoMat1.ResizeTo(allcell.size(),allcell.size());
+            TMatrixD tempInvGeoMat1;
+            tempInvGeoMat1.ResizeTo(allcell.size(),allcell.size());
+            TMatrixD tempGeoMat2;
+            tempGeoMat2.ResizeTo(allwire.size(),allwire.size());
+            TMatrixD tempInvGeoMat2;
+            tempInvGeoMat2.ResizeTo(allwire.size(),allwire.size());
+            TMatrixD inverseGeoMat;
+            inverseGeoMat.ResizeTo(allcell.size(),allwire.size());
+            TMatrixD crosscheckMat;
+            crosscheckMat.ResizeTo(allwire.size(),1);
+            TMatrixD resultMat;
+            resultMat.ResizeTo(allcell.size(),1);
+            
+                         * @brief Fills matrices.
+             
+            for (int k = 0; k < allwire.size(); k++){
+                if (k < allwire.size()){
+                    wireMat[k][0] = wcmap[allwire[k]];
+                }
+                else{
+                    wireMat[k][0] = 0.0;
+                }
+            
+                for (int h = 0; h < allcell.size(); h++){
+                    if (k == 0){
+                        if (h < allcell.size()){
+                            cellMat[h][0] = ccmap[allcell[h]];
+                        }
+                        else{
+                            cellMat[h][0] = 0.0;
+                        }
+                    }
+                
+                    if ((k < allwire.size()) && (h < allcell.size()) && ((allwire[k] == cmap[allcell[h]].at(0)) || (allwire[k] == cmap[allcell[h]].at(1)) || (allwire[k] == cmap[allcell[h]].at(2)))){
+                        geoMat[k][h] = 1.0;
+                    }
+                    else{
+                        geoMat[k][h] = 0.0;
+                    }
+                }
+            }
+            
+                         * @brief Performs matrix calculations and checks eigenvalues.
+             
+            transpGeoMat.Transpose(geoMat);
+            tempGeoMat1 = transpGeoMat*geoMat;
+            tempGeoMat2 = geoMat*transpGeoMat;
+            TMatrixDEigen eigenValMat1(tempGeoMat1);
+            TVectorD eigenValsRe1 = eigenValMat1.GetEigenValuesRe();
+            TVectorD eigenValsIm1 = eigenValMat1.GetEigenValuesIm();
+            Int_t numNonzeroEigenVals1 = 0;
+            for (int k = 0; k < allcell.size(); k++){
+                if (fabs(eigenValsRe1[k]) > 0.0001){
+                    numNonzeroEigenVals1++;
+                }
+            }
+            TMatrixDEigen eigenValMat2(tempGeoMat2);
+            TVectorD eigenValsRe2 = eigenValMat2.GetEigenValuesRe();
+            TVectorD eigenValsIm2 = eigenValMat2.GetEigenValuesIm();
+            Int_t numNonzeroEigenVals2 = 0;
+            for (int k = 0; k < allwire.size(); k++){
+                if (fabs(eigenValsRe2[k]) > 0.0001){
+                    numNonzeroEigenVals2++;
+                }
+            }
+
+                         * @brief Performs matrix inversion.
+             
+            tempInvGeoMat1 = tempGeoMat1;
+            tempInvGeoMat1.Invert();
+            inverseGeoMat = tempInvGeoMat1*transpGeoMat;
+            resultMat = inverseGeoMat*wireMat;
+            if(numNonzeroEigenVals1 >= allcell.size()){
+                numSolved1++;
+            }
+            crosscheckMat = geoMat*cellMat;
+            numTotal++;
+            
+                         * @brief Validates matrix multiplication/inversion.
+             
+            cout << "NUMWIRES:  " << allwire.size() << endl;
+            cout << "NUMCELLS:  " << allcell.size() << endl;
+            cout << "NONZEROEIGENVALNUM1:  " << numNonzeroEigenVals1 << " out of " << allcell.size() << endl;
+            cout << "NONZEROEIGENVALNUM2:  " << numNonzeroEigenVals2 << " out of " << allwire.size() << endl;
+            for (int k = 0; k < allwire.size(); k++){
+                cout << wireMat[k][0] << " " << crosscheckMat[k][0] << endl;
+            }
+            for (int k = 0; k < allwire.size(); k++){
+                for (int h = 0; h < allcell.size(); h++){
+                    cout << geoMat[k][h] << " ";
+                }
+                cout << endl;
+            }
+            for (int h = 0; h < allcell.size(); h++){
+                cout << cellMat[h][0] << " " << resultMat[h][0] << endl;
+            }
+
+                         * @brief Fills diagnostic plots.
+             
+            eigenValHist->Fill(allcell.size(),numNonzeroEigenVals1);
+            for (int h = 0; h < allcell.size(); h++){
+                if (cellMat[h][0] > 0.0){
+                    totalChargeRecoRes->Fill((resultMat[h][0]-cellMat[h][0])/cellMat[h][0]);
+	        }
+            }
+            if(numNonzeroEigenVals1 >= allcell.size()){
+                for (int h = 0; h < allcell.size(); h++){
+                    if (cellMat[h][0] > 0.0){
+                        passChargeRecoRes->Fill((resultMat[h][0]-cellMat[h][0])/cellMat[h][0]);
+		    }
+                }
+	    }
+	    else{
+                for (int h = 0; h < allcell.size(); h++){
+                    if (cellMat[h][0] > 0.0){
+                        failChargeRecoRes->Fill((resultMat[h][0]-cellMat[h][0])/cellMat[h][0]);
+		    }
+                }
+	    }
+        }
+
+                 * @brief Grabs {x,y,z} points in TPC for all possible hits.
+         
+        for (int j = 0; j!= allcell.size(); j++){
+            Point p = allcell[j]->center();
+	    x[ncount] = i*0.32*units::cm; 
+	    y[ncount] = p.y/units::cm;
+	    z[ncount] = p.z/units::cm;
+	    ncount++;
+        }
+
+                 * @brief Grabs {x,y,z} points in TPC using truth info.
+         
+        Double_t charge_min = 10000000.0;
+        Double_t charge_max = -10000000.0;
+        for (auto it = ccmap.begin(); it!= ccmap.end(); it++){
+            Point p = it->first->center();
+	   xt[ncount_t] = i*0.32*units::cm; 
+	   yt[ncount_t] = p.y/units::cm;
+	   zt[ncount_t] = p.z/units::cm;
+	   ncount_t++;
+
+                       * @brief Checks for minimal and maximal charge values.
+            
+           float charge = it->second;
+	   if (charge > charge_max) charge_max = charge;
+	   if (charge < charge_min) charge_min = charge;
+        }
+        
+                 * @brief Plots interactively.
+         
+        if((((i >= firstSlice) && (i <= lastSlice) && ((i-firstSlice) % sliceStep == 0)) && (runMode == 2)) || ((i == firstSlice) && (runMode == 1))){
+            display.charge_min = charge_min;
+            display.charge_max = charge_max;
+            display.init(lowZ,highZ,lowY,highY);
+
+            c1.Draw();
+	    display.draw_mc(1,WCP::PointValueVector(),"colz");           
+            display.draw_slice(slice,"");
+            display.draw_cells(toytiling.get_allcell(),"*same");
+            display.draw_mergecells(mergetiling.get_allcell(),"*same");
+            display.draw_truthcells(ccmap,"*same");
+
+            c1.Update();
+            if(runMode == 1)
+	      theApp.Run();
+            else if(runMode == 2)
+              c1.WaitPrimitive();
+        }
+    }
+}
+ * @brief Saves output for 3D display.
+ *
+ * Writes the event data to a ROOT file for later analysis.
+ 
+TGraph2D *g = new TGraph2D(ncount,x,y,z);
+g->SetName("g");
+TGraph2D *gt = new TGraph2D(ncount_t,xt,yt,zt);
+gt->SetName("gt");
+TFile *file = new TFile("eventInfo.root","RECREATE");
+g->Write("recoHits");
+gt->Write("truthHits");
+eigenValHist->Write();
+passChargeRecoRes->Write();
+failChargeRecoRes->Write();
+totalChargeRecoRes->Write();
+file->Write();
+file->Close();
+ * @brief Ends of application.
+ *
+ * Displays summary statistics and ends the program.
+ 
+cout << "///////////////////////////////////////////////////////" << endl;
+cout << "//// NUM SOLVED1:  " << numSolved1 << endl;
+cout << "//// NUM SOLVED2:  " << numSolved2 << endl;
+cout << "//// NUM TOTAL:    " << numTotal << endl;
+cout << "///////////////////////////////////////////////////////" << endl;
+return 0;
+}* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.5.
+*/ 
 int main(int argc, char* argv[])
 {
   // Setup environment

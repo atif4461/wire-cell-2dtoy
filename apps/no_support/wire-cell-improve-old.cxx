@@ -58,6 +58,509 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Checks command line argument count and prints usage message if insufficient.
+ *
+ * @return Error message if insufficient arguments.
+ 
+if (argc < 4) {
+         * @brief Prints usage message to standard error stream.
+     
+    cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root eve_num " << endl;
+    return 1;
+}
+ * @brief Initializes variables and data structures.
+ *
+ * Sets initial values for variables and creates instances of data structures.
+ 
+int two_plane = 0;
+int save_file = 0;
+int nt_off1 = 0;
+int nt_off2 = 0;
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves geometry extent and prints it.
+ *
+ * Gets the extent of the geometry from the data source and prints it.
+ 
+std::vector<double> ex = gds.extent();
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Creates Frame Data Source object.
+ *
+ * @param argv[1] Path to ChannelWireGeometry.txt file.
+ 
+WCPSst::FrameDataSource* fds = WCPSst::make_fds(*tfile);
+ * @brief Opens ROOT file and retrieves tree.
+ *
+ * @param root_file File path.
+ * @param tpath Tree path.
+ 
+TFile *tfile = TFile::Open(root_file);
+TTree* sst = dynamic_cast<TTree*>(tfile->Get(tpath));
+ * @brief Sets branch addresses for tree.
+ *
+ * @param event_no Event number.
+ * @param run_no Run number.
+ * @param subrun_no Sub-run number.
+ 
+sst->SetBranchAddress("eventNo",&event_no);
+sst->SetBranchAddress("runNo",&run_no);
+sst->SetBranchAddress("subRunNo",&subrun_no);
+ * @brief Gets entry from tree.
+ *
+ * @param eve_num Event number.
+ 
+sst->GetEntry(eve_num);
+ * @brief Prints run, sub-run, and event numbers.
+ 
+cout << "Run No: " << run_no << " " << subrun_no << " " << eve_num << endl;
+ * @brief Creates Toy Deposition object.
+ *
+ * @param fds Frame Data Source object.
+ * @param unit_dis Unit distance.
+ * @param frame_length Frame length.
+ 
+WCP::ToyDepositor *toydep = new WCP::ToyDepositor(fds,0,unit_dis,frame_length);
+ * @brief Deposits points.
+ *
+ * @param eve_num Event number.
+ 
+const PointValueVector& pvv = toydep->depositions(eve_num);
+ * @brief Creates Generative Frame Data Source object.
+ *
+ * @param toydep Toy Deposition object.
+ * @param gds Geometry Data Source object.
+ * @param total_time_bin Total time bin.
+ * @param max_events Maximum events.
+ * @param offset Offset value.
+ 
+WCP::GenerativeFDS *gfds = new WCP::GenerativeFDS(*toydep,gds,total_time_bin,max_events,offset);
+ * @brief Jumps to event.
+ *
+ * @param eve_num Event number.
+ 
+gfds->jump(eve_num);
+ * @brief Creates Toy Signal Simu True Frame Data Source object.
+ *
+ * @param gfds Generative Frame Data Source object.
+ * @param gds Geometry Data Source object.
+ * @param total_time_bin Total time bin.
+ * @param max_events Maximum events.
+ * @param toffset_1 Time offset 1.
+ * @param toffset_2 Time offset 2.
+ * @param toffset_3 Time offset 3.
+ 
+WCP2dToy::ToySignalSimuTrueFDS *st_fds = new WCP2dToy::ToySignalSimuTrueFDS(*gfds,gds,total_time_bin/max_events,max_events,0);
+ * @brief Jumps to event.
+ *
+ * @param eve_num Event number.
+ 
+st_fds->jump(eve_num);
+ * @brief Creates Toy Signal Simu Frame Data Source object.
+ *
+ * @param gfds Generative Frame Data Source object.
+ * @param gds Geometry Data Source object.
+ * @param total_time_bin Total time bin.
+ * @param max_events Maximum events.
+ * @param toffset_1 Time offset 1.
+ * @param toffset_2 Time offset 2.
+ * @param toffset_3 Time offset 3.
+ 
+WCP2dToy::ToySignalSimuFDS *simu_fds = new WCP2dToy::ToySignalSimuFDS(*gfds,gds,total_time_bin,max_events,toffset_1,toffset_2,1);
+ * @brief Jumps to event.
+ *
+ * @param eve_num Event number.
+ 
+simu_fds->jump(eve_num);
+ * @brief Creates Toy Signal Gaus Frame Data Source object.
+ *
+ * @param simu_fds Toy Signal Simu Frame Data Source object.
+ * @param gds Geometry Data Source object.
+ * @param total_time_bin Total time bin.
+ * @param max_events Maximum events.
+ * @param toffset_1 Time offset 1.
+ * @param toffset_2 Time offset 2.
+ 
+WCP2dToy::ToySignalGausFDS *gaus_fds = new WCP2dToy::ToySignalGausFDS(*simu_fds,gds,total_time_bin/max_events,max_events,toffset_1,toffset_2);
+ * @brief Jumps to event.
+ *
+ * @param eve_num Event number.
+ 
+gaus_fds->jump(eve_num);
+ * @brief Creates Toy Signal Wien Frame Data Source object.
+ *
+ * @param simu_fds Toy Signal Simu Frame Data Source object.
+ * @param gds Geometry Data Source object.
+ * @param total_time_bin Total time bin.
+ * @param max_events Maximum events.
+ * @param toffset_1 Time offset 1.
+ * @param toffset_2 Time offset 2.
+ 
+WCP2dToy::ToySignalWienFDS *wien_fds = new WCP2dToy::ToySignalWienFDS(*simu_fds,gds,total_time_bin/max_events,max_events,toffset_1,toffset_2);
+ * @brief Jumps to event.
+ *
+ * @param eve_num Event number.
+ 
+wien_fds->jump(eve_num);
+ * @brief Selects wires in plane.
+ *
+ * @param gds Geometry Data Source object.
+ * @param type Plane type.
+ 
+GeomWireSelection wires_u = gds.wires_in_plane(WirePlaneType_t(0));
+GeomWireSelection wires_v = gds.wires_in_plane(WirePlaneType_t(1));
+GeomWireSelection wires_w = gds.wires_in_plane(WirePlaneType_t(2));
+ * @brief Creates Toy Boo NES Slice Data Source objects.
+ *
+ * @param wien_fds Toy Signal Wien Frame Data Source object.
+ * @param gaus_fds Toy Signal Gaus Frame Data Source object.
+ * @param threshold_u Threshold U.
+ * @param threshold_v Threshold V.
+ * @param threshold_w Threshold W.
+ * @param threshold_ug Threshold Ug.
+ * @param threshold_vg Threshold Vg.
+ * @param threshold_wg Threshold Wg.
+ * @param nwire_u Number of wires in U plane.
+ * @param nwire_v Number of wires in V plane.
+ * @param nwire_w Number of wires in W plane.
+ 
+WCPSst::ToyuBooNESliceDataSource *sds = new WCPSst::ToyuBooNESliceDataSource(*wien_fds,*gaus_fds,threshold_u,threshold_v,threshold_w,threshold_ug,threshold_vg,threshold_wg,nwire_u,nwire_v,nwire_w);
+ * @brief Creates Toy Boo NES Slice Data Source object for truth.
+ *
+ * @param st_fds Toy Signal Simu True Frame Data Source object.
+ * @param threshold Threshold.
+ 
+WCPSst::ToyuBooNESliceDataSource *sds_th = new WCPSst::ToyuBooNESliceDataSource(*st_fds,*st_fds,500,500,500,threshold_ug,threshold_vg,threshold_wg,nwire_u,nwire_v,nwire_w);
+ * @brief Allocates memory for Toy Tiling objects.
+ *
+ * @param start_num Start index.
+ * @param end_num End index.
+ 
+WCP2dToy::ToyTiling **toytiling = new WCP2dToy::ToyTiling*[end_num-start_num+1];
+WCP2dToy::MergeToyTiling **mergetiling = new WCP2dToy::MergeToyTiling*[end_num-start_num+1];
+WCP2dToy::TruthToyTiling **truthtiling = new WCP2dToy::TruthToyTiling*[end_num-start_num+1];
+WCP2dToy::SimpleBlobToyTiling **blobtiling = new WCP2dToy::SimpleBlobToyTiling*[end_num-start_num+1];
+WCP2dToy::ToyMatrix **toymatrix = new WCP2dToy::ToyMatrix*[end_num-start_num+1];
+ * @brief Loops through slices and performs operations.
+ *
+ * @param start_num Start index.
+ * @param end_num End index.
+ 
+for (int i=start_num;i!=end_num+1;i++){
+         * @brief Jumps to slice.
+     *
+     * @param i Index.
+     
+    sds->jump(i);
+    sds_th->jump(i);
+         * @brief Gets slice.
+     *
+     * @return Slice object.
+     
+    WCP::Slice slice = sds->get();
+    WCP::Slice slice_th = sds_th->get();
+         * @brief Creates Toy Tiling object.
+     *
+     * @param slice Slice object.
+     * @param gds Geometry Data Source object.
+     * @param threshold_ug Threshold Ug.
+     * @param threshold_vg Threshold Vg.
+     * @param threshold_wg Threshold Wg.
+     
+    toytiling[i] = new WCP2dToy::ToyTiling(slice,gds,0,0,0,threshold_ug,threshold_vg,threshold_wg);
+         * @brief Gets all cells and wires.
+     *
+     * @return Cell selection and wire selection.
+     
+    GeomCellSelection allcell = toytiling[i]->get_allcell();
+    GeomWireSelection allwire = toytiling[i]->get_allwire();
+         * @brief Creates Merge Toy Tiling object.
+     *
+     * @param toytiling Toy Tiling object.
+     * @param i Index.
+     * @param threshold Threshold.
+     
+    mergetiling[i] = new WCP2dToy::MergeToyTiling(*toytiling[i],i,3);
+         * @brief Gets all merged cells and wires.
+     *
+     * @return Merged cell selection and wire selection.
+     
+    GeomCellSelection allmcell = mergetiling[i]->get_allcell();
+    GeomWireSelection allmwire = mergetiling[i]->get_allwire();
+         * @brief Creates Truth Toy Tiling object.
+     *
+     * @param toytiling Toy Tiling object.
+     * @param pvv Point Value Vector.
+     * @param i Index.
+     * @param gds Geometry Data Source object.
+     * @param frame_length Frame length.
+     * @param unit_dis Unit distance.
+     
+    truthtiling[i] = new WCP2dToy::TruthToyTiling(*toytiling[i],pvv,i,gds,frame_length/nrebin,unit_dis);
+}
+ * @brief Deletes objects.
+ 
+delete sds;
+delete sds_th;
+delete simu_fds;
+delete gaus_fds;
+delete wien_fds;
+delete st_fds;
+delete gfds;
+delete toydep;
+delete fds;
+ * @brief Performs clustering.
+ *
+ * @param start_num Start index.
+ * @param end_num End index.
+ 
+GeomClusterList cluster_list;
+for (int i=start_num;i!=end_num+1;i++){
+         * @brief Gets merged cell selection.
+     *
+     * @return Merged cell selection.
+     
+    GeomCellSelection pallmcell = mergetiling[i]->get_allcell();
+    GeomCellSelection allmcell;
+    for (int j=0;j!=pallmcell.size();j++){
+        const GeomCell* mcell = pallmcell[j];
+        int flag_save_cell = 0;
+        if (toymatrix[i]->Get_Solve_Flag()==0){
+            flag_save_cell = 1;
+        }else{
+            if (toymatrix[i]->Get_Cell_Charge(mcell)> recon_threshold){
+                flag_save_cell = 1;
+            }else{
+                if (i == start_num || i == end_num + 1) continue;
+                flag_save_cell = 0;
+                for (int k=0;k!=cell_next_map[mcell].size();k++){
+                    if (toymatrix[i+1]->Get_Cell_Charge(cell_next_map[mcell].at(k)) > recon_threshold){
+                        flag_save_cell = 1;
+                        break;
+                    }
+                }
+                if (flag_save_cell==1){
+                    flag_save_cell = 0;
+                    for (int k=0;k!=cell_prev_map[mcell].size();k++){
+                        if (toymatrix[i-1]->Get_Cell_Charge(cell_prev_map[mcell].at(k)) > recon_threshold){
+                            flag_save_cell = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (flag_save_cell == 1)
+            allmcell.push_back(mcell);
+    }
+    if (cluster_list.empty()){
+        for (int j=0;j!=allmcell.size();j++){
+            MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j];
+            if (mcell->get_allcell().size()>0){
+                GeomCluster *cluster = new GeomCluster(*mcell);
+                cluster_list.push_back(cluster);
+            }
+        }
+    }else{
+        for (int j=0;j!=allmcell.size();j++){
+            MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j];
+            if (mcell->get_allcell().size()>0){
+                int flag = 0;
+                int flag_save = 0;
+                GeomCluster *cluster_save = 0;
+                cluster_dellist.clear();
+                for (auto it = cluster_list.begin();it!=cluster_list.end();it++){
+                    flag += (*it)->AddCell(*mcell);
+                    if (flag==1 && flag!= flag_save){
+                        cluster_save = *it;
+                    }else if (flag>1 && flag!= flag_save){
+                        cluster_save->MergeCluster(*(*it));
+                        cluster_dellist.push_back(*it);
+                    }
+                    flag_save = flag;
+                }
+                for (auto it = cluster_dellist.begin();it!=cluster_dellist.end();it++){
+                    auto it1 = find(cluster_list.begin(),cluster_list.end(),*it);
+                    cluster_list.erase(it1);
+                    delete (*it);
+                }
+                if (flag==0){
+                    GeomCluster *cluster = new GeomCluster(*mcell);
+                    cluster_list.push_back(cluster);
+                }
+            }
+        }
+    }
+    ncount_mcell += allmcell.size();
+}
+ * @brief Calculates summary statistics.
+ 
+int ncount_mcell_cluster = 0;
+for (auto it = cluster_list.begin();it!=cluster_list.end();it++){
+    ncount_mcell_cluster += (*it)->get_allcell().size();
+}
+cout << "Summary: " << ncount << " " << ncount_mcell << " " << ncount_mcell_cluster << endl;
+ * @brief Starts crawling.
+ 
+int ncluster = 0;
+for (auto it = cluster_list.begin();it!=cluster_list.end();it++){
+    MergeSpaceCellSelection mscells;
+    for (int i=0; i!=(*it)->get_allcell().size();i++){
+        const MergeGeomCell *mcell = (const MergeGeomCell*)((*it)->get_allcell().at(i));
+        MergeSpaceCell *mscell = new MergeSpaceCell();
+        all_msc_cells.push_back(mscell);
+        mscell->set_mcell(mcell);
+        for (int j=0;j!=mcell->get_allcell().size();j++){
+            const GeomCell *cell = mcell->get_allcell().at(j);
+            SpaceCell *space_cell = new SpaceCell(ncluster,*cell,(mcell->GetTimeSlice()*nrebin/2.*unit_dis/10. - frame_length/2.*unit_dis/10.)*units::cm,1,unit_dis/10.*nrebin/2.*units::cm);
+            all_sc_cells.push_back(space_cell);
+            mscell->AddSpaceCell(space_cell);
+        }
+        mscells.push_back(mscell);
+    }
+    WCP2dToy::ToyCrawler* toycrawler = new WCP2dToy::ToyCrawler(mscells);
+    crawlers.push_back(toycrawler);
+    ncluster++;
+}
+ * @brief Saves files.
+ 
+TFile *file = new TFile(Form("shower3D_cluster_%d.root",eve_num),"RECREATE");
+TTREE *t_tree = new TTREE("T","T");
+t_tree->SetDirectory(file);
+ * @brief Writes trees to file.
+ 
+t_tree->Write();
+file->Close();
+ * @brief Resets cluster list and crawlers.
+ 
+cluster_dellist.clear();
+for (auto it = cluster_list.begin();it!=cluster_list.end();it++){
+    delete (*it);
+}
+cluster_list.clear();
+crawlers.clear();
+ * @brief Re-clusters and re-crawls.
+ 
+ncount_mcell = 0;
+for (int i=start_num;i!=end_num+1;i++){
+    GeomCellSelection pallmcell = mergetiling[i]->get_allcell();
+    GeomCellSelection allmcell;
+    for (int j=0;j!=pallmcell.size();j++){
+        const GeomCell* mcell = pallmcell[j];
+        int flag_save_cell = 0;
+        if (toymatrix[i]->Get_Solve_Flag()==0){
+            flag_save_cell = 1;
+        }else{
+            if (toymatrix[i]->Get_Cell_Charge(mcell)> recon_threshold){
+                flag_save_cell = 1;
+            }else{
+                if (i == start_num || i == end_num + 1) continue;
+                flag_save_cell = 0;
+                for (int k=0;k!=cell_next_map[mcell].size();k++){
+                    if (toymatrix[i+1]->Get_Cell_Charge(cell_next_map[mcell].at(k)) > recon_threshold){
+                        flag_save_cell = 1;
+                        break;
+                    }
+                }
+                if (flag_save_cell==1){
+                    flag_save_cell = 0;
+                    for (int k=0;k!=cell_prev_map[mcell].size();k++){
+                        if (toymatrix[i-1]->Get_Cell_Charge(cell_prev_map[mcell].at(k)) > recon_threshold){
+                            flag_save_cell = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (flag_save_cell == 1)
+            allmcell.push_back(mcell);
+    }
+    if (cluster_list.empty()){
+        for (int j=0;j!=allmcell.size();j++){
+            MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j];
+            if (mcell->get_allcell().size()>0){
+                GeomCluster *cluster = new GeomCluster(*mcell);
+                cluster_list.push_back(cluster);
+            }
+        }
+    }else{
+        for (int j=0;j!=allmcell.size();j++){
+            MergeGeomCell *mcell = (MergeGeomCell*)allmcell[j];
+            if (mcell->get_allcell().size()>0){
+                int flag = 0;
+                int flag_save = 0;
+                GeomCluster *cluster_save = 0;
+                cluster_dellist.clear();
+                for (auto it = cluster_list.begin();it!=cluster_list.end();it++){
+                    flag += (*it)->AddCell(*mcell);
+                    if (flag==1 && flag!= flag_save){
+                        cluster_save = *it;
+                    }else if (flag > 1 && flag!= flag_save){
+                        cluster_save->MergeCluster(*(*it));
+                        cluster_dellist.push_back(*it);
+                    }
+                    flag_save = flag;
+                }
+                for (auto it = cluster_dellist.begin();it!=cluster_dellist.end();it++){
+                    auto it1 = find(cluster_list.begin(),cluster_list.end(),*it);
+                    cluster_list.erase(it1);
+                    delete (*it);
+                }
+                if (flag==0){
+                    GeomCluster *cluster = new GeomCluster(*mcell);
+                    cluster_list.push_back(cluster);
+                }
+            }
+        }
+    }
+    ncount_mcell += allmcell.size();
+}
+ * @brief Re-crawls.
+ 
+ncluster = 0;
+for (auto it = cluster_list.begin();it!=cluster_list.end();it++){
+    MergeSpaceCellSelection mscells;
+    for (int i=0; i!=(*it)->get_allcell().size();i++){
+        const MergeGeomCell *mcell = (const MergeGeomCell*)((*it)->get_allcell().at(i));
+        MergeSpaceCell *mscell = new MergeSpaceCell();
+        all_msc_cells.push_back(mscell);
+        mscell->set_mcell(mcell);
+        for (int j=0;j!=mcell->get_allcell().size();j++){
+            const GeomCell *cell = mcell->get_allcell().at(j);
+            SpaceCell *space_cell = new SpaceCell(ncluster,*cell,(mcell->GetTimeSlice()*nrebin/2.*unit_dis/10. - frame_length/2.*unit_dis/10.)*units::cm,1,unit_dis/10.*nrebin/2.*units::cm);
+            all_sc_cells.push_back(space_cell);
+            mscell->AddSpaceCell(space_cell);
+        }
+        mscells.push_back(mscell);
+    }
+    WCP2dToy::ToyCrawler* toycrawler = new WCP2dToy::ToyCrawler(mscells,2);
+    crawlers.push_back(toycrawler);
+    ncluster++;
+}
+ * @brief Saves files.
+ 
+TFile *file = new TFile(Form("shower3D_cluster_%d.root",eve_num),"RECREATE");
+TTREE *t_tree = new TTREE("T","T");
+t_tree->SetDirectory(file);
+ * @brief Writes trees to file.
+ 
+t_tree->Write();
+file->Close();
+ * @brief Returns program exit status.
+ 
+return 0;* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.5.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {

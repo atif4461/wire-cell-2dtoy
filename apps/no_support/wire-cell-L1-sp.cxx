@@ -18,6 +18,170 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * This is the main function where the program starts execution.
+ *
+ * It checks command line arguments, initializes variables, creates a geometry data source object,
+ * gets the extent of the geometry data source, and prints it to the standard error stream.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+  
+int main(int argc, char* argv[]) 
+ * @brief Checks command line argument count and prints usage message if invalid.
+ *
+ * @return Error message if insufficient arguments.
+ 
+if (argc < 4) {
+     * @brief Prints usage message to standard error stream.
+ 
+cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root eve_num " << endl;
+return 1;
+}
+ * @brief Initializes variables.
+ 
+int two_plane = 0;
+int save_file = 0;
+int nt_off1 = 0;
+int nt_off2 = 0;
+ * @brief Creates geometry data source object.
+ *
+ * @param argv[1] Path to ChannelWireGeometry.txt file.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Gets extent of geometry data source.
+ *
+ * @return Vector of doubles representing extent.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints extent to standard error stream.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Prints pitch and angle of wire planes.
+ 
+cout << "Pitch: " << gds.pitch(WirePlaneType_t(0)) 
+       << " " << gds.pitch(WirePlaneType_t(1)) 
+       << " " << gds.pitch(WirePlaneType_t(2))
+       << endl;
+cout << "Angle: " << gds.angle(WirePlaneType_t(0)) 
+       << " " << gds.angle(WirePlaneType_t(1)) 
+       << " " << gds.angle(WirePlaneType_t(2))
+       << endl;
+ * @brief Processes command line options.
+ 
+for(Int_t i = 3; i!= argc; i++){
+    switch(argv[i][1]){
+    case 'c':
+        chid= atoi(&argv[i][2]); 
+	break;
+    case's':
+	start_recon_bin = atoi(&argv[i][2]); 
+	break;
+    case 'l':
+	nrecon_bin = atoi(&argv[i][2]); 
+	break;
+    default:
+	cout << "Warning!!!! Unknown option: " << &argv[i][1] << endl;
+	break;
+    }
+}
+ * @brief Opens ROOT file and retrieves histograms.
+ 
+TFile *file = new TFile(root_file);
+TH2F *hu_raw, *hv_raw, *hw_raw;
+hu_raw = (TH2F*)file->Get("hu_raw");
+hv_raw = (TH2F*)file->Get("hv_raw");
+hw_raw = (TH2F*)file->Get("hw_raw");
+ * @brief Retrieves deconvoluted histograms.
+ 
+TH2F *hu_decon  = (TH2F*)file->Get("hu_decon");
+TH2F *hv_decon  = (TH2F*)file->Get("hv_decon");
+TH2F *hw_decon  = (TH2F*)file->Get("hw_decon");
+ * @brief Defines constants and variables for histogram processing.
+ 
+const int nbins = hu_raw->GetNbinsY();
+int nwire_u = hu_raw->GetNbinsX();
+int nwire_v = hv_raw->GetNbinsX();
+int nwire_w = hw_raw->GetNbinsX();
+ * @brief Creates temporary histograms for processing.
+ 
+TH2F *htemp, *htemp1;
+if (chid < nwire_u){
+    htemp = hu_raw;
+    htemp1 = hu_decon;
+}else if (chid < nwire_v+nwire_u){
+    htemp = hv_raw;
+    htemp1 = hv_decon;
+    chid -= nwire_u;
+}else{
+    htemp = hw_raw;
+    htemp1 = hw_decon;
+    chid -= nwire_u + nwire_v;
+}
+ * @brief Defines rebinning parameters.
+ 
+int nrebin = 6;
+int start_bin = start_recon_bin*nrebin ;
+ * @brief Creates output histograms.
+ 
+TH1F *hsig = new TH1F("hsig","hsig",nbins,0,nbins);
+TH1F *hsig1 = new TH1F("hsig1","hsig1",nbin_fit,start_bin,start_bin+nbin_fit);
+TH1F *hsig_w = new TH1F("hsig_w","hsig_w",nbin_fit,start_bin,start_bin+nbin_fit);
+TH1F *hsig_v = new TH1F("hsig_v","hsig_v",nbin_fit,start_bin,start_bin+nbin_fit);
+TH1F *hrecon_sig = new TH1F("hrecon_sig","hrecon_sig",nrecon_bin,start_bin,start_bin+nbin_fit);
+TH1F *hL1_sig = new TH1F("hL1_sig","hL1_sig",nrecon_bin,start_bin,start_bin+nbin_fit);  
+ * @brief Fills output histograms with data from input histograms.
+ 
+for (int i=0;i!=nbins;i++){
+    hsig->SetBinContent(i+1,htemp->GetBinContent(chid+1,i+1));
+}
+for (int i=0;i!=nbin_fit;i++){
+    hsig1->SetBinContent(i+1,hsig->GetBinContent(start_bin+i+1));
+}
+ * @brief Reads in response functions from external files.
+ 
+TGraph **gw_2D_g = new TGraph*[11];
+TGraph **gv_2D_g = new TGraph*[11];
+ * @brief Combines response functions into single graphs.
+ 
+TGraph *gw = new TGraph();
+TGraph *gv = new TGraph();
+ * @brief Forms matrix G for least squares fit.
+ 
+MatrixXd G = MatrixXd::Zero(nbin_fit,nbin_fit*2);
+ * @brief Solves for coefficients using LASSO model.
+ 
+WCP::LassoModel m2(lambda, 100000, 0.05);
+m2.SetData(G, W);
+m2.Fit();
+VectorXd beta = m2.Getbeta();
+ * @brief Applies filter to solution.
+ 
+TF1 *filter_g = new TF1("filter_g","exp(-0.5*pow(x/[0],2))");
+ * @brief Convolutates filtered solution with Gaussian filter.
+ 
+TVirtualFFT *ifft2 = TVirtualFFT::FFT(1,&n,"C2R M K");
+ * @brief Writes output histograms to file.
+ 
+TFile *file1 = new TFile("L1_sp.root","RECREATE");
+hsig->SetDirectory(file1);
+hsig1->SetDirectory(file1);
+hrecon_sig->SetDirectory(file1);
+hL1_sig->SetDirectory(file1);
+hsig_w->SetDirectory(file1);
+hsig_v->SetDirectory(file1);
+gw->Write("gw");
+gv->Write("gv");
+file1->Write();
+file1->Close();* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.5.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {

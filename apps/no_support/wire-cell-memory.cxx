@@ -51,6 +51,132 @@ using namespace std;
 
 
 
+/**
+
+```cpp * @brief Main program entry point.
+ *
+ * This function serves as the primary entry point for the application.
+ * It handles command-line arguments, sets up necessary objects, and executes key operations.
+ *
+ * @param argc The number of command-line arguments passed to the program.
+ * @param argv An array containing the actual command-line argument strings.
+ * @return The program's exit status, indicating successful execution or errors.
+  
+int main(int argc, char* argv[]) 
+```
+
+```cpp * @brief Checks the number of command-line arguments and provides usage instructions if insufficient.
+ *
+ * Verifies that the required number of command-line arguments is met; otherwise, displays the correct usage syntax.
+ * @return An error message if there are too few arguments, prompting the user to follow the specified format.
+  
+if (argc < 4) {
+     * @brief Prints the proper usage message when insufficient arguments are supplied.
+   * Informs users about the expected input parameters, including paths to files and event numbers.
+   
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/celltree.root eve_num " << endl;
+  return 1;
+}
+```
+
+```cpp * @brief Disables automatic ROOT directory generation.
+ * Prevents the creation of unnecessary directories within the ROOT environment.
+ 
+TH1::AddDirectory(kFALSE);
+```
+
+```cpp * @brief Constructs a Geometry Data Source object using the provided command-line argument.
+ * Utilizes the first command-line argument to initialize the Geometry Data Source object.
+ * @param argv Command-line argument array, with the first element being the path to the geometry file.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+```
+
+```cpp * @brief Retrieves the spatial extent of the geometry data source.
+ * Extracts the dimensions of the geometry data source, represented as a vector of doubles.
+ * @return A vector of doubles signifying the extent of the geometry data source.
+ 
+std::vector<double> ex = gds.extent();
+```
+
+```cpp * @brief Displays the extent values of the geometry data source.
+ * Outputs the extracted dimensions in millimeters and meters for visualization purposes.
+ 
+cerr << "Extent: "
+       << " x:" << ex[0]/units::mm << " mm"
+       << " y:" << ex[1]/units::m << " m"
+       << " z:" << ex[2]/units::m << " m"
+       << endl;
+```
+
+```cpp * @brief Defines constants and variables used throughout the program.
+ * Establishes various numerical values employed in subsequent computations and initializations.
+ 
+const char* root_file = argv[2];
+const char* tpath = "/Event/Sim";
+int eve_num = atoi(argv[3]);
+int recon_threshold = 2000;
+int max_events = 100;
+```
+
+```cpp * @brief Opens the specified ROOT file for reading.
+ * Accesses the ROOT file indicated by the second command-line argument.
+ * @return A pointer to the opened TFile object.
+ 
+TFile *tfile = TFile::Open(root_file);
+```
+
+```cpp * @brief Instantiates a Frame Data Source object from the ROOT file.
+ * Derives the frame data source from the contents of the ROOT file.
+ * @return A pointer to the created Frame Data Source object.
+ 
+WCP::FrameDataSource* fds = WCPSst::make_fds(*tfile);
+```
+
+```cpp * @brief Performs signal processing steps on the frame data source.
+ * Executes depositions on the frame data source to generate signal information.
+ 
+WCP::ToyDepositor toydep(fds);
+const PointValueVector& pvv = toydep.depositions(eve_num);
+```
+
+```cpp * @brief Generates a Generative Frame Data Source object.
+ * Combines the Toy Deposition object, Geometry Data Source, and additional parameters to create a Generative Frame Data Source.
+ 
+WCP::GenerativeFDS gfds(toydep,gds,9600,max_events,0.5*1.60*units::millimeter);
+gfds.jump(eve_num);
+```
+
+```cpp * @brief Produces a Slice Data Source object based on the Generative Frame Data Source.
+ * Translates the Generative Frame Data Source into a Slice Data Source object.
+ 
+WCPSst::ToyuBooNESliceDataSource sds(gfds,gaus_fds,threshold_u, threshold_v, threshold_w, threshold_ug, threshold_vg, threshold_wg, nwire_u, nwire_v, nwire_w);
+```
+
+```cpp * @brief Iterates over a range of event indices, performing reconstruction and metric calculations.
+ * Loops through events, applying reconstruction techniques and computing metrics such as Chi-squared and NDF.
+ 
+for (int i=start_num;i!=end_num+1;i++){
+  // Perform reconstruction and metric computation for each event index.
+}
+```
+
+```cpp * @brief Saves the reconstructed data to a ROOT file.
+ * Writes the computed metrics and reconstructed data to a ROOT file for further analysis or storage.
+ 
+TFile *file = new TFile(Form("shower3D_signal_%d.root",eve_num),"RECREATE");
+//...
+file->Write();
+file->Close();
+```
+
+```cpp * @brief Finalizes and concludes the program.
+ * Ensures proper cleanup and termination of the application.
+ * @return Exit status, typically 0 for successful execution.
+ 
+return 0;
+```* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.5.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {

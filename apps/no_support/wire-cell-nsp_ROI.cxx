@@ -59,6 +59,152 @@ using namespace WCP;
 using namespace std;
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * This is the main function where the program starts execution.
+ * It checks the command line arguments, initializes variables,
+ * retrieves geometry data, and performs various operations.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Checks command line arguments and prints usage message if invalid.
+ *
+ * Verifies that the number of command line arguments is at least 4.
+ * If not, prints the correct usage of the program and returns an error code.
+ 
+if (argc < 4) {
+         * @brief Prints usage message to standard error stream.
+     
+    cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt decon.root raw.root" << endl;
+    return 1;
+}
+ * @brief Initializes variables and data structures.
+ *
+ * Creates instances of data sources, trees, histograms, and maps.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+std::vector<double> ex = gds.extent();
+TString filename = argv[2];
+TFile *file = new TFile(filename);
+TTree *Trun = (TTree*)file->Get("Trun");
+TTree *T_bad = (TTree*)file->Get("T_bad");
+TTree *T_lf = (TTree*)file->Get("T_lf");
+ * @brief Retrieves histogram objects from files.
+ *
+ * Gets 2D histograms from the input files.
+ 
+TH2I *hu_decon = (TH2I*)file->Get("hu_decon");
+TH2I *hv_decon = (TH2I*)file->Get("hv_decon");
+TH2I *hw_decon = (TH2I*)file->Get("hw_decon");
+
+filename = argv[3];
+TFile *file2 = new TFile(filename);
+TH2F *hu_raw = (TH2F*)file2->Get("hu_raw");
+TH2F *hv_raw = (TH2F*)file2->Get("hv_raw");
+TH2F *hw_raw = (TH2F*)file2->Get("hw_raw");
+ * @brief Creates data source objects for frames and deconvolutions.
+ *
+ * Instantiates classes for handling frame data and deconvolutions.
+ 
+WCPSst::DatauBooNEFrameDataSource data_fds(hu_raw,hv_raw,hw_raw,T_bad,T_lf,Trun,gds);
+WCP2dToy::uBooNEData2DDeconvolutionFDS wien_fds(hu_decon,hv_decon,hw_decon,T_bad, gds);
+ * @brief Retrieves map objects for planes.
+ *
+ * Gets chirp maps for U, V, and W planes.
+ 
+ChirpMap& uplane_map = wien_fds.get_u_cmap();
+ChirpMap& vplane_map = wien_fds.get_v_cmap();
+ChirpMap& wplane_map = wien_fds.get_w_cmap();
+ * @brief Retrieves set of noisy channels.
+ *
+ * Gets a set of indices of noisy channels.
+ 
+std::set<int>& lf_noisy_channels = data_fds.get_lf_noisy_channels();
+ * @brief Declares variables for event information.
+ *
+ * Defines integers for run, sub-run, and event numbers.
+ 
+int run_no;
+int subrun_no;
+int event_no;
+ * @brief Sets branch addresses for tree.
+ *
+ * Connects branches of the tree to variables.
+ 
+Trun->SetBranchAddress("eventNo",&event_no);
+Trun->SetBranchAddress("runNo",&run_no);
+Trun->SetBranchAddress("subRunNo",&subrun_no);
+ * @brief Gets entry from tree.
+ *
+ * Retrieves the first entry from the tree.
+ 
+Trun->GetEntry(0);
+ * @brief Performs ROI operations.
+ *
+ * Creates ROI data and performs related tasks.
+ 
+WCP2dToy::uBooNEDataROI uboone_rois(data_fds,wien_fds,gds,uplane_map,vplane_map,wplane_map,lf_noisy_channels);
+WCP2dToy::uBooNEDataAfterROI roi_fds(wien_fds,gds,uboone_rois,4);
+roi_fds.jump(0);
+ * @brief Retrieves selections of wires.
+ *
+ * Gets collections of wires in different planes.
+ 
+GeomWireSelection wires_u = gds.wires_in_plane(WirePlaneType_t(0));
+GeomWireSelection wires_v = gds.wires_in_plane(WirePlaneType_t(1));
+GeomWireSelection wires_w = gds.wires_in_plane(WirePlaneType_t(2));
+ * @brief Calculates sizes of wire selections.
+ *
+ * Determines the number of wires in each plane.
+ 
+Int_t nwire_u = wires_u.size();
+Int_t nwire_v = wires_v.size();
+Int_t nwire_w = wires_w.size();
+ * @brief Creates output file and histograms.
+ *
+ * Opens a new root file and creates 2D histograms.
+ 
+TFile *file1 = new TFile(Form("nsp3_%d_%d_%d.root",run_no,subrun_no,event_no),"RECREATE");
+TH2F *hu_roi = new TH2F("hu_roi","hu_roi",nwire_u,-0.5,nwire_u-0.5,100/rebin,0,100);
+TH2F *hv_roi = new TH2F("hv_roi","hv_roi",nwire_v,-0.5+nwire_u,nwire_v-0.5+nwire_u,100/rebin,0,100);
+TH2F *hw_roi = new TH2F("hw_roi","hw_roi",nwire_w,-0.5+nwire_u+nwire_v,nwire_w-0.5+nwire_u+nwire_v,100/rebin,0,100);
+ * @brief Fills histograms with data from ROI.
+ *
+ * Loops through traces and fills corresponding bins in histograms.
+ 
+const Frame& frame1 = roi_fds.get();
+int ntraces = frame1.traces.size();
+for (size_t ind=0; ind<ntraces; ++ind) {
+    const Trace& trace = frame1.traces[ind];
+    int tbin = trace.tbin;
+    int chid = trace.chid;
+    int nbins = trace.charge.size();
+    WirePlaneType_t plane = gds.by_channel(chid).at(0)->plane();
+    if (plane == WirePlaneType_t(0)){
+        htemp1 = hu_roi;
+    }else if (plane == WirePlaneType_t(1)){
+        htemp1 = hv_roi;
+        chid -= nwire_u;
+    }else if (plane == WirePlaneType_t(2)){
+        htemp1 = hw_roi;
+        chid -= nwire_u + nwire_v;
+    }
+    for (int i = tbin;i!=tbin+nbins;i++){
+        int tt = i+1;
+        htemp1->SetBinContent(chid+1,tt,trace.charge.at(i));
+    }
+}
+ * @brief Writes and closes output file.
+ *
+ * Saves the filled histograms to the output file and closes it.
+ 
+file1->Write();
+file1->Close();* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.5.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {
