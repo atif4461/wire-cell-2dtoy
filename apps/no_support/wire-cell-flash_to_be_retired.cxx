@@ -8,6 +8,217 @@
 using namespace WCP;
 using namespace std;
 
+/**
+ * @brief Main program entry point.
+ *
+ * This function serves as the primary entry point for the program. It handles command-line argument parsing,
+ * initializes the geometry data source, loads the event data, and performs the necessary calculations.
+ *
+ * @param argc Number of command-line arguments passed to the program.
+ * @param argv Array of character pointers containing the command-line arguments.
+ * @return Integer value indicating the program's exit status.
+  
+int main(int argc, char* argv[]) 
+ * @brief Checks the number of command-line arguments and prints usage instructions if insufficient.
+ *
+ * Verifies that the required number of command-line arguments is met, otherwise displays the correct usage.
+  
+if (argc < 4) { 
+ * @brief Initializes the ROOT directory to prevent automatic deletion of histograms.
+ *
+ * Disables the automatic deletion of histograms by setting the AddDirectory flag to false.
+  
+TH1::AddDirectory(kFALSE);
+ * @brief Creates a geometry data source instance and retrieves the extent of the geometry.
+ *
+ * Instantiates the GeomDataSource class and extracts the geometric extent.
+  
+WCPSst::GeomDataSource gds(argv[1]); 
+std::vector<double> ex = gds.extent();
+ * @brief Prints the geometric extent to the standard error stream.
+ *
+ * Outputs the extent values to the console for verification purposes.
+  
+cerr << "Extent: " << " x:" << ex[0]/units::mm << " mm" << " y:" << ex[1]/units::m << " m" << " z:" << ex[2]/units::m << " m" << endl;
+ * @brief Retrieves and prints pitch and angle values for each wire plane type.
+ *
+ * Extracts and displays the pitch and angle values for the specified wire planes.
+  
+cout << "Pitch: " << gds.pitch(WirePlaneType_t(0)) << " " << gds.pitch(WirePlaneType_t(1)) << " " << gds.pitch(WirePlaneType_t(2)) << endl; 
+cout << "Angle: " << gds.angle(WirePlaneType_t(0)) << " " << gds.angle(WirePlaneType_t(1)) << " " << gds.angle(WirePlaneType_t(2)) << endl;
+ * @brief Loads event data from a ROOT file and sets up branches for reading.
+ *
+ * Opens the ROOT file, creates a tree, and sets branch addresses for various event data.
+  
+const char* root_file = argv[2]; 
+int eve_num = atoi(argv[3]); 
+WCP2dToy::uBooNE_light_reco uboone_flash(root_file); 
+//uboone_flash.load_event(eve_num); 
+uboone_flash.load_event_raw(eve_num); 
+    
+TFile *file1 = new TFile(root_file); 
+TTree *T = (TTree*)file1->Get("/Event/Sim");  
+ * @brief Sets branch addresses for various event data.
+ *
+ * Establishes connections between tree branches and corresponding data containers.
+  
+T->SetBranchAddress("cosmic_hg_wf",&cosmic_hg_wf); 
+T->SetBranchAddress("cosmic_lg_wf",&cosmic_lg_wf); 
+T->SetBranchAddress("beam_hg_wf",&beam_hg_wf); 
+T->SetBranchAddress("beam_lg_wf",&beam_lg_wf); 
+T->SetBranchAddress("cosmic_hg_opch",&cosmic_hg_opch); 
+T->SetBranchAddress("cosmic_lg_opch",&cosmic_lg_opch); 
+T->SetBranchAddress("beam_hg_opch",&beam_hg_opch); 
+T->SetBranchAddress("beam_lg_opch",&beam_lg_opch); 
+T->SetBranchAddress("cosmic_hg_timestamp",&cosmic_hg_timestamp); 
+T->SetBranchAddress("cosmic_lg_timestamp",&cosmic_lg_timestamp); 
+T->SetBranchAddress("beam_hg_timestamp",&beam_hg_timestamp); 
+T->SetBranchAddress("beam_lg_timestamp",&beam_lg_timestamp); 
+T->SetBranchAddress("opch_to_opdet",&opch_to_opdet);  
+T->SetBranchAddress("op_gain",&op_gain); 
+T->SetBranchAddress("op_gainerror",&op_gainerror); 
+T->SetBranchAddress("triggerTime",&triggerTime); 
+   * @brief Retrieves event data for the specified event number.
+ *
+ * Gets the event data from the tree for the given event number.
+  
+T->GetEntry(eve_num);
+ * @brief Creates output file and tree for storing processed data.
+ *
+ * Generates a new ROOT file and tree to hold the processed event data.
+  
+TFile *file = new TFile(Form("flash_%d_%d_%d.root",run_no, subrun_no, event_no),"RECREATE"); 
+TTree *t1 = new TTree("T_data","T_data"); 
+t1->SetDirectory(file);
+ * @brief Sets branch addresses for output tree.
+ *
+ * Establishes connections between the output tree branches and corresponding data containers.
+  
+t1->Branch("op_gain",&op_gain); 
+t1->Branch("op_gainerror",&op_gainerror); 
+t1->Branch("op_femch",&op_femch); 
+t1->Branch("op_timestamp",&op_timestamp); 
+t1->Branch("op_wf",&op_wf,256000,0); 
+t1->Branch("triggerTime",&triggerTime);  
+t1->Branch("runNo",&run_no); 
+t1->Branch("subRunNo",&subrun_no); 
+t1->Branch("eventNo",&event_no);
+ * @brief Transfers raw waveform data to output tree.
+ *
+ * Copies raw waveform data from the uBooNE_light_reco instance to the output tree.
+  
+op_wf = uboone_flash.get_rawWfm(); 
+op_femch = uboone_flash.get_rawChan(); 
+op_timestamp = uboone_flash.get_rawTimestamp();
+ * @brief Fills the output tree with the transferred data.
+ *
+ * Writes the data to the output tree.
+  
+t1->Fill();
+ * @brief Creates histograms for raw and deconvoluted data.
+ *
+ * Instantiates histograms to store raw and deconvoluted data.
+  
+TH2F *h1 = new TH2F("hraw","hraw",1500,0,1500,32,0,32); 
+TH2F *h2 = new TH2F("hdecon","hdecon",250,0,250,32,0,32); 
+TH2F *h3 = new TH2F("hl1","hl1",250,0,250,32,0,32); 
+h1->SetDirectory(file); 
+h2->SetDirectory(file); 
+h3->SetDirectory(file);
+ * @brief Populates the histograms with raw and deconvoluted data.
+ *
+ * Loops through channels, retrieving and filling histograms with corresponding data.
+  
+for (int i=0;i!=32;i++){ 
+  TH1F *h10 = uboone_flash.get_raw_hist(i); 
+  TH1F *h20 = uboone_flash.get_decon_hist(i); 
+  TH1F *h30 = uboone_flash.get_l1_hist(i); 
+  for (int j=0;j!=1500;j++){ 
+    h1->SetBinContent(j+1,i+1,h10->GetBinContent(j+1)); 
+  } 
+  for (int j=0;j!=250;j++){ 
+    h2->SetBinContent(j+1,i+1,h20->GetBinContent(j+1)); 
+    h3->SetBinContent(j+1,i+1,h30->GetBinContent(j+1)); 
+  } 
+}
+ * @brief Clones and stores additional histograms.
+ *
+ * Creates clones of histograms and assigns them to new instances.
+  
+TH1F *h_totPE = (TH1F*)uboone_flash.get_totPE()->Clone("totPE"); 
+TH1F *h_mult = (TH1F*)uboone_flash.get_mult()->Clone("mult"); 
+TH1F *h_l1_mult = (TH1F*)uboone_flash.get_l1_mult()->Clone("l1_mult"); 
+TH1F *h_l1_totPE = (TH1F*)uboone_flash.get_l1_totPE()->Clone("l1_totPE");
+ * @brief Sets directory for cloned histograms.
+ *
+ * Assigns the output file as the directory for the cloned histograms.
+  
+h_totPE->SetDirectory(file); 
+h_mult->SetDirectory(file); 
+h_l1_mult->SetDirectory(file); 
+h_l1_totPE->SetDirectory(file);
+ * @brief Creates tree for flash data and sets branch addresses.
+ *
+ * Instantiates a new tree for flash data and establishes connections between branches and data containers.
+  
+TTree *T_flash = new TTree("T_flash","T_flash"); 
+T_flash->SetDirectory(file); 
+int type; 
+double low_time, high_time; 
+double time; 
+double total_PE; 
+double PE[32],PE_err[32]; 
+std::vector<int> fired_channels; 
+std::vector<double> l1_fired_time; 
+std::vector<double> l1_fired_pe; 
+ * @brief Sets branch addresses for flash tree.
+ *
+ * Establishes connections between the flash tree branches and corresponding data containers.
+  
+T_flash->Branch("type",&type); 
+T_flash->Branch("low_time",&low_time); 
+T_flash->Branch("high_time",&high_time); 
+T_flash->Branch("time",&time); 
+T_flash->Branch("total_PE",&total_PE); 
+T_flash->Branch("PE",PE,"PE[32]/D"); 
+T_flash->Branch("PE_err",PE_err,"PE_err[32]/D"); 
+T_flash->Branch("fired_channels",&fired_channels); 
+T_flash->Branch("l1_fired_time",&l1_fired_time); 
+T_flash->Branch("l1_fired_pe",&l1_fired_pe);
+ * @brief Iterates over flash data and fills the flash tree.
+ *
+ * Loops through the flash data, populating the flash tree with the corresponding information.
+  
+WCP::OpflashSelection& flashes = uboone_flash.get_flashes(); 
+for (auto it = flashes.begin(); it!=flashes.end(); it++){ 
+  fired_channels.clear();  
+    
+  Opflash *flash = (*it); 
+  type = flash->get_type(); 
+  low_time = flash->get_low_time(); 
+  high_time = flash->get_high_time(); 
+  time = flash->get_time(); 
+  total_PE = flash->get_total_PE(); 
+  for (int i=0;i!=32;i++){ 
+    PE[i] = flash->get_PE(i); 
+    PE_err[i] = flash->get_PE_err(i); 
+    if (flash->get_fired(i)) 
+      fired_channels.push_back(i); 
+  } 
+  l1_fired_time = flash->get_l1_fired_time(); 
+  l1_fired_pe = flash->get_l1_fired_pe(); 
+  T_flash->Fill();  
+    
+}
+ * @brief Writes the output file and closes it.
+ *
+ * Saves the modifications to the output file and releases system resources.
+  
+file->Write(); 
+file->Close(); 
+return 1; 
+}* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {

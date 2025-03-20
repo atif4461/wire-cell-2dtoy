@@ -18,6 +18,156 @@ using namespace std;
 
 
 
+/**
+ * @brief Main program entry point.
+ *
+ * This function serves as the primary entry point for the program. It handles command-line argument parsing,
+ * initializes necessary data structures, reads input files, performs calculations, and writes output to a ROOT file.
+ *
+ * @param argc Number of command-line arguments passed to the program.
+ * @param argv Array of character pointers containing the command-line arguments.
+ * @return Integer indicating program execution status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits the program if insufficient command-line arguments are provided.
+ 
+if (argc < 4) {
+     * Insufficient command-line arguments provided; print usage message and exit.
+   
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt /path/to/magnify.root -c[ch_id] -s[start_bin] -l[length]" << endl;
+  return 0;
+}
+ * @brief Initializes GeomDataSource object with the first command-line argument.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves extent information from the GeomDataSource object.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Prints extent information to the standard error stream.
+ 
+cerr << "Extent: "
+     << " x:" << ex[0]/units::mm << " mm"
+     << " y:" << ex[1]/units::m << " m"
+     << " z:" << ex[2]/units::m << " m"
+     << endl;
+ * @brief Retrieves pitch values for each wire plane type and prints them to the standard output stream.
+ 
+cout << "Pitch: " << gds.pitch(WirePlaneType_t(0)) 
+     << " " << gds.pitch(WirePlaneType_t(1)) 
+     << " " << gds.pitch(WirePlaneType_t(2))
+     << endl;
+ * @brief Retrieves angle values for each wire plane type and prints them to the standard output stream.
+ 
+cout << "Angle: " << gds.angle(WirePlaneType_t(0)) 
+     << " " << gds.angle(WirePlaneType_t(1)) 
+     << " " << gds.angle(WirePlaneType_t(2))
+     << endl;
+ * @brief Parses command-line arguments to extract channel ID, start bin, and length.
+ 
+for (Int_t i = 3; i!= argc; i++){
+  switch(argv[i][1]){
+  case 'c':
+         * Extracts channel ID from the command-line argument.
+     
+    chid= atoi(&argv[i][2]); 
+    break;
+  case's':
+         * Extracts start bin from the command-line argument.
+     
+    start_recon_bin = atoi(&argv[i][2]); 
+    break;
+  case 'l':
+         * Extracts length from the command-line argument.
+     
+    nrecon_bin = atoi(&argv[i][2]); 
+    break;
+  default:
+         * Handles unknown command-line options.
+     
+    cout << "Warning!!!! Unknown option: " << &argv[i][1] << endl;
+    break;
+  }
+}
+ * @brief Opens the ROOT file specified by the second command-line argument.
+ 
+TFile *file = new TFile(root_file);
+ * @brief Retrieves histograms from the ROOT file.
+ 
+TH2F *hu_raw, *hv_raw, *hw_raw;
+hu_raw = (TH2F*)file->Get("hu_raw");
+hv_raw = (TH2F*)file->Get("hv_raw");
+hw_raw = (TH2F*)file->Get("hw_raw");
+ * @brief Performs calculations involving histogram operations and stores results in new histograms.
+ 
+for (int i=0;i!=nbins;i++){
+  hsig->SetBinContent(i+1,htemp->GetBinContent(chid+1,i+1));
+}
+for (int i=0;i!=nbin_fit;i++){
+  hsig1->SetBinContent(i+1,hsig->GetBinContent(start_bin+i+1));
+}
+for (int i=0;i!=nrecon_bin;i++){
+  double sum = 0;
+  hrecon_sig->SetBinContent(i+1,htemp1->GetBinContent(chid+1,start_recon_bin+i+1)/500.);
+}
+ * @brief Creates TGraph objects to store response functions.
+ 
+TGraph **gw_2D_g = new TGraph*[11];
+TGraph **gv_2D_g = new TGraph*[11];
+ * @brief Populates TGraph objects with data points.
+ 
+for (Int_t i=0;i!=5000;i++){
+  double x,y;
+  gw_2D_g[0]->GetPoint(i,x,y);
+  double sum1 = gw_2D_g[0]->Eval(x);
+  double sum2 = gv_2D_g[0]->Eval(x);
+  for (int j=1;j!=11;j++){
+    sum1 += gw_2D_g[j]->Eval(x)*2.;
+    sum2 += gv_2D_g[j]->Eval(x)*2.;
+  }
+  gw->SetPoint(i,x,sum1);
+  gv->SetPoint(i,x,sum2);
+}
+ * @brief Reads in waveform data and stores it in a VectorXd object.
+ 
+VectorXd W = VectorXd::Zero(nbin_fit);
+for(int i=0;i!=nbin_fit;i++){
+  W(i) = hsig1->GetBinContent(i+1);
+}
+ * @brief Forms matrix G and solves the linear system using the LassoModel class.
+ 
+MatrixXd G = MatrixXd::Zero(nbin_fit,nbin_fit*2);
+WCP::LassoModel m2(lambda, 100000, 0.05);
+m2.SetData(G, W);
+m2.Fit();
+VectorXd beta = m2.Getbeta();
+ * @brief Stores solution coefficients in histograms.
+ 
+for (int i=0;i!=nbin_fit;i++){
+  hsig_w->SetBinContent(i+1,beta(i));
+  hsig_v->SetBinContent(i+1,beta(nbin_fit+i));
+}
+ * @brief Applies a Gaussian filter to the solution histograms using FFT.
+ 
+TF1 *filter_g = new TF1("filter_g","exp(-0.5*pow(x/[0],2))");
+double par3[1]={1.11408e-01};
+filter_g->SetParameters(par3);
+ * @brief Writes output histograms to a new ROOT file.
+ 
+TFile *file1 = new TFile("L1_sp.root","RECREATE");
+hsig->SetDirectory(file1);
+hsig1->SetDirectory(file1);
+hrcon_sig->SetDirectory(file1);
+hL1_sig->SetDirectory(file1);
+hsig_w->SetDirectory(file1);
+hsig_v->SetDirectory(file1);
+gw->Write("gw");
+gv->Write("gv");
+file1->Write();
+file1->Close();
+
+return 0;
+}* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 4) {

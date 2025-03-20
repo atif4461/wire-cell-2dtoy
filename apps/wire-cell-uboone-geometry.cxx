@@ -57,6 +57,153 @@ using namespace std;
 
 
 
+/**
+ * @brief Main entry point of the program.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line argument strings.
+ * @return Program exit status.
+ 
+int main(int argc, char* argv[]) 
+ * @brief Prints usage message and exits if insufficient arguments are provided.
+ 
+if (argc < 2) {
+  cerr << "usage: wire-cell-uboone /path/to/ChannelWireGeometry.txt -u[u channle #] -v[v channel #] -w[w channel #] -x[position cm] -y[position cm] -z[position cm]" << endl;
+  return 1;
+}
+ * @brief Initializes geometry data source from file specified by first command line argument.
+ 
+WCPSst::GeomDataSource gds(argv[1]);
+ * @brief Retrieves extent of geometry data source.
+ 
+std::vector<double> ex = gds.extent();
+ * @brief Initializes variables to store user-provided values.
+ 
+int uwire = -1;
+int vwire = -1;
+int wwire = -1;
+double x_pos = 0;
+double y_pos = -100*units::m;
+double z_pos = -100*units::m;
+ * @brief Sets unit displacement value.
+ 
+float unit_dis = 1.101;  
+ * @brief Counts number of uvw and xyz arguments provided.
+ 
+int num_uvw=0;
+int num_xyz=0;
+ * @brief Iterates over command line arguments to parse user input.
+ 
+for (Int_t i = 1; i!= argc; i++){
+     * @brief Switch statement to handle different command line options.
+   
+  switch(argv[i][1]){
+  case 'u':
+         * @brief Parses u wire number from command line argument.
+     
+    uwire = atoi(&argv[i][2]);
+    num_uvw++;
+    break;
+  case 'v':
+         * @brief Parses v wire number from command line argument.
+     
+    vwire = atoi(&argv[i][2])-2400;
+    num_uvw++;
+    break;
+  case 'w':
+         * @brief Parses w wire number from command line argument.
+     
+    wwire = atoi(&argv[i][2])-2400-2400;
+    num_uvw++;
+    break;
+  case 'x':
+         * @brief Parses x position from command line argument.
+     
+    x_pos = atof(&argv[i][2])*units::cm; 
+    num_xyz ++;
+    break;
+  case 'y':
+         * @brief Parses y position from command line argument.
+     
+    y_pos = atof(&argv[i][2])*units::cm; 
+    num_xyz ++;
+    break;
+  case 'z':
+         * @brief Parses z position from command line argument.
+     
+    z_pos = atof(&argv[i][2])*units::cm; 
+    num_xyz ++;
+    break;
+  }
+}
+ * @brief Checks if more uvw than xyz arguments were provided.
+ 
+if (num_uvw  > num_xyz){
+     * @brief Converts wire numbers to position.
+   
+  Vector p;
+  if (uwire >=0 && vwire >=0){
+         * @brief Finds crossing point of u and v wires.
+     
+    const GeomWire *u_wire = gds.by_planeindex(WirePlaneType_t(0),uwire);
+    const GeomWire *v_wire = gds.by_planeindex(WirePlaneType_t(1),vwire);
+    gds.crossing_point(*u_wire,*v_wire,p);
+    
+         * @brief Prints resulting position.
+     
+    std::cout << "UV (x,y,z): " << p.x/units::cm << ", " << p.y/units::cm << ", " << p.z/units::cm  << " cm" << std::endl;
+  }else if (uwire >=0 && wwire >=0){
+         * @brief Finds crossing point of u and w wires.
+     
+    const GeomWire *u_wire = gds.by_planeindex(WirePlaneType_t(0),uwire);
+    const GeomWire *w_wire = gds.by_planeindex(WirePlaneType_t(2),wwire);
+    gds.crossing_point(*u_wire,*w_wire,p);
+    
+         * @brief Prints resulting position.
+     
+    std::cout << "UW (x,y,z): " << p.x/units::cm << ", " << p.y/units::cm << ", " << p.z/units::cm  << " cm" << std::endl;
+  }else if (vwire >=0 && wwire >=0){
+         * @brief Finds crossing point of v and w wires.
+     
+    const GeomWire *w_wire = gds.by_planeindex(WirePlaneType_t(2),wwire);
+    const GeomWire *v_wire = gds.by_planeindex(WirePlaneType_t(1),vwire);
+    gds.crossing_point(*w_wire,*v_wire,p);
+    
+         * @brief Prints resulting position.
+     
+    std::cout << "VW (x,y,z): " << p.x/units::cm << ", " << p.y/units::cm << ", " << p.z/units::cm  << " cm" << std::endl;
+  }
+}else{
+     * @brief Prints provided position.
+   
+  std::cout << x_pos/units::cm << " " << y_pos/units::cm << " " << z_pos/units::cm << " cm" << std::endl;
+
+     * @brief Converts position to wire numbers.
+   
+  Point p(x_pos,y_pos,z_pos);
+  if (gds.contained_yz(p)){
+         * @brief Finds closest wires to point.
+     
+    const GeomWire *u_wire = gds.closest(p,WirePlaneType_t(0));
+    const GeomWire *v_wire = gds.closest(p,WirePlaneType_t(1));
+    const GeomWire *w_wire = gds.closest(p,WirePlaneType_t(2));
+         * @brief Prints resulting wire numbers.
+     
+    std::cout << "U: " << u_wire->index() << std::endl;
+    std::cout << "V: " << v_wire->index() + 2400 << std::endl;
+    std::cout << "W: " << w_wire->index() + 4800 << std::endl;
+    std::cout << "T: " << (x_pos)/(unit_dis*units::mm)*2+3200 << " " << (x_pos)/(unit_dis*units::mm)*2/4.+800 << std::endl;
+  }else{
+         * @brief Prints error message if point is outside boundary.
+     
+    std::cout << "Point is outside the boundary! " << std::endl;
+  }
+}
+   * @brief Returns program exit status.
+ 
+return 0;
+}* This comment was generated by meta-llama/Llama-3.3-70B-Instruct:None at temperature 0.01.
+*/ 
 int main(int argc, char* argv[])
 {
   if (argc < 2) {
